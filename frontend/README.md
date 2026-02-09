@@ -1,14 +1,14 @@
 # Employee Onboarding System (EOS) Frontend
 
-A premium, "Anti-gravity" style HR Management System frontend built with React, Ant Design, and Framer Motion.
+A premium, "Anti-gravity" style HR Management System frontend built with React, Ant Design, Recharts, and Framer Motion.
 
-## Features
+## Enhanced Features
 
-- **Dashboard**: Real-time metrics and activity feeds.
+- **Dashboard**: Real-time metrics, Hiring Trends (Line Chart), Department Distribution (Pie Chart).
 - **Employee Directory**: Searchable employee list with multiple views.
-- **Recruitment**: Application tracking and job stats.
+- **Recruitment**: Recruitment Funnel (Bar Chart), Application tracking.
 - **Onboarding**: Offer letter management and candidate progress tracking.
-- **Performance**: Review cycles and goal setting.
+- **Performance**: Team Skills Assessment (Radar Chart), Review cycles.
 - **Engagement**: Recognition feeds and survey analysis.
 - **Tasks**: Kanban-style project management.
 
@@ -16,8 +16,8 @@ A premium, "Anti-gravity" style HR Management System frontend built with React, 
 
 - React 18 (Vite)
 - Ant Design 5.0
-- Ant Design Pro Components
-- Framer Motion
+- Recharts (Data Visualization)
+- Framer Motion (Animations)
 - React Router DOM v6
 
 ## Getting Started
@@ -39,4 +39,8 @@ A premium, "Anti-gravity" style HR Management System frontend built with React, 
 
 ## Theme
 
-The application uses a custom "Anti-gravity" theme configuration found in `src/config/theme.js`, featuring soft shadows, rounded corners, and a clean, spacious layout.
+The application uses an enhanced "Anti-gravity" theme (`src/config/theme.js`) featuring:
+- Deep, multi-layered shadows
+- Glassmorphism effects
+- Premium typography
+- Custom scrollbars

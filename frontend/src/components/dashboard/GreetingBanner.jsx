@@ -17,39 +17,44 @@ const GreetingBanner = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             style={{ marginBottom: 24 }}
+            className="glass-card"
         >
-            <Card
-                bordered={false}
+            <div
                 style={{
-                    background: `linear-gradient(135deg, ${token.colorPrimary}10 0%, ${token.colorInfo}10 100%)`, // Subtle gradient
+                    background: `linear-gradient(135deg, ${token.colorPrimary}15 0%, ${token.colorInfo}15 100%)`,
+                    padding: '24px 32px',
                     borderRadius: 16,
-                    border: `1px solid ${token.colorPrimary}20`,
+                    position: 'relative',
+                    overflow: 'hidden'
                 }}
-                bodyStyle={{ padding: '24px 32px' }}
             >
-                <Row justify="space-between" align="middle">
+                {/* Decorative background elements */}
+                <div style={{ position: 'absolute', top: -50, right: -50, width: 200, height: 200, background: token.colorPrimary, borderRadius: '50%', opacity: 0.05, filter: 'blur(40px)' }} />
+                <div style={{ position: 'absolute', bottom: -50, left: -50, width: 200, height: 200, background: token.colorInfo, borderRadius: '50%', opacity: 0.05, filter: 'blur(40px)' }} />
+
+                <Row justify="space-between" align="middle" style={{ position: 'relative', zIndex: 1 }}>
                     <Col>
-                        <Title level={2} style={{ margin: 0, color: token.colorPrimary, fontWeight: 700 }}>
-                            {greeting}, Admin!
+                        <Title level={2} style={{ margin: 0, fontWeight: 700 }} className="text-gradient">
+                            {greeting}, Admin! <span style={{ fontSize: 24 }}>👋</span>
                         </Title>
-                        <Text type="secondary" style={{ fontSize: 16 }}>
+                        <Text style={{ fontSize: 16, color: 'var(--text-secondary)' }}>
                             Here's what's happening with your team today.
                         </Text>
                     </Col>
                     <Col>
-                        <Space size="large">
+                        <Space size="large" split={<div style={{ width: 1, height: 40, background: token.colorSplit }} />}>
                             <div style={{ textAlign: 'center' }}>
-                                <div style={{ fontSize: 24, fontWeight: 700, color: token.colorTextHeading }}>124</div>
-                                <Text type="secondary">Total Employees</Text>
+                                <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>1,234</div>
+                                <Text style={{ color: 'var(--text-secondary)' }}>Total Employees</Text>
                             </div>
                             <div style={{ textAlign: 'center' }}>
-                                <div style={{ fontSize: 24, fontWeight: 700, color: token.colorTextHeading }}>24</div>
-                                <Text type="secondary">Active Today</Text>
+                                <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>24</div>
+                                <Text style={{ color: 'var(--text-secondary)' }}>Active Today</Text>
                             </div>
                         </Space>
                     </Col>
                 </Row>
-            </Card>
+            </div>
         </motion.div>
     );
 };

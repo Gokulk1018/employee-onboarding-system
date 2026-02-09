@@ -19,6 +19,8 @@ import {
     SearchOutlined
 } from '@ant-design/icons';
 import { useLocation, useNavigate, Outlet } from 'react-router-dom';
+import ThemeToggle from '../common/ThemeToggle';
+import AIAssistant from '../common/AIAssistant';
 
 const MainLayout = () => {
     const navigate = useNavigate();
@@ -29,14 +31,13 @@ const MainLayout = () => {
     const menuItems = [
         { path: '/', name: 'Dashboard', icon: <DashboardOutlined /> },
         { path: '/employees', name: 'Employees', icon: <TeamOutlined /> },
-        { path: '/attendance', name: 'Attendance', icon: <CalendarOutlined /> },
+
         { path: '/payroll', name: 'Payroll', icon: <DollarOutlined /> },
         { path: '/recruitment', name: 'Recruitment', icon: <SolutionOutlined /> },
         { path: '/onboarding', name: 'Onboarding', icon: <UserOutlined /> },
         { path: '/performance', name: 'Performance', icon: <FallOutlined /> },
         { path: '/engagement', name: 'Engagement', icon: <HeartOutlined /> },
         { path: '/tasks', name: 'Tasks', icon: <CalendarOutlined /> },
-        { path: '/ai-assistant', name: 'AI Assistant', icon: <RobotOutlined /> },
         { path: '/settings', name: 'Settings', icon: <SettingOutlined /> },
     ];
 
@@ -103,6 +104,7 @@ const MainLayout = () => {
                 actionsRender={(props) => {
                     if (props.isMobile) return [];
                     return [
+                        <ThemeToggle key="theme" />,
                         <Input
                             key="search"
                             prefix={<SearchOutlined style={{ color: token.colorTextTertiary }} />}
@@ -122,14 +124,15 @@ const MainLayout = () => {
                 }}
                 contentStyle={{
                     padding: 24,
-                    background: '#f8fafc', // Force light background for content area
                     minHeight: '100vh',
+                    background: 'transparent',
                 }}
                 headerContentRender={() => {
                     return <div style={{ fontWeight: 600, fontSize: 16 }}>{menuItems.find(m => m.path === location.pathname)?.name || 'Dashboard'}</div>
                 }}
             >
                 <Outlet />
+                <AIAssistant />
             </ProLayout>
         </div>
     );

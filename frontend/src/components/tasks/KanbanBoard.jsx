@@ -1,50 +1,66 @@
 import React from 'react';
-import { Card, Typography, Tag, Avatar, Space, Button, Dropdown } from 'antd';
+import { Card, Typography, Tag, Avatar, Space, Button, theme } from 'antd';
 import { MoreOutlined, ClockCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 
+const TaskCard = ({ task }) => {
+    const { token } = theme.useToken();
+    return (
+        <motion.div
+            layoutId={task.id}
+            whileHover={{ y: -4, scale: 1.02 }}
+            style={{ cursor: 'pointer' }}
+        >
+            <div
+                className="glass-card"
+                style={{
+                    padding: 16,
+                    borderRadius: 12,
+                    border: '1px solid var(--border-color)',
+                    background: 'var(--bg-primary)' // Slightly distinct from column bg
+                }}
+            >
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                    <Tag
+                        color={task.priority === 'High' ? 'red' : task.priority === 'Medium' ? 'orange' : 'green'}
+                        style={{ borderRadius: 12, marginRight: 0 }}
+                    >
+                        {task.priority}
+                    </Tag>
+                    <MoreOutlined style={{ color: 'var(--text-secondary)' }} />
+                </div>
+                <Typography.Paragraph strong style={{ marginBottom: 12, color: 'var(--text-primary)' }}>{task.title}</Typography.Paragraph>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Space size={4} style={{ color: 'var(--text-secondary)', fontSize: 12 }}>
+                        <ClockCircleOutlined /> {task.date}
+                    </Space>
+                    <Avatar.Group size="small" maxCount={2}>
+                        {task.assignees.map((a, i) => (
+                            <Avatar key={i} src={a} style={{ border: `2px solid var(--bg-primary)` }} />
+                        ))}
+                    </Avatar.Group>
+                </div>
+            </div>
+        </motion.div>
+    );
+};
+
 const Column = ({ title, tasks, color }) => (
-    <div style={{ flex: 1, minWidth: 300, background: '#f1f5f9', padding: 16, borderRadius: 12 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-            <Typography.Text strong>{title}</Typography.Text>
-            <Tag color={color}>{tasks.length}</Tag>
+    <div style={{ flex: 1, minWidth: 320, background: 'rgba(255,255,255,0.02)', padding: 16, borderRadius: 16, border: '1px solid var(--border-color)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
+            <Typography.Text strong style={{ fontSize: 16, color: 'var(--text-primary)' }}>{title}</Typography.Text>
+            <Tag color={color} style={{ borderRadius: 12 }}>{tasks.length}</Tag>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {tasks.map((task, index) => (
-                <motion.div
-                    key={task.id}
-                    layoutId={task.id}
-                    whileHover={{ y: -2 }}
-                    style={{ cursor: 'pointer' }}
-                >
-                    <Card
-                        bordered={false}
-                        size="small"
-                        style={{ borderRadius: 8, boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
-                    >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                            <Tag color={task.priority === 'High' ? 'red' : task.priority === 'Medium' ? 'orange' : 'green'}>{task.priority}</Tag>
-                            <MoreOutlined style={{ color: '#94a3b8' }} />
-                        </div>
-                        <Typography.Paragraph strong style={{ marginBottom: 8 }}>{task.title}</Typography.Paragraph>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Space size={4} style={{ color: '#64748b', fontSize: 12 }}>
-                                <ClockCircleOutlined /> {task.date}
-                            </Space>
-                            <Avatar.Group size="small" maxCount={2}>
-                                {task.assignees.map(a => <Avatar key={a} src={a} />)}
-                            </Avatar.Group>
-                        </div>
-                    </Card>
-                </motion.div>
+            {tasks.map((task) => (
+                <TaskCard key={task.id} task={task} />
             ))}
-            <Button type="dashed" block icon={<PlusOutlined />}>Add Task</Button>
+            <Button type="dashed" block icon={<PlusOutlined />} style={{ borderRadius: 12, height: 40 }}>Add Task</Button>
         </div>
     </div>
 );
 
 const KanbanBoard = () => {
-    // Mock Data
     const tasks = {
         todo: [
             { id: '1', title: 'Design System Update', priority: 'High', date: 'Tomorrow', assignees: ['https://api.dicebear.com/7.x/avataaars/svg?seed=John'] },

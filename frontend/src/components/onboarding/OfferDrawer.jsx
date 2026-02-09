@@ -1,5 +1,5 @@
 import React from 'react';
-import { Drawer, Form, Input, DatePicker, Select, Button, Space, theme } from 'antd';
+import { Drawer, Form, Input, DatePicker, Select, Button, Space, theme, Row, Col } from 'antd';
 
 const OfferDrawer = ({ open, onClose }) => {
     const { token } = theme.useToken();
@@ -61,6 +61,4 @@ const OfferDrawer = ({ open, onClose }) => {
         </Drawer>
     );
 };
-import { Row, Col } from 'antd'; // Add missing imports
-
 export default OfferDrawer;

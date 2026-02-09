@@ -1,0 +1,74 @@
+import React from 'react';
+import { Row, Col, theme } from 'antd';
+import { DollarOutlined, BankOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
+import StatCard from '../common/StatCard';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+
+const data = [
+    { name: 'Jan', value: 4500 },
+    { name: 'Feb', value: 4500 },
+    { name: 'Mar', value: 4500 },
+    { name: 'Apr', value: 4800 },
+    { name: 'May', value: 4800 },
+    { name: 'Jun', value: 4800 },
+    { name: 'Jul', value: 5000 },
+    { name: 'Aug', value: 5000 },
+    { name: 'Sep', value: 5000 },
+    { name: 'Oct', value: 5000 },
+];
+
+const PayrollOverview = () => {
+    const { token } = theme.useToken();
+    return (
+        <div>
+            <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
+                <Col xs={24} sm={8}>
+                    <StatCard title="Net Salary" value="$5,000" icon={<DollarOutlined />} color={token.colorSuccess} trend={0} />
+                </Col>
+                <Col xs={24} sm={8}>
+                    <StatCard title="Total Earnings (YTD)" value="$48,900" icon={<BankOutlined />} color={token.colorPrimary} />
+                </Col>
+                <Col xs={24} sm={8}>
+                    <StatCard title="Taxes Deducted (YTD)" value="$12,400" icon={<SafetyCertificateOutlined />} color={token.colorWarning} />
+                </Col>
+            </Row>
+
+            <div className="glass-card" style={{ padding: 24 }}>
+                <div style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>Salary Trend</div>
+                <div style={{ height: 300, width: '100%' }}>
+                    <ResponsiveContainer>
+                        <BarChart data={data}>
+                            <XAxis
+                                dataKey="name"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
+                            />
+                            <YAxis
+                                hide
+                            />
+                            <Tooltip
+                                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                contentStyle={{
+                                    borderRadius: 12,
+                                    border: '1px solid var(--border-color)',
+                                    boxShadow: token.boxShadow,
+                                    background: 'var(--bg-secondary)',
+                                    color: 'var(--text-primary)'
+                                }}
+                                formatter={(value) => [`$${value}`, 'Salary']}
+                            />
+                            <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={32}>
+                                {data.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={index === data.length - 1 ? token.colorSuccess : token.colorPrimary} />
+                                ))}
+                            </Bar>
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default PayrollOverview;

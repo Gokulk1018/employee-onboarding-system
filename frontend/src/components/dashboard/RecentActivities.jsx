@@ -1,6 +1,7 @@
 import React from 'react';
-import { List, Avatar, Card, Typography, Tag, theme } from 'antd';
-import { UserOutlined, FileDoneOutlined, TrophyOutlined } from '@ant-design/icons';
+import { List, Avatar, Typography, theme, Button } from 'antd';
+import { UserOutlined, FileDoneOutlined, TrophyOutlined, ArrowRightOutlined } from '@ant-design/icons';
+import { motion } from 'framer-motion';
 
 const { Text, Title } = Typography;
 
@@ -36,38 +37,55 @@ const data = [
 ];
 
 const RecentActivities = () => {
-    const { token } = theme.useToken();
     return (
-        <Card
-            title={<Title level={4} style={{ margin: 0 }}>Recent Activities</Title>}
-            bordered={false}
-            style={{ borderRadius: 16, height: '100%' }}
-        >
+        <div className="glass-card" style={{ height: '100%', padding: 24 }}>
+            <div className="flex-between" style={{ marginBottom: 24 }}>
+                <Title level={4} style={{ margin: 0, color: 'var(--text-primary)' }}>Recent Activities</Title>
+                <Button type="text" style={{ color: 'var(--accent-primary)' }}>View All <ArrowRightOutlined /></Button>
+            </div>
             <List
                 itemLayout="horizontal"
                 dataSource={data}
-                renderItem={(item) => (
-                    <List.Item style={{ padding: '12px 0', borderBlockEnd: `1px solid ${token.colorSplit}` }}>
-                        <List.Item.Meta
-                            avatar={
-                                <Avatar
-                                    icon={item.icon}
-                                    style={{ backgroundColor: `${item.color}20`, color: item.color }}
-                                    size="large"
-                                />
-                            }
-                            title={<Text strong>{item.title}</Text>}
-                            description={
-                                <div>
-                                    <div>{item.description}</div>
-                                    <Text type="secondary" style={{ fontSize: 12 }}>{item.time}</Text>
-                                </div>
-                            }
-                        />
-                    </List.Item>
+                renderItem={(item, index) => (
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                    >
+                        <List.Item
+                            style={{
+                                padding: '16px 0',
+                                borderBlockEnd: `1px solid var(--border-color)`,
+                                transition: 'all 0.3s ease',
+                                cursor: 'pointer'
+                            }}
+                            className="hover:bg-white/5"
+                        >
+                            <List.Item.Meta
+                                avatar={
+                                    <Avatar
+                                        icon={item.icon}
+                                        style={{
+                                            backgroundColor: `${item.color}15`,
+                                            color: item.color,
+                                            border: `1px solid ${item.color}30`
+                                        }}
+                                        size="large"
+                                    />
+                                }
+                                title={<Text strong style={{ color: 'var(--text-primary)' }}>{item.title}</Text>}
+                                description={
+                                    <div>
+                                        <div style={{ color: 'var(--text-secondary)', marginBottom: 4 }}>{item.description}</div>
+                                        <Text style={{ fontSize: 12, color: 'var(--text-secondary)', opacity: 0.7 }}>{item.time}</Text>
+                                    </div>
+                                }
+                            />
+                        </List.Item>
+                    </motion.div>
                 )}
             />
-        </Card>
+        </div>
     );
 };
 

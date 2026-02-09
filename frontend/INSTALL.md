@@ -7,7 +7,7 @@ The project files have been generated, but the dependencies need to be installed
     cd frontend
     ```
 
-2.  **Install the dependencies**:
+2.  **Install the dependencies** (including new chart library):
     ```bash
     npm install
     # OR if you have issues:
