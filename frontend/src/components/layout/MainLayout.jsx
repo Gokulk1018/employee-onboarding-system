@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ProLayout } from '@ant-design/pro-components';
-import { Input, Badge, Dropdown, theme, Avatar } from 'antd';
+import { Input, Badge, Dropdown, theme, Avatar, Space, Typography } from 'antd';
 import {
     UserOutlined,
     BellOutlined,
@@ -14,13 +14,12 @@ import {
     RobotOutlined,
     SettingOutlined,
     LogoutOutlined,
-    MenuUnfoldOutlined,
-    MenuFoldOutlined,
     SearchOutlined
 } from '@ant-design/icons';
 import { useLocation, useNavigate, Outlet } from 'react-router-dom';
 import ThemeToggle from '../common/ThemeToggle';
 import AIAssistant from '../common/AIAssistant';
+import { motion } from 'framer-motion';
 
 const MainLayout = () => {
     const navigate = useNavigate();
@@ -31,7 +30,6 @@ const MainLayout = () => {
     const menuItems = [
         { path: '/', name: 'Dashboard', icon: <DashboardOutlined /> },
         { path: '/employees', name: 'Employees', icon: <TeamOutlined /> },
-
         { path: '/payroll', name: 'Payroll', icon: <DollarOutlined /> },
         { path: '/recruitment', name: 'Recruitment', icon: <SolutionOutlined /> },
         { path: '/onboarding', name: 'Onboarding', icon: <UserOutlined /> },
@@ -51,26 +49,27 @@ const MainLayout = () => {
     };
 
     return (
-        <div
-            style={{
-                height: '100vh',
-            }}
-        >
+        <div style={{ height: '100vh' }}>
             <ProLayout
                 layout="mix"
                 navTheme="light"
                 colorPrimary={token.colorPrimary}
-                siderWidth={240}
+                siderWidth={250}
                 fixSiderbar
                 fixedHeader
-                title="HRFlow"
+                title={
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="text-gradient"
+                        style={{ fontSize: 24, fontWeight: 700 }}
+                    >
+                        HRFlow
+                    </motion.div>
+                }
                 logo="https://gw.alipayobjects.com/zos/antfincdn/upvrAjAPQX/Logo_Tech%252520UI.svg"
-                location={{
-                    pathname: location.pathname,
-                }}
-                route={{
-                    routes: menuItems,
-                }}
+                location={{ pathname: location.pathname }}
+                route={{ routes: menuItems }}
                 menuItemRender={(item, dom) => (
                     <div
                         onClick={() => {
@@ -80,8 +79,11 @@ const MainLayout = () => {
                         style={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: 8,
+                            gap: 12,
                             cursor: 'pointer',
+                            padding: '4px 8px',
+                            borderRadius: 8,
+                            transition: 'all 0.2s'
                         }}
                     >
                         {dom}
@@ -89,46 +91,78 @@ const MainLayout = () => {
                 )}
                 avatarProps={{
                     src: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
-                    size: 'small',
-                    title: 'Admin User',
-                    render: (props, dom) => {
-                        return (
-                            <Dropdown menu={profileMenu}>
-                                <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
-                                    {dom}
-                                </div>
-                            </Dropdown>
-                        );
-                    },
+                    size: 'default',
+                    title: <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>Admin User</span>,
+                    render: (props, dom) => (
+                        <Dropdown menu={profileMenu}>
+                            <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, padding: '4px 8px', borderRadius: 8, background: 'var(--bg-primary)' }}>
+                                {dom}
+                            </div>
+                        </Dropdown>
+                    ),
                 }}
                 actionsRender={(props) => {
                     if (props.isMobile) return [];
                     return [
-                        <ThemeToggle key="theme" />,
                         <Input
                             key="search"
                             prefix={<SearchOutlined style={{ color: token.colorTextTertiary }} />}
                             placeholder="Search..."
                             bordered={false}
                             style={{
-                                width: 200,
-                                backgroundColor: token.colorBgContainer,
-                                borderRadius: token.borderRadius,
-                                marginRight: 16
+                                width: 240,
+                                backgroundColor: 'var(--bg-secondary)',
+                                borderRadius: 20,
+                                marginRight: 16,
+                                padding: '6px 12px',
+                                boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)'
                             }}
                         />,
-                        <Badge count={3} size="small" key="notifications" style={{ marginRight: 16 }}>
-                            <BellOutlined style={{ fontSize: 18, cursor: 'pointer', color: token.colorTextSecondary }} />
+                        <ThemeToggle key="theme" />,
+                        <Badge dot count={3} size="small" key="notifications" offset={[-4, 4]}>
+                            <div style={{
+                                width: 40, height: 40,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                borderRadius: '50%', background: 'var(--bg-secondary)',
+                                cursor: 'pointer', marginLeft: 16,
+                                border: '1px solid var(--border-color)'
+                            }}>
+                                <BellOutlined style={{ fontSize: 18, color: 'var(--text-secondary)' }} />
+                            </div>
                         </Badge>,
                     ];
                 }}
+                token={{
+                    header: {
+                        colorBgHeader: 'var(--glass-bg)',
+                        colorHeaderTitle: 'var(--text-primary)',
+                        heightLayoutHeader: 72,
+                    },
+                    sider: {
+                        colorMenuBackground: 'var(--bg-secondary)',
+                        colorTextMenu: 'var(--text-secondary)',
+                        colorTextMenuSelected: 'var(--accent-primary)',
+                        colorBgMenuItemSelected: 'rgba(79, 70, 229, 0.1)',
+                    }
+                }}
                 contentStyle={{
-                    padding: 24,
+                    padding: 32,
                     minHeight: '100vh',
                     background: 'transparent',
                 }}
                 headerContentRender={() => {
-                    return <div style={{ fontWeight: 600, fontSize: 16 }}>{menuItems.find(m => m.path === location.pathname)?.name || 'Dashboard'}</div>
+                    const currentPath = menuItems.find(m => m.path === location.pathname);
+                    return (
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            key={location.pathname}
+                        >
+                            <Typography.Title level={4} style={{ margin: 0, color: 'var(--text-primary)' }}>
+                                {currentPath?.name || 'Dashboard'}
+                            </Typography.Title>
+                        </motion.div>
+                    );
                 }}
             >
                 <Outlet />

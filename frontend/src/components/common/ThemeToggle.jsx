@@ -4,32 +4,54 @@ import { SunOutlined, MoonOutlined } from '@ant-design/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
 
+
+
 const ThemeToggle = () => {
     const { isDarkMode, toggleTheme } = useTheme();
 
     return (
-        <Button
-            type="text"
+        <motion.button
             onClick={toggleTheme}
-            className="flex items-center justify-center w-10 h-10 rounded-full transition-colors duration-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+            className={`relative flex items-center justify-center w-12 h-12 rounded-full outline-none focus:outline-none overflow-hidden`}
             style={{
-                color: isDarkMode ? '#fbbf24' : '#f59e0b',
-                background: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
-                border: 'none'
+                background: isDarkMode ? 'rgba(30, 41, 59, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+                border: '1px solid var(--border-color)',
+                cursor: 'pointer',
+                boxShadow: 'var(--card-shadow)',
             }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
         >
             <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                     key={isDarkMode ? 'dark' : 'light'}
-                    initial={{ y: -20, opacity: 0, rotate: -90 }}
+                    initial={{ y: -30, opacity: 0, rotate: -90 }}
                     animate={{ y: 0, opacity: 1, rotate: 0 }}
-                    exit={{ y: 20, opacity: 0, rotate: 90 }}
-                    transition={{ duration: 0.2 }}
+                    exit={{ y: 30, opacity: 0, rotate: 90 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 10 }}
+                    style={{ position: 'absolute' }}
                 >
-                    {isDarkMode ? <SunOutlined style={{ fontSize: '1.2rem' }} /> : <MoonOutlined style={{ fontSize: '1.2rem' }} />}
+                    {isDarkMode ? (
+                        <MoonOutlined style={{ fontSize: 20, color: '#fbbf24' }} />
+                    ) : (
+                        <SunOutlined style={{ fontSize: 20, color: '#f59e0b' }} />
+                    )}
                 </motion.div>
             </AnimatePresence>
-        </Button>
+
+            {/* Background Glow Effect */}
+            <motion.div
+                layoutId="glow"
+                style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: isDarkMode
+                        ? 'radial-gradient(circle at center, rgba(99, 102, 241, 0.15) 0%, transparent 70%)'
+                        : 'radial-gradient(circle at center, rgba(245, 158, 11, 0.15) 0%, transparent 70%)',
+                    zIndex: -1
+                }}
+            />
+        </motion.button>
     );
 };
 
