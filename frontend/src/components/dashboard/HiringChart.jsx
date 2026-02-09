@@ -20,8 +20,8 @@ const HiringChart = () => {
             variant="borderless"
             style={{ borderRadius: 20, height: '100%' }}
         >
-            <div style={{ height: 250, width: '100%', minWidth: 0 }}>
-                <ResponsiveContainer>
+            <div style={{ width: '100%', height: 250, minWidth: 0 }}>
+                <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={data}>
                         <defs>
                             <linearGradient id="colorHired" x1="0" y1="0" x2="0" y2="1">

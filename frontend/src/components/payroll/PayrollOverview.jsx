@@ -36,7 +36,7 @@ const PayrollOverview = () => {
             <div className="glass-card" style={{ padding: 24, borderColor: token.colorBorder }}>
                 <div style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, color: token.colorText }}>Salary Trend</div>
                 <div style={{ height: 300, width: '100%', minWidth: 0 }}>
-                    <ResponsiveContainer>
+                    <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={data}>
                             <XAxis
                                 dataKey="name"
@@ -54,9 +54,38 @@ const PayrollOverview = () => {
                                     border: `1px solid ${token.colorBorder}`,
                                     boxShadow: token.boxShadow,
                                     background: token.colorBgContainer,
-                                    color: token.colorText
                                 }}
-                                formatter={(value) => [`$${value}`, 'Salary']}
+                                content={({ active, payload }) => {
+                                    if (active && payload && payload.length) {
+                                        return (
+                                            <div style={{
+                                                padding: '8px 12px',
+                                                borderRadius: 12,
+                                                border: `1px solid ${token.colorBorder}`,
+                                                boxShadow: token.boxShadow,
+                                                background: token.colorBgContainer,
+                                            }}>
+                                                <p style={{
+                                                    margin: 0,
+                                                    marginBottom: 4,
+                                                    color: token.colorText,
+                                                    fontSize: 13
+                                                }}>
+                                                    {payload[0].payload.name}
+                                                </p>
+                                                <p style={{
+                                                    margin: 0,
+                                                    color: '#F9FAFB',
+                                                    fontWeight: 600,
+                                                    fontSize: 14
+                                                }}>
+                                                    Salary: ${payload[0].value}
+                                                </p>
+                                            </div>
+                                        );
+                                    }
+                                    return null;
+                                }}
                             />
                             <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={32} animationDuration={1500} animationBegin={500}>
                                 {data.map((entry, index) => (

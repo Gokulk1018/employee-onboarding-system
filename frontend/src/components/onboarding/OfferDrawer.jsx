@@ -9,7 +9,7 @@ const OfferDrawer = ({ open, onClose }) => {
             width={720}
             onClose={onClose}
             open={open}
-            bodyStyle={{ paddingBottom: 80 }}
+            styles={{ body: { paddingBottom: 80 } }}
             extra={
                 <Space>
                     <Button onClick={onClose}>Cancel</Button>
@@ -25,7 +25,17 @@ const OfferDrawer = ({ open, onClose }) => {
                     label="Candidate Name"
                     rules={[{ required: true, message: 'Please enter candidate name' }]}
                 >
-                    <Input placeholder="Please enter candidate name" />
+                    <Input placeholder="Please enter candidate name" size="large" />
+                </Form.Item>
+                <Form.Item
+                    name="email"
+                    label="Candidate Email"
+                    rules={[
+                        { required: true, message: 'Please enter candidate email' },
+                        { type: 'email', message: 'Please enter a valid email address' }
+                    ]}
+                >
+                    <Input placeholder="candidate@example.com" size="large" type="email" />
                 </Form.Item>
                 <Row gutter={16}>
                     <Col span={12}>

@@ -19,9 +19,11 @@ const Employees = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
-    const filteredData = mockEmployees.filter(emp =>
-        emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.role.toLowerCase().includes(searchTerm.toLowerCase())
+    const safeEmployees = mockEmployees || [];
+
+    const filteredData = safeEmployees.filter(emp =>
+        (emp?.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (emp?.role?.toLowerCase() || '').includes(searchTerm.toLowerCase())
     );
 
     const containerVariants = {
@@ -62,7 +64,7 @@ const Employees = () => {
                         <motion.div variants={itemVariants} style={{ height: '100%' }}>
                             <StatCard
                                 title="Total Employees"
-                                value={mockEmployees.length}
+                                value={safeEmployees.length}
                                 icon={<TeamOutlined />}
                                 color={token.colorInfo}
                                 trend={12}
@@ -73,7 +75,7 @@ const Employees = () => {
                         <motion.div variants={itemVariants} style={{ height: '100%' }}>
                             <StatCard
                                 title="Active"
-                                value={mockEmployees.filter(e => e.status === 'Active').length}
+                                value={safeEmployees.filter(e => e?.status === 'Active').length}
                                 icon={<UserOutlined />}
                                 color={token.colorSuccess}
                                 trend={5}

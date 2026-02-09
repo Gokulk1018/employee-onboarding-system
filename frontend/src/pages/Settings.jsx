@@ -1,16 +1,27 @@
 import React from 'react';
-import { Typography, Tabs, Button, theme } from 'antd';
-import { SaveOutlined, UserOutlined, BellOutlined, LockOutlined, CreditCardOutlined } from '@ant-design/icons';
-import ThemeSettings from '../components/settings/ThemeSettings';
-import NotificationSettings from '../components/settings/NotificationSettings';
+import { Typography, Tabs, theme } from 'antd';
+import {
+    BankOutlined,
+    TeamOutlined,
+    UserAddOutlined,
+    MailOutlined,
+    SafetyOutlined,
+    LockOutlined
+} from '@ant-design/icons';
+import CompanySettings from '../components/settings/CompanySettings';
+import RecruitmentSettings from '../components/settings/RecruitmentSettings';
+import OnboardingSettings from '../components/settings/OnboardingSettings';
+import EmailNotificationSettings from '../components/settings/EmailNotificationSettings';
+import RolesPermissionsSettings from '../components/settings/RolesPermissionsSettings';
 import SecuritySettings from '../components/settings/SecuritySettings';
-import BillingSettings from '../components/settings/BillingSettings';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import PageContainer from '../components/layout/PageContainer';
 
 const { Title } = Typography;
 
 const Settings = () => {
+    const { token } = theme.useToken();
+
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -24,23 +35,33 @@ const Settings = () => {
     const tabItems = [
         {
             key: '1',
-            label: <span><UserOutlined /> Appearance</span>,
-            children: <ThemeSettings />,
+            label: <span><BankOutlined /> Company Settings</span>,
+            children: <CompanySettings />,
         },
         {
             key: '2',
-            label: <span><BellOutlined /> Notifications</span>,
-            children: <NotificationSettings />,
+            label: <span><TeamOutlined /> Recruitment Settings</span>,
+            children: <RecruitmentSettings />,
         },
         {
             key: '3',
-            label: <span><LockOutlined /> Security</span>,
-            children: <SecuritySettings />,
+            label: <span><UserAddOutlined /> Onboarding Settings</span>,
+            children: <OnboardingSettings />,
         },
         {
             key: '4',
-            label: <span><CreditCardOutlined /> Billing</span>,
-            children: <BillingSettings />,
+            label: <span><MailOutlined /> Email & Notifications</span>,
+            children: <EmailNotificationSettings />,
+        },
+        {
+            key: '5',
+            label: <span><SafetyOutlined /> Roles & Permissions</span>,
+            children: <RolesPermissionsSettings />,
+        },
+        {
+            key: '6',
+            label: <span><LockOutlined /> Security</span>,
+            children: <SecuritySettings />,
         },
     ];
 
@@ -50,12 +71,16 @@ const Settings = () => {
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
-                style={{ maxWidth: 1000, margin: '0 auto' }}
+                style={{ maxWidth: 1200, margin: '0 auto' }}
             >
                 <div className="flex-between" style={{ marginBottom: 24 }}>
                     <div>
-                        <Title level={2} style={{ margin: 0 }} className="text-gradient">Settings</Title>
-                        <div style={{ color: 'var(--text-secondary)' }}>Manage your workspace preferences</div>
+                        <Title level={2} style={{ margin: 0, color: token.colorText }} className="text-gradient">
+                            Settings
+                        </Title>
+                        <div style={{ color: token.colorTextSecondary }}>
+                            Configure your HR system preferences
+                        </div>
                     </div>
                 </div>
 
@@ -80,4 +105,5 @@ const Settings = () => {
         </PageContainer>
     );
 };
+
 export default Settings;

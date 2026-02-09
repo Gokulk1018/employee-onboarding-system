@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, Typography, Progress, theme, Tag, Space } from 'antd';
 import { SmileOutlined, MehOutlined, FrownOutlined, RiseOutlined } from '@ant-design/icons';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import CountUp from '../common/CountUp';
 
 const { Title, Text } = Typography;
 
@@ -29,26 +30,32 @@ const PulseSurveys = () => {
                 <div className="flex-center" style={{ gap: 24 }}>
                     <div style={{ textAlign: 'center' }}>
                         <SmileOutlined style={{ fontSize: 32, color: token.colorSuccess, marginBottom: 4 }} />
-                        <div style={{ fontWeight: 600 }}>78%</div>
+                        <div style={{ fontWeight: 600 }}>
+                            <CountUp value={78} suffix="%" />
+                        </div>
                         <div style={{ fontSize: 12, color: token.colorTextSecondary }}>Positive</div>
                     </div>
                     <div style={{ width: 1, height: 40, background: token.colorBorder }} />
                     <div style={{ textAlign: 'center' }}>
                         <MehOutlined style={{ fontSize: 32, color: token.colorWarning, marginBottom: 4 }} />
-                        <div style={{ fontWeight: 600 }}>15%</div>
+                        <div style={{ fontWeight: 600 }}>
+                            <CountUp value={15} suffix="%" />
+                        </div>
                         <div style={{ fontSize: 12, color: token.colorTextSecondary }}>Neutral</div>
                     </div>
                     <div style={{ width: 1, height: 40, background: token.colorBorder }} />
                     <div style={{ textAlign: 'center' }}>
                         <FrownOutlined style={{ fontSize: 32, color: token.colorError, marginBottom: 4 }} />
-                        <div style={{ fontWeight: 600 }}>7%</div>
+                        <div style={{ fontWeight: 600 }}>
+                            <CountUp value={7} suffix="%" />
+                        </div>
                         <div style={{ fontSize: 12, color: token.colorTextSecondary }}>Negative</div>
                     </div>
                 </div>
             </div>
 
-            <div style={{ height: 250, width: '100%', minWidth: 0 }}>
-                <ResponsiveContainer>
+            <div style={{ width: '100%', height: 250, minWidth: 0 }}>
+                <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={data} layout="vertical" margin={{ left: 20 }}>
                         <XAxis type="number" hide />
                         <YAxis

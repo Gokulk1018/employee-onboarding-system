@@ -2,6 +2,7 @@ import React from 'react';
 import { List, Avatar, Typography, Progress, theme, Button } from 'antd';
 import { TrophyOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import { motion } from 'framer-motion';
+import CountUp from '../common/CountUp';
 
 const { Text, Title } = Typography;
 
@@ -74,7 +75,9 @@ const TopPerformers = () => {
                                 title={
                                     <div className="flex-between">
                                         <Text strong style={{ color: token.colorText }}>{item.name}</Text>
-                                        <Text strong style={{ color: token.colorPrimary }}>{item.score}</Text>
+                                        <Text strong style={{ color: token.colorPrimary }}>
+                                            <CountUp value={item.score} duration={1.5} />
+                                        </Text>
                                     </div>
                                 }
                                 description={

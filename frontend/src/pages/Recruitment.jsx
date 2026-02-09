@@ -5,6 +5,7 @@ import RecruitmentStats from '../components/recruitment/RecruitmentStats';
 import ApplicationList from '../components/recruitment/ApplicationList';
 import RecruitmentFunnel from '../components/recruitment/RecruitmentFunnel';
 import RecruitmentKanban from '../components/recruitment/RecruitmentKanban';
+import JobPostingDrawer from '../components/recruitment/JobPostingDrawer';
 import { motion } from 'framer-motion';
 import PageContainer from '../components/layout/PageContainer';
 
@@ -13,6 +14,7 @@ const { Title } = Typography;
 const Recruitment = () => {
     const { token } = theme.useToken();
     const [viewMode, setViewMode] = useState('kanban');
+    const [isJobDrawerOpen, setIsJobDrawerOpen] = useState(false);
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -54,7 +56,7 @@ const Recruitment = () => {
                             value={viewMode}
                             onChange={setViewMode}
                         />
-                        <Button type="primary" icon={<PlusOutlined />} size="large">Post New Job</Button>
+                        <Button type="primary" icon={<PlusOutlined />} size="large" onClick={() => setIsJobDrawerOpen(true)}>Post New Job</Button>
                     </div>
                 </div>
 
@@ -85,6 +87,8 @@ const Recruitment = () => {
                         </Col>
                     </Row>
                 )}
+
+                <JobPostingDrawer open={isJobDrawerOpen} onClose={() => setIsJobDrawerOpen(false)} />
             </motion.div>
         </PageContainer>
     );

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Calendar, Tag, Badge, Typography, theme } from 'antd';
 import { motion } from 'framer-motion';
+import locale from 'antd/es/locale/en_US';
 
 const getInitialData = () => {
     // Current date for demo
@@ -48,6 +49,7 @@ const TasksCalendar = () => {
     return (
         <div className="glass-card" style={{ padding: 24 }}>
             <Calendar
+                locale={locale}
                 dateCellRender={dateCellRender}
                 className="glass-calendar"
                 fullscreen={true}
