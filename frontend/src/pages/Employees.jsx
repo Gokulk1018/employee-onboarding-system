@@ -5,6 +5,7 @@ import StatCard from '../components/common/StatCard';
 import EmployeesHeader from '../components/employees/EmployeesHeader';
 import EmployeeTable from '../components/employees/EmployeeTable';
 import EmployeeCardList from '../components/employees/EmployeeCardList';
+import DepartmentPieChart from '../components/employees/DepartmentPieChart';
 import AddEmployeeModal from '../components/employees/AddEmployeeModal';
 import { employees as mockEmployees } from '../data/mockData';
 import { motion } from 'framer-motion';
@@ -92,22 +93,31 @@ const Employees = () => {
                     </Col>
                 </Row>
 
-                <motion.div variants={itemVariants} className="glass-card" style={{ padding: 24 }}>
-                    <EmployeesHeader
-                        viewType={viewType}
-                        setViewType={setViewType}
-                        onSearch={setSearchTerm}
-                        onAdd={() => setIsModalOpen(true)}
-                    />
+                <Row gutter={[24, 24]}>
+                    <Col xs={24} lg={16}>
+                        <motion.div variants={itemVariants} className="glass-card" style={{ padding: 24 }}>
+                            <EmployeesHeader
+                                viewType={viewType}
+                                setViewType={setViewType}
+                                onSearch={setSearchTerm}
+                                onAdd={() => setIsModalOpen(true)}
+                            />
 
-                    <div style={{ marginTop: 24 }}>
-                        {viewType === 'table' ? (
-                            <EmployeeTable data={filteredData} />
-                        ) : (
-                            <EmployeeCardList data={filteredData} />
-                        )}
-                    </div>
-                </motion.div>
+                            <div style={{ marginTop: 24 }}>
+                                {viewType === 'table' ? (
+                                    <EmployeeTable data={filteredData} />
+                                ) : (
+                                    <EmployeeCardList data={filteredData} />
+                                )}
+                            </div>
+                        </motion.div>
+                    </Col>
+                    <Col xs={24} lg={8}>
+                        <motion.div variants={itemVariants}>
+                            <DepartmentPieChart />
+                        </motion.div>
+                    </Col>
+                </Row>
 
                 <AddEmployeeModal open={isModalOpen} onClose={() => setIsModalOpen(false)} />
             </motion.div>

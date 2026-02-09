@@ -10,13 +10,15 @@ import TopPerformers from '../components/dashboard/TopPerformers';
 import HiringChart from '../components/dashboard/HiringChart';
 import DepartmentChart from '../components/dashboard/DepartmentChart';
 import QuickActions from '../components/dashboard/QuickActions';
+import TeamMood from '../components/dashboard/TeamMood';
 
 const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
         opacity: 1,
         transition: {
-            staggerChildren: 0.1
+            staggerChildren: 0.1,
+            delayChildren: 0.1
         }
     }
 };
@@ -25,7 +27,8 @@ const itemVariants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
         y: 0,
-        opacity: 1
+        opacity: 1,
+        transition: { type: 'spring', stiffness: 100, damping: 12 }
     }
 };
 
@@ -113,9 +116,18 @@ const Dashboard = () => {
                 {/* Department & Activity Section */}
                 <Row gutter={[24, 24]}>
                     <Col xs={24} lg={8}>
-                        <motion.div variants={itemVariants} style={{ height: '100%' }}>
-                            <DepartmentChart />
-                        </motion.div>
+                        <Row gutter={[24, 24]}>
+                            <Col span={24}>
+                                <motion.div variants={itemVariants} style={{ height: '100%' }}>
+                                    <DepartmentChart />
+                                </motion.div>
+                            </Col>
+                            <Col span={24}>
+                                <motion.div variants={itemVariants} style={{ height: '100%' }}>
+                                    <TeamMood />
+                                </motion.div>
+                            </Col>
+                        </Row>
                     </Col>
                     <Col xs={24} lg={10}>
                         <motion.div variants={itemVariants} style={{ height: '100%' }}>

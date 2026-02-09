@@ -17,7 +17,7 @@ const EmployeeCardList = ({ data }) => {
                         whileHover={{ y: -5 }}
                     >
                         <Card
-                            bordered={false}
+                            variant="borderless"
                             actions={[
                                 <MailOutlined key="mail" />,
                                 <PhoneOutlined key="phone" />,

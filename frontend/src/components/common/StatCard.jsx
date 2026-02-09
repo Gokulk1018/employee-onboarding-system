@@ -1,6 +1,4 @@
-import React from 'react';
-import { theme, Skeleton } from 'antd';
-import { motion } from 'framer-motion';
+import CountUp from './CountUp';
 
 const StatCard = ({ title, value, icon, prefix, suffix, color, trend, loading }) => {
     const { token } = theme.useToken();
@@ -8,6 +6,8 @@ const StatCard = ({ title, value, icon, prefix, suffix, color, trend, loading })
     if (loading) {
         return <Skeleton active paragraph={{ rows: 2 }} className="glass-card p-6" />;
     }
+
+    const isNumeric = typeof value === 'number';
 
     return (
         <motion.div
@@ -22,17 +22,26 @@ const StatCard = ({ title, value, icon, prefix, suffix, color, trend, loading })
                 justifyContent: 'space-between',
                 position: 'relative',
                 overflow: 'hidden',
-                borderColor: 'var(--border-color)',
+                borderColor: token.colorBorder,
             }}
         >
             <div style={{ position: 'relative', zIndex: 1 }}>
-                <div style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 8, fontWeight: 500 }}>{title}</div>
-                <div className="text-gradient" style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>
-                    {prefix}{value}{suffix}
+                <div style={{ color: token.colorTextSecondary, fontSize: 14, marginBottom: 8, fontWeight: 500 }}>{title}</div>
+                <div className="text-gradient" style={{ fontSize: 28, fontWeight: 700, color: token.colorText, lineHeight: 1 }}>
+                    {isNumeric ? (
+                        <CountUp
+                            value={value}
+                            prefix={prefix}
+                            suffix={suffix}
+                            decimals={Number.isInteger(value) ? 0 : 1}
+                        />
+                    ) : (
+                        <>{prefix}{value}{suffix}</>
+                    )}
                 </div>
                 {trend !== undefined && (
                     <div style={{
-                        color: trend > 0 ? 'var(--success)' : 'var(--error)',
+                        color: trend > 0 ? token.colorSuccess : token.colorError,
                         fontSize: 13,
                         marginTop: 8,
                         fontWeight: 600,
@@ -41,7 +50,7 @@ const StatCard = ({ title, value, icon, prefix, suffix, color, trend, loading })
                         gap: 4
                     }}>
                         {trend > 0 ? '↑' : '↓'} {Math.abs(trend)}%
-                        <span style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>vs last month</span>
+                        <span style={{ color: token.colorTextSecondary, fontWeight: 400 }}>vs last month</span>
                     </div>
                 )}
             </div>

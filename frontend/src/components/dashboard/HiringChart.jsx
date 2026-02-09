@@ -17,26 +17,26 @@ const HiringChart = () => {
     return (
         <Card
             title={<Typography.Title level={4} style={{ margin: 0 }}>Hiring Trends</Typography.Title>}
-            bordered={false}
+            variant="borderless"
             style={{ borderRadius: 20, height: '100%' }}
         >
-            <div style={{ height: 250, width: '100%' }}>
+            <div style={{ height: 250, width: '100%', minWidth: 0 }}>
                 <ResponsiveContainer>
                     <AreaChart data={data}>
                         <defs>
                             <linearGradient id="colorHired" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.3} />
-                                <stop offset="95%" stopColor="#4f46e5" stopOpacity={0} />
+                                <stop offset="5%" stopColor={token.colorPrimary} stopOpacity={0.3} />
+                                <stop offset="95%" stopColor={token.colorPrimary} stopOpacity={0} />
                             </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} />
-                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={token.colorSplit} />
+                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: token.colorTextSecondary }} />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: token.colorTextSecondary }} />
                         <Tooltip
-                            contentStyle={{ borderRadius: 8, border: 'none', boxShadow: token.boxShadow }}
-                            cursor={{ stroke: '#4f46e5', strokeWidth: 1, strokeDasharray: '4 4' }}
+                            contentStyle={{ borderRadius: 8, border: 'none', boxShadow: token.boxShadow, backgroundColor: token.colorBgContainer, color: token.colorText }}
+                            cursor={{ stroke: token.colorPrimary, strokeWidth: 1, strokeDasharray: '4 4' }}
                         />
-                        <Area type="monotone" dataKey="hired" stroke="#4f46e5" strokeWidth={3} fillOpacity={1} fill="url(#colorHired)" />
+                        <Area type="monotone" dataKey="hired" stroke={token.colorPrimary} strokeWidth={3} fillOpacity={1} fill="url(#colorHired)" />
                     </AreaChart>
                 </ResponsiveContainer>
             </div>

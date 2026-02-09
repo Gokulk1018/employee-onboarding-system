@@ -32,10 +32,10 @@ const data = [
 const ApplicationList = () => {
     const { token } = theme.useToken();
     return (
-        <div className="glass-card" style={{ padding: 24, marginTop: 24 }}>
+        <div className="glass-card" style={{ padding: 24, marginTop: 24, borderColor: token.colorBorder }}>
             <div className="flex-between" style={{ marginBottom: 24 }}>
-                <Title level={4} style={{ margin: 0, color: 'var(--text-primary)' }}>Recent Applications</Title>
-                <Button type="text" style={{ color: 'var(--accent-primary)' }}>View All</Button>
+                <Title level={4} style={{ margin: 0, color: token.colorText }}>Recent Applications</Title>
+                <Button type="text" style={{ color: token.colorPrimary }}>View All</Button>
             </div>
             <List
                 itemLayout="horizontal"
@@ -55,7 +55,7 @@ const ApplicationList = () => {
                             className="hover:bg-white/5"
                             style={{
                                 padding: '16px 0',
-                                borderBlockEnd: '1px solid var(--border-color)',
+                                borderBlockEnd: `1px solid ${token.colorBorder}`,
                                 transition: 'background-color 0.3s'
                             }}
                         >
@@ -63,13 +63,13 @@ const ApplicationList = () => {
                                 avatar={<Avatar src={item.avatar} shape="square" size="large" style={{ borderRadius: 8 }} />}
                                 title={
                                     <Space>
-                                        <Text strong style={{ color: 'var(--text-primary)' }}>{item.name}</Text>
+                                        <Text strong style={{ color: token.colorText }}>{item.name}</Text>
                                         <Tag style={{ borderRadius: 12 }}>{item.role}</Tag>
                                     </Space>
                                 }
                                 description={
                                     <Space direction="vertical" size={2}>
-                                        <Text style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Applied: {item.date}</Text>
+                                        <Text style={{ fontSize: 13, color: token.colorTextSecondary }}>Applied: {item.date}</Text>
                                         <Tag
                                             color={
                                                 item.status === 'Offer Extended' ? 'success' :

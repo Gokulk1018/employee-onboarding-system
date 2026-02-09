@@ -13,9 +13,9 @@ const DepartmentChart = () => {
     ];
 
     return (
-        <div className="glass-card" style={{ padding: 24, height: '100%' }}>
-            <Typography.Title level={4} style={{ margin: '0 0 24px 0', color: 'var(--text-primary)' }}>Department Distribution</Typography.Title>
-            <div style={{ height: 300, width: '100%' }}>
+        <div className="glass-card" style={{ padding: 24, height: '100%', borderColor: token.colorBorder }}>
+            <Typography.Title level={4} style={{ margin: '0 0 24px 0', color: token.colorText }}>Department Distribution</Typography.Title>
+            <div style={{ height: 300, width: '100%', minWidth: 0 }}>
                 <ResponsiveContainer>
                     <PieChart>
                         <Pie
@@ -35,17 +35,17 @@ const DepartmentChart = () => {
                         <Tooltip
                             contentStyle={{
                                 borderRadius: 12,
-                                border: '1px solid var(--border-color)',
+                                border: `1px solid ${token.colorBorder}`,
                                 boxShadow: token.boxShadow,
-                                background: 'var(--bg-secondary)',
-                                color: 'var(--text-primary)'
+                                background: token.colorBgContainer,
+                                color: token.colorText
                             }}
-                            itemStyle={{ color: 'var(--text-primary)' }}
+                            itemStyle={{ color: token.colorText }}
                         />
                         <Legend
                             verticalAlign="bottom"
                             height={36}
-                            formatter={(value) => <span style={{ color: 'var(--text-secondary)' }}>{value}</span>}
+                            formatter={(value) => <span style={{ color: token.colorTextSecondary }}>{value}</span>}
                         />
                     </PieChart>
                 </ResponsiveContainer>

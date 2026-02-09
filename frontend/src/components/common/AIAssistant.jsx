@@ -70,10 +70,10 @@ const AIAssistant = () => {
                 onClose={() => setIsOpen(false)}
                 open={isOpen}
                 width={400}
-                bodyStyle={{ padding: 0, display: 'flex', flexDirection: 'column' }}
+                styles={{ body: { padding: 0, display: 'flex', flexDirection: 'column' } }}
                 closeIcon={<CloseOutlined style={{ fontSize: 18 }} />}
             >
-                <div style={{ flex: 1, padding: 24, overflowY: 'auto', background: 'var(--bg-primary)' }}>
+                <div style={{ flex: 1, padding: 24, overflowY: 'auto', background: token.colorBgLayout }}>
                     <List
                         dataSource={messages}
                         renderItem={item => (
@@ -92,10 +92,10 @@ const AIAssistant = () => {
                                     borderRadius: 16,
                                     borderBottomRightRadius: item.sender === 'user' ? 4 : 16,
                                     borderBottomLeftRadius: item.sender === 'ai' ? 4 : 16,
-                                    background: item.sender === 'user' ? token.colorPrimary : 'var(--bg-secondary)',
-                                    color: item.sender === 'user' ? '#fff' : 'var(--text-primary)',
-                                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                                    border: item.sender === 'ai' ? '1px solid var(--border-color)' : 'none'
+                                    background: item.sender === 'user' ? token.colorPrimary : token.colorBgContainer,
+                                    color: item.sender === 'user' ? '#fff' : token.colorText,
+                                    boxShadow: token.boxShadow,
+                                    border: item.sender === 'ai' ? `1px solid ${token.colorBorder}` : 'none'
                                 }}>
                                     {item.text}
                                 </div>
@@ -103,7 +103,7 @@ const AIAssistant = () => {
                         )}
                     />
                 </div>
-                <div style={{ padding: 16, borderTop: '1px solid var(--border-color)', background: 'var(--bg-secondary)' }}>
+                <div style={{ padding: 16, borderTop: `1px solid ${token.colorBorder}`, background: token.colorBgContainer }}>
                     <div style={{ display: 'flex', gap: 12 }}>
                         <Input
                             placeholder="Type a message..."

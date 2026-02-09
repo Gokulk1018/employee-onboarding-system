@@ -92,10 +92,10 @@ const MainLayout = () => {
                 avatarProps={{
                     src: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
                     size: 'default',
-                    title: <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>Admin User</span>,
+                    title: <span style={{ color: token.colorText, fontWeight: 600 }}>Admin User</span>,
                     render: (props, dom) => (
                         <Dropdown menu={profileMenu}>
-                            <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, padding: '4px 8px', borderRadius: 8, background: 'var(--bg-primary)' }}>
+                            <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, padding: '4px 8px', borderRadius: 8, background: token.colorBgLayout }}>
                                 {dom}
                             </div>
                         </Dropdown>
@@ -108,10 +108,10 @@ const MainLayout = () => {
                             key="search"
                             prefix={<SearchOutlined style={{ color: token.colorTextTertiary }} />}
                             placeholder="Search..."
-                            bordered={false}
+                            variant="borderless"
                             style={{
                                 width: 240,
-                                backgroundColor: 'var(--bg-secondary)',
+                                backgroundColor: token.colorBgContainer,
                                 borderRadius: 20,
                                 marginRight: 16,
                                 padding: '6px 12px',
@@ -123,26 +123,26 @@ const MainLayout = () => {
                             <div style={{
                                 width: 40, height: 40,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                borderRadius: '50%', background: 'var(--bg-secondary)',
+                                borderRadius: '50%', background: token.colorBgContainer,
                                 cursor: 'pointer', marginLeft: 16,
-                                border: '1px solid var(--border-color)'
+                                border: `1px solid ${token.colorBorder}`
                             }}>
-                                <BellOutlined style={{ fontSize: 18, color: 'var(--text-secondary)' }} />
+                                <BellOutlined style={{ fontSize: 18, color: token.colorTextSecondary }} />
                             </div>
                         </Badge>,
                     ];
                 }}
                 token={{
                     header: {
-                        colorBgHeader: 'var(--glass-bg)',
-                        colorHeaderTitle: 'var(--text-primary)',
+                        colorBgHeader: 'var(--glass-bg)', // Keep glass effect for header
+                        colorHeaderTitle: token.colorText,
                         heightLayoutHeader: 72,
                     },
                     sider: {
-                        colorMenuBackground: 'var(--bg-secondary)',
-                        colorTextMenu: 'var(--text-secondary)',
-                        colorTextMenuSelected: 'var(--accent-primary)',
-                        colorBgMenuItemSelected: 'rgba(79, 70, 229, 0.1)',
+                        colorMenuBackground: token.colorBgContainer,
+                        colorTextMenu: token.colorTextSecondary,
+                        colorTextMenuSelected: token.colorPrimary,
+                        colorBgMenuItemSelected: token.colorPrimaryBg,
                     }
                 }}
                 contentStyle={{
@@ -158,7 +158,7 @@ const MainLayout = () => {
                             animate={{ opacity: 1, y: 0 }}
                             key={location.pathname}
                         >
-                            <Typography.Title level={4} style={{ margin: 0, color: 'var(--text-primary)' }}>
+                            <Typography.Title level={4} style={{ margin: 0, color: token.colorText }}>
                                 {currentPath?.name || 'Dashboard'}
                             </Typography.Title>
                         </motion.div>

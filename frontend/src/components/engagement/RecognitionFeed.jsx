@@ -44,9 +44,9 @@ const data = [
 const RecognitionFeed = () => {
     const { token } = theme.useToken();
     return (
-        <div className="glass-card" style={{ padding: 24, height: '100%' }}>
+        <div className="glass-card" style={{ padding: 24, height: '100%', borderColor: token.colorBorder }}>
             <div className="flex-between" style={{ marginBottom: 24 }}>
-                <Title level={4} style={{ margin: 0, color: 'var(--text-primary)' }}>Recognition Feed</Title>
+                <Title level={4} style={{ margin: 0, color: token.colorText }}>Recognition Feed</Title>
                 <Button type="primary" icon={<TrophyTwoTone twoToneColor="#fcd34d" />} ghost>Give Kudus</Button>
             </div>
 
@@ -59,30 +59,30 @@ const RecognitionFeed = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
                     >
-                        <List.Item style={{ padding: '16px 0', borderBlockEnd: '1px solid var(--border-color)' }}>
+                        <List.Item style={{ padding: '16px 0', borderBlockEnd: `1px solid ${token.colorBorder}` }}>
                             <div className="flex-between" style={{ marginBottom: 12 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                    <Avatar.Group maxCount={2} size="small">
+                                    <Avatar.Group max={{ count: 2 }} size="small">
                                         <Avatar src={item.senderAvatar} style={{ border: `2px solid ${token.colorBgContainer}` }} />
                                         <Avatar src={item.receiverAvatar} style={{ border: `2px solid ${token.colorBgContainer}` }} />
                                     </Avatar.Group>
                                     <div>
-                                        <Text strong style={{ color: 'var(--text-primary)' }}>{item.sender}</Text>
-                                        <Text style={{ color: 'var(--text-secondary)', margin: '0 4px' }}>to</Text>
-                                        <Text strong style={{ color: 'var(--text-primary)' }}>{item.receiver}</Text>
+                                        <Text strong style={{ color: token.colorText }}>{item.sender}</Text>
+                                        <Text style={{ color: token.colorTextSecondary, margin: '0 4px' }}>to</Text>
+                                        <Text strong style={{ color: token.colorText }}>{item.receiver}</Text>
                                     </div>
                                 </div>
-                                <Text style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{item.time}</Text>
+                                <Text style={{ fontSize: 12, color: token.colorTextSecondary }}>{item.time}</Text>
                             </div>
 
                             <div style={{
-                                background: 'var(--bg-primary)',
+                                background: token.colorBgLayout, // Was var(--bg-primary)
                                 padding: 16,
                                 borderRadius: 12,
                                 marginBottom: 12,
-                                border: '1px solid var(--border-color)'
+                                border: `1px solid ${token.colorBorder}`
                             }}>
-                                <div style={{ fontSize: 15, color: 'var(--text-primary)', marginBottom: 12, fontStyle: 'italic' }}>
+                                <div style={{ fontSize: 15, color: token.colorText, marginBottom: 12, fontStyle: 'italic' }}>
                                     "{item.message}"
                                 </div>
                                 <div className="flex-between">
@@ -93,10 +93,10 @@ const RecognitionFeed = () => {
                             </div>
 
                             <div style={{ display: 'flex', gap: 16 }}>
-                                <Button type="text" size="small" icon={<LikeOutlined />} style={{ color: 'var(--text-secondary)' }}>
+                                <Button type="text" size="small" icon={<LikeOutlined />} style={{ color: token.colorTextSecondary }}>
                                     {item.likes} Likes
                                 </Button>
-                                <Button type="text" size="small" style={{ color: 'var(--text-secondary)' }}>
+                                <Button type="text" size="small" style={{ color: token.colorTextSecondary }}>
                                     Comment
                                 </Button>
                             </div>

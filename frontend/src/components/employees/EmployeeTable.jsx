@@ -14,8 +14,8 @@ const EmployeeTable = ({ data }) => {
                 <Space>
                     <Avatar src={record.avatar} size="large" style={{ border: `1px solid ${token.colorBorder}` }} />
                     <div style={{ marginLeft: 8 }}>
-                        <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{text}</div>
-                        <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{record.email}</div>
+                        <div style={{ fontWeight: 600, color: token.colorText }}>{text}</div>
+                        <div style={{ fontSize: 13, color: token.colorTextSecondary }}>{record.email}</div>
                     </div>
                 </Space>
             ),
@@ -24,13 +24,13 @@ const EmployeeTable = ({ data }) => {
             title: 'Department',
             dataIndex: 'department',
             key: 'department',
-            render: (text) => <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{text}</span>,
+            render: (text) => <span style={{ color: token.colorText, fontWeight: 500 }}>{text}</span>,
         },
         {
             title: 'Role',
             dataIndex: 'role',
             key: 'role',
-            render: (text) => <span style={{ color: 'var(--text-secondary)' }}>{text}</span>,
+            render: (text) => <span style={{ color: token.colorTextSecondary }}>{text}</span>,
         },
         {
             title: 'Status',
@@ -77,7 +77,7 @@ const EmployeeTable = ({ data }) => {
             title: 'Join Date',
             dataIndex: 'joinDate',
             key: 'joinDate',
-            render: (text) => <span style={{ color: 'var(--text-secondary)' }}>{text}</span>,
+            render: (text) => <span style={{ color: token.colorTextSecondary }}>{text}</span>,
         },
         {
             title: 'Actions',
@@ -90,7 +90,7 @@ const EmployeeTable = ({ data }) => {
                     <Tooltip title="Edit">
                         <Button type="text" icon={<EditOutlined />} />
                     </Tooltip>
-                    <Button type="text" icon={<MoreOutlined />} style={{ color: 'var(--text-secondary)' }} />
+                    <Button type="text" icon={<MoreOutlined />} style={{ color: token.colorTextSecondary }} />
                 </Space>
             ),
         },

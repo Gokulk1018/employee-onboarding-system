@@ -6,17 +6,17 @@ const RecruitmentFunnel = () => {
     const { token } = theme.useToken();
 
     const data = [
-        { name: 'Applied', value: 320, color: '#3b82f6' },
-        { name: 'Screening', value: 180, color: '#6366f1' },
-        { name: 'Interview', value: 85, color: '#8b5cf6' },
-        { name: 'Offer', value: 24, color: '#10b981' },
-        { name: 'Hired', value: 18, color: '#059669' },
+        { name: 'Applied', value: 320, color: token.colorPrimary },
+        { name: 'Screening', value: 180, color: token.colorInfo },
+        { name: 'Interview', value: 85, color: token.colorWarning },
+        { name: 'Offer', value: 24, color: token.colorSuccess },
+        { name: 'Hired', value: 18, color: token.colorSuccessActive }, // Darker green or similar
     ];
 
     return (
-        <div className="glass-card" style={{ padding: 24 }}>
-            <Typography.Title level={4} style={{ margin: '0 0 24px 0', color: 'var(--text-primary)' }}>Recruitment Funnel</Typography.Title>
-            <div style={{ height: 300, width: '100%' }}>
+        <div className="glass-card" style={{ padding: 24, borderColor: token.colorBorder }}>
+            <Typography.Title level={4} style={{ margin: '0 0 24px 0', color: token.colorText }}>Recruitment Funnel</Typography.Title>
+            <div style={{ height: 300, width: '100%', minWidth: 0 }}>
                 <ResponsiveContainer>
                     <BarChart data={data} layout="vertical" margin={{ left: 20 }}>
                         <XAxis type="number" hide />
@@ -25,17 +25,17 @@ const RecruitmentFunnel = () => {
                             type="category"
                             axisLine={false}
                             tickLine={false}
-                            tick={{ fontSize: 12, fill: 'var(--text-secondary)' }}
+                            tick={{ fontSize: 12, fill: token.colorTextSecondary }}
                             width={80}
                         />
                         <Tooltip
                             cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                             contentStyle={{
                                 borderRadius: 12,
-                                border: '1px solid var(--border-color)',
+                                border: `1px solid ${token.colorBorder}`,
                                 boxShadow: token.boxShadow,
-                                background: 'var(--bg-secondary)',
-                                color: 'var(--text-primary)'
+                                background: token.colorBgContainer,
+                                color: token.colorText
                             }}
                         />
                         <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={24}>

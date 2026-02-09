@@ -4,6 +4,8 @@ import { PlusOutlined, FileTextOutlined } from '@ant-design/icons';
 import OnboardingStepper from '../components/onboarding/OnboardingStepper';
 import OnboardingDocuments from '../components/onboarding/OnboardingDocuments';
 import OfferDrawer from '../components/onboarding/OfferDrawer';
+import MentorshipProgram from '../components/onboarding/MentorshipProgram';
+
 import { motion } from 'framer-motion';
 import PageContainer from '../components/layout/PageContainer';
 
@@ -110,9 +112,14 @@ const Onboarding = () => {
                             <OnboardingDocuments />
                         </motion.div>
                     </Col>
+
+
                     <Col xs={24} lg={8}>
-                        <motion.div variants={itemVariants} style={{ height: '100%' }}>
+                        <motion.div variants={itemVariants} style={{ height: '100%', marginBottom: 24 }}>
                             <OnboardingStepper />
+                        </motion.div>
+                        <motion.div variants={itemVariants}>
+                            <MentorshipProgram />
                         </motion.div>
                     </Col>
                 </Row>

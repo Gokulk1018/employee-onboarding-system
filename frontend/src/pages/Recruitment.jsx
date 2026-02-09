@@ -11,6 +11,7 @@ import PageContainer from '../components/layout/PageContainer';
 const { Title } = Typography;
 
 const Recruitment = () => {
+    const { token } = theme.useToken();
     const [viewMode, setViewMode] = useState('kanban');
 
     const containerVariants = {
@@ -41,8 +42,8 @@ const Recruitment = () => {
             >
                 <div className="flex-between" style={{ marginBottom: 24 }}>
                     <div>
-                        <Title level={2} style={{ margin: 0 }} className="text-gradient">Recruitment</Title>
-                        <div style={{ color: 'var(--text-secondary)' }}>Manage job postings and candidate pipelines</div>
+                        <Title level={2} style={{ margin: 0, color: token.colorText }} className="text-gradient">Recruitment</Title>
+                        <div style={{ color: token.colorTextSecondary }}>Manage job postings and candidate pipelines</div>
                     </div>
                     <div className="flex-center" style={{ gap: 16 }}>
                         <Segmented

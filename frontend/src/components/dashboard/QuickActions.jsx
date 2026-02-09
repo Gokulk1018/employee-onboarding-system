@@ -1,5 +1,5 @@
 import React from 'react';
-import { Row, Col, Typography } from 'antd';
+import { Row, Col, Typography, theme } from 'antd';
 import { UserAddOutlined, CalendarOutlined, FileTextOutlined, TeamOutlined, SettingOutlined, BulbOutlined } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 
@@ -15,9 +15,10 @@ const actions = [
 ];
 
 const QuickActions = () => {
+    const { token } = theme.useToken();
     return (
-        <div className="glass-card" style={{ padding: 24, height: '100%' }}>
-            <Title level={4} style={{ margin: '0 0 24px 0', color: 'var(--text-primary)' }}>Quick Actions</Title>
+        <div className="glass-card" style={{ padding: 24, height: '100%', borderColor: token.colorBorder }}>
+            <Title level={4} style={{ margin: '0 0 24px 0', color: token.colorText }}>Quick Actions</Title>
             <Row gutter={[16, 16]}>
                 {actions.map((action, index) => (
                     <Col span={8} key={index}>
@@ -31,8 +32,8 @@ const QuickActions = () => {
                                 justifyContent: 'center',
                                 padding: 16,
                                 borderRadius: 12,
-                                backgroundColor: 'var(--bg-primary)',
-                                border: '1px solid var(--border-color)',
+                                backgroundColor: token.colorBgContainer,
+                                border: `1px solid ${token.colorBorder}`,
                                 cursor: 'pointer',
                                 transition: 'border-color 0.3s'
                             }}
@@ -53,7 +54,7 @@ const QuickActions = () => {
                             >
                                 {action.icon}
                             </div>
-                            <Text style={{ fontSize: 12, textAlign: 'center', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                            <Text style={{ fontSize: 12, textAlign: 'center', color: token.colorTextSecondary, fontWeight: 500 }}>
                                 {action.label}
                             </Text>
                         </motion.div>

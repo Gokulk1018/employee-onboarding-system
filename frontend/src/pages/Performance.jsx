@@ -1,5 +1,5 @@
 import React from 'react';
-import { Typography, Row, Col } from 'antd';
+import { Typography, Row, Col, theme } from 'antd';
 import PerformanceStats from '../components/performance/PerformanceStats';
 import SkillsRadar from '../components/performance/SkillsRadar';
 import PerformanceGoals from '../components/performance/PerformanceGoals';
@@ -10,6 +10,7 @@ import PageContainer from '../components/layout/PageContainer';
 const { Title } = Typography;
 
 const Performance = () => {
+    const { token } = theme.useToken();
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -37,8 +38,8 @@ const Performance = () => {
                 style={{ maxWidth: 1600, margin: '0 auto' }}
             >
                 <div style={{ marginBottom: 24 }}>
-                    <Title level={2} style={{ margin: 0 }} className="text-gradient">Performance Management</Title>
-                    <div style={{ color: 'var(--text-secondary)' }}>Track goals, reviews, and skill development</div>
+                    <Title level={2} style={{ margin: 0, color: token.colorText }} className="text-gradient">Performance Management</Title>
+                    <div style={{ color: token.colorTextSecondary }}>Track goals, reviews, and skill development</div>
                 </div>
 
                 <motion.div variants={itemVariants}>

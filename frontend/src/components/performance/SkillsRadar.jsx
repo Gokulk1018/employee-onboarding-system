@@ -15,23 +15,21 @@ const SkillsRadar = () => {
     ];
 
     return (
-        <div className="glass-card" style={{ padding: 24, height: '100%' }}>
-            <Typography.Title level={4} style={{ margin: '0 0 24px 0', color: 'var(--text-primary)' }}>Team Skills Assessment</Typography.Title>
-            <div style={{ height: 300, width: '100%' }}>
+        <div className="glass-card" style={{ padding: 24, height: '100%', borderColor: token.colorBorder }}>
+            <Typography.Title level={4} style={{ margin: '0 0 24px 0', color: token.colorText }}>Team Skills Assessment</Typography.Title>
+            <div style={{ height: 300, width: '100%', minWidth: 0 }}>
                 <ResponsiveContainer>
                     <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
-                        <PolarGrid stroke="var(--border-color)" />
-                        <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} />
+                        <PolarGrid stroke={token.colorBorder} />
+                        <PolarAngleAxis dataKey="subject" tick={{ fill: token.colorTextSecondary, fontSize: 12 }} />
                         <PolarRadiusAxis angle={30} domain={[0, 150]} tick={false} axisLine={false} />
                         <Radar
                             name="Team Average"
                             dataKey="A"
-                            stroke={token.colorAccent} // Assuming var exists or use token
+                            stroke={token.colorPrimary}
                             strokeWidth={2}
-                            fill={token.colorAccent}
+                            fill={token.colorPrimary}
                             fillOpacity={0.3}
-                            // Fallback if token.colorAccent not standard, use hex for now or token.colorPrimary
-                            style={{ stroke: token.colorPrimary, fill: token.colorPrimary }}
                         />
                     </RadarChart>
                 </ResponsiveContainer>

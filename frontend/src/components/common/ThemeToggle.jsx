@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from 'antd';
+import { Button, theme } from 'antd';
 import { SunOutlined, MoonOutlined } from '@ant-design/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
@@ -8,16 +8,17 @@ import { useTheme } from '../../context/ThemeContext';
 
 const ThemeToggle = () => {
     const { isDarkMode, toggleTheme } = useTheme();
+    const { token } = theme.useToken();
 
     return (
         <motion.button
             onClick={toggleTheme}
             className={`relative flex items-center justify-center w-12 h-12 rounded-full outline-none focus:outline-none overflow-hidden`}
             style={{
-                background: isDarkMode ? 'rgba(30, 41, 59, 0.8)' : 'rgba(255, 255, 255, 0.8)',
-                border: '1px solid var(--border-color)',
+                background: token.colorBgContainer,
+                border: `1px solid ${token.colorBorder}`,
                 cursor: 'pointer',
-                boxShadow: 'var(--card-shadow)',
+                boxShadow: token.boxShadow,
             }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
@@ -32,9 +33,9 @@ const ThemeToggle = () => {
                     style={{ position: 'absolute' }}
                 >
                     {isDarkMode ? (
-                        <MoonOutlined style={{ fontSize: 20, color: '#fbbf24' }} />
+                        <MoonOutlined style={{ fontSize: 20, color: token.colorWarning }} />
                     ) : (
-                        <SunOutlined style={{ fontSize: 20, color: '#f59e0b' }} />
+                        <SunOutlined style={{ fontSize: 20, color: token.colorWarning }} />
                     )}
                 </motion.div>
             </AnimatePresence>
@@ -46,8 +47,8 @@ const ThemeToggle = () => {
                     position: 'absolute',
                     inset: 0,
                     background: isDarkMode
-                        ? 'radial-gradient(circle at center, rgba(99, 102, 241, 0.15) 0%, transparent 70%)'
-                        : 'radial-gradient(circle at center, rgba(245, 158, 11, 0.15) 0%, transparent 70%)',
+                        ? `radial-gradient(circle at center, ${token.colorPrimary}25 0%, transparent 70%)`
+                        : `radial-gradient(circle at center, ${token.colorWarning}25 0%, transparent 70%)`,
                     zIndex: -1
                 }}
             />

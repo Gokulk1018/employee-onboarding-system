@@ -15,9 +15,9 @@ const data = [
 const PerformanceGoals = () => {
     const { token } = theme.useToken();
     return (
-        <div className="glass-card" style={{ padding: 24, height: '100%' }}>
+        <div className="glass-card" style={{ padding: 24, height: '100%', borderColor: token.colorBorder }}>
             <div className="flex-between" style={{ marginBottom: 24 }}>
-                <Title level={4} style={{ margin: 0, color: 'var(--text-primary)' }}>Team Goals Progress</Title>
+                <Title level={4} style={{ margin: 0, color: token.colorText }}>Team Goals Progress</Title>
                 <Button icon={<PlusOutlined />}>Add Goal</Button>
             </div>
             <List
@@ -32,28 +32,28 @@ const PerformanceGoals = () => {
                             actions={[<Button type="text" icon={<MoreOutlined />} key="more" />]}
                             style={{
                                 padding: '16px 0',
-                                borderBlockEnd: '1px solid var(--border-color)'
+                                borderBlockEnd: `1px solid ${token.colorBorder}`
                             }}
                         >
                             <List.Item.Meta
-                                avatar={<Avatar src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${item.name.replace(' ', '')}`} size="large" style={{ border: '2px solid var(--bg-secondary)' }} />}
+                                avatar={<Avatar src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${item.name.replace(' ', '')}`} size="large" style={{ border: `2px solid ${token.colorBgLayout}` }} />}
                                 title={
                                     <div className="flex-between">
-                                        <Text strong style={{ color: 'var(--text-primary)' }}>{item.name}</Text>
+                                        <Text strong style={{ color: token.colorText }}>{item.name}</Text>
                                         <Tag color={item.priority === 'High' ? 'red' : item.priority === 'Medium' ? 'orange' : 'green'}>{item.priority}</Tag>
                                     </div>
                                 }
                                 description={
                                     <div>
-                                        <div style={{ color: 'var(--text-secondary)', marginBottom: 8, marginTop: 4 }}>{item.goal}</div>
+                                        <div style={{ color: token.colorTextSecondary, marginBottom: 8, marginTop: 4 }}>{item.goal}</div>
                                         <div className="flex-between" style={{ gap: 16 }}>
                                             <Progress
                                                 percent={item.progress}
                                                 size="small"
                                                 strokeColor={item.progress === 100 ? token.colorSuccess : token.colorPrimary}
-                                                trailColor="rgba(0,0,0,0.05)"
+                                                trailColor={token.colorFillSecondary}
                                             />
-                                            <div style={{ minWidth: 60, textAlign: 'right', fontSize: 12, color: 'var(--text-secondary)' }}>Due {item.dueDate}</div>
+                                            <div style={{ minWidth: 60, textAlign: 'right', fontSize: 12, color: token.colorTextSecondary }}>Due {item.dueDate}</div>
                                         </div>
                                     </div>
                                 }

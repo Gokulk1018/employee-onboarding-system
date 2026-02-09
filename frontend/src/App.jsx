@@ -1,5 +1,5 @@
 import React from 'react';
-import { ConfigProvider, App as AntApp } from 'antd';
+import { ConfigProvider, App as AntApp, theme as antTheme } from 'antd';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { themeConfig } from './config/theme';
 import MainLayout from './components/layout/MainLayout';
@@ -10,37 +10,48 @@ import Performance from './pages/Performance';
 import Engagement from './pages/Engagement';
 import Onboarding from './pages/Onboarding';
 import Tasks from './pages/Tasks';
-
 import Payroll from './pages/Payroll';
 import Settings from './pages/Settings';
 import './index.css';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 
-import { ThemeProvider } from './context/ThemeContext';
+const AppContent = () => {
+    const { isDarkMode } = useTheme();
+
+    return (
+        <ConfigProvider
+            theme={{
+                ...themeConfig,
+                cssVar: true,
+                algorithm: isDarkMode ? antTheme.darkAlgorithm : antTheme.defaultAlgorithm,
+            }}
+        >
+            <AntApp>
+                <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                    <Routes>
+                        <Route path="/" element={<MainLayout />}>
+                            <Route index element={<Dashboard />} />
+                            <Route path="employees" element={<Employees />} />
+                            <Route path="recruitment" element={<Recruitment />} />
+                            <Route path="performance" element={<Performance />} />
+                            <Route path="engagement" element={<Engagement />} />
+                            <Route path="onboarding" element={<Onboarding />} />
+                            <Route path="tasks" element={<Tasks />} />
+                            <Route path="payroll" element={<Payroll />} />
+                            <Route path="settings" element={<Settings />} />
+                            <Route path="*" element={<Navigate to="/" replace />} />
+                        </Route>
+                    </Routes>
+                </BrowserRouter>
+            </AntApp>
+        </ConfigProvider>
+    );
+};
 
 function App() {
     return (
         <ThemeProvider>
-            <ConfigProvider theme={themeConfig}>
-                <AntApp>
-                    <BrowserRouter>
-                        <Routes>
-                            <Route path="/" element={<MainLayout />}>
-                                <Route index element={<Dashboard />} />
-                                <Route path="employees" element={<Employees />} />
-                                <Route path="recruitment" element={<Recruitment />} />
-                                <Route path="performance" element={<Performance />} />
-                                <Route path="engagement" element={<Engagement />} />
-                                <Route path="onboarding" element={<Onboarding />} />
-                                <Route path="tasks" element={<Tasks />} />
-
-                                <Route path="payroll" element={<Payroll />} />
-                                <Route path="settings" element={<Settings />} />
-                                <Route path="*" element={<Navigate to="/" replace />} />
-                            </Route>
-                        </Routes>
-                    </BrowserRouter>
-                </AntApp>
-            </ConfigProvider>
+            <AppContent />
         </ThemeProvider>
     );
 }

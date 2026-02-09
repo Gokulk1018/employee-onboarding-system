@@ -11,13 +11,13 @@ const PayslipsList = () => {
             title: 'Month',
             dataIndex: 'month',
             key: 'month',
-            render: text => <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{text}</span>
+            render: text => <span style={{ fontWeight: 500, color: token.colorText }}>{text}</span>
         },
         {
             title: 'Salary',
             dataIndex: 'salary',
             key: 'salary',
-            render: text => <span style={{ color: 'var(--text-secondary)' }}>{text}</span>
+            render: text => <span style={{ color: token.colorTextSecondary }}>{text}</span>
         },
         {
             title: 'Status',
@@ -25,7 +25,7 @@ const PayslipsList = () => {
             key: 'status',
             render: status => {
                 let color = status === 'Paid' ? 'success' : 'processing';
-                let bg = status === 'Paid' ? `rgba(16, 185, 129, 0.1)` : `rgba(59, 130, 246, 0.1)`;
+                let bg = status === 'Paid' ? token.colorSuccessBg : token.colorPrimaryBg;
                 return (
                     <Tag
                         color={color}
@@ -62,8 +62,8 @@ const PayslipsList = () => {
     ];
 
     return (
-        <div className="glass-card" style={{ padding: 24 }}>
-            <div style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>Payslip History</div>
+        <div className="glass-card" style={{ padding: 24, borderColor: token.colorBorder }}>
+            <div style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, color: token.colorText }}>Payslip History</div>
             <Table
                 columns={columns}
                 dataSource={data}

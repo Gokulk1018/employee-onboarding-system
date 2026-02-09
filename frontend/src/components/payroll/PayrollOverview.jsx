@@ -33,16 +33,16 @@ const PayrollOverview = () => {
                 </Col>
             </Row>
 
-            <div className="glass-card" style={{ padding: 24 }}>
-                <div style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>Salary Trend</div>
-                <div style={{ height: 300, width: '100%' }}>
+            <div className="glass-card" style={{ padding: 24, borderColor: token.colorBorder }}>
+                <div style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, color: token.colorText }}>Salary Trend</div>
+                <div style={{ height: 300, width: '100%', minWidth: 0 }}>
                     <ResponsiveContainer>
                         <BarChart data={data}>
                             <XAxis
                                 dataKey="name"
                                 axisLine={false}
                                 tickLine={false}
-                                tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
+                                tick={{ fill: token.colorTextSecondary, fontSize: 12 }}
                             />
                             <YAxis
                                 hide
@@ -51,14 +51,14 @@ const PayrollOverview = () => {
                                 cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                                 contentStyle={{
                                     borderRadius: 12,
-                                    border: '1px solid var(--border-color)',
+                                    border: `1px solid ${token.colorBorder}`,
                                     boxShadow: token.boxShadow,
-                                    background: 'var(--bg-secondary)',
-                                    color: 'var(--text-primary)'
+                                    background: token.colorBgContainer,
+                                    color: token.colorText
                                 }}
                                 formatter={(value) => [`$${value}`, 'Salary']}
                             />
-                            <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={32}>
+                            <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={32} animationDuration={1500} animationBegin={500}>
                                 {data.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={index === data.length - 1 ? token.colorSuccess : token.colorPrimary} />
                                 ))}

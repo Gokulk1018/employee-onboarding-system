@@ -1,9 +1,11 @@
 import React from 'react';
-import { Typography, Row, Col, Tabs, Button, theme } from 'antd';
-import { SaveOutlined } from '@ant-design/icons';
+import { Typography, Tabs, Button, theme } from 'antd';
+import { SaveOutlined, UserOutlined, BellOutlined, LockOutlined, CreditCardOutlined } from '@ant-design/icons';
 import ThemeSettings from '../components/settings/ThemeSettings';
 import NotificationSettings from '../components/settings/NotificationSettings';
-import { motion } from 'framer-motion';
+import SecuritySettings from '../components/settings/SecuritySettings';
+import BillingSettings from '../components/settings/BillingSettings';
+import { motion, AnimatePresence } from 'framer-motion';
 import PageContainer from '../components/layout/PageContainer';
 
 const { Title } = Typography;
@@ -19,13 +21,28 @@ const Settings = () => {
         }
     };
 
-    const itemVariants = {
-        hidden: { y: 20, opacity: 0 },
-        visible: {
-            y: 0,
-            opacity: 1
-        }
-    };
+    const tabItems = [
+        {
+            key: '1',
+            label: <span><UserOutlined /> Appearance</span>,
+            children: <ThemeSettings />,
+        },
+        {
+            key: '2',
+            label: <span><BellOutlined /> Notifications</span>,
+            children: <NotificationSettings />,
+        },
+        {
+            key: '3',
+            label: <span><LockOutlined /> Security</span>,
+            children: <SecuritySettings />,
+        },
+        {
+            key: '4',
+            label: <span><CreditCardOutlined /> Billing</span>,
+            children: <BillingSettings />,
+        },
+    ];
 
     return (
         <PageContainer>
@@ -40,21 +57,25 @@ const Settings = () => {
                         <Title level={2} style={{ margin: 0 }} className="text-gradient">Settings</Title>
                         <div style={{ color: 'var(--text-secondary)' }}>Manage your workspace preferences</div>
                     </div>
-                    <Button type="primary" icon={<SaveOutlined />} size="large">Save Changes</Button>
                 </div>
 
-                <Row gutter={[24, 24]}>
-                    <Col xs={24} lg={14}>
-                        <motion.div variants={itemVariants}>
-                            <ThemeSettings />
-                        </motion.div>
-                    </Col>
-                    <Col xs={24} lg={10}>
-                        <motion.div variants={itemVariants}>
-                            <NotificationSettings />
-                        </motion.div>
-                    </Col>
-                </Row>
+                <Tabs
+                    defaultActiveKey="1"
+                    items={tabItems.map(item => ({
+                        ...item,
+                        children: (
+                            <motion.div
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                transition={{ duration: 0.3 }}
+                            >
+                                {item.children}
+                            </motion.div>
+                        )
+                    }))}
+                    className="glass-tabs"
+                />
             </motion.div>
         </PageContainer>
     );

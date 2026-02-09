@@ -16,8 +16,8 @@ const TaskCard = ({ task }) => {
                 style={{
                     padding: 16,
                     borderRadius: 12,
-                    border: '1px solid var(--border-color)',
-                    background: 'var(--bg-primary)' // Slightly distinct from column bg
+                    border: `1px solid ${token.colorBorder}`,
+                    background: token.colorBgContainer // Slightly distinct from column bg
                 }}
             >
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -27,16 +27,16 @@ const TaskCard = ({ task }) => {
                     >
                         {task.priority}
                     </Tag>
-                    <MoreOutlined style={{ color: 'var(--text-secondary)' }} />
+                    <MoreOutlined style={{ color: token.colorTextSecondary }} />
                 </div>
-                <Typography.Paragraph strong style={{ marginBottom: 12, color: 'var(--text-primary)' }}>{task.title}</Typography.Paragraph>
+                <Typography.Paragraph strong style={{ marginBottom: 12, color: token.colorText }}>{task.title}</Typography.Paragraph>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Space size={4} style={{ color: 'var(--text-secondary)', fontSize: 12 }}>
+                    <Space size={4} style={{ color: token.colorTextSecondary, fontSize: 12 }}>
                         <ClockCircleOutlined /> {task.date}
                     </Space>
-                    <Avatar.Group size="small" maxCount={2}>
+                    <Avatar.Group size="small" max={{ count: 2 }}>
                         {task.assignees.map((a, i) => (
-                            <Avatar key={i} src={a} style={{ border: `2px solid var(--bg-primary)` }} />
+                            <Avatar key={i} src={a} style={{ border: `2px solid ${token.colorBgContainer}` }} />
                         ))}
                     </Avatar.Group>
                 </div>
@@ -45,20 +45,23 @@ const TaskCard = ({ task }) => {
     );
 };
 
-const Column = ({ title, tasks, color }) => (
-    <div style={{ flex: 1, minWidth: 320, background: 'rgba(255,255,255,0.02)', padding: 16, borderRadius: 16, border: '1px solid var(--border-color)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-            <Typography.Text strong style={{ fontSize: 16, color: 'var(--text-primary)' }}>{title}</Typography.Text>
-            <Tag color={color} style={{ borderRadius: 12 }}>{tasks.length}</Tag>
+const Column = ({ title, tasks, color }) => {
+    const { token } = theme.useToken();
+    return (
+        <div style={{ flex: 1, minWidth: 320, background: token.colorBgLayout, padding: 16, borderRadius: 16, border: `1px solid ${token.colorBorder}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
+                <Typography.Text strong style={{ fontSize: 16, color: token.colorText }}>{title}</Typography.Text>
+                <Tag color={color} style={{ borderRadius: 12 }}>{tasks.length}</Tag>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {tasks.map((task) => (
+                    <TaskCard key={task.id} task={task} />
+                ))}
+                <Button type="dashed" block icon={<PlusOutlined />} style={{ borderRadius: 12, height: 40, borderColor: token.colorBorder, color: token.colorTextSecondary }}>Add Task</Button>
+            </div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {tasks.map((task) => (
-                <TaskCard key={task.id} task={task} />
-            ))}
-            <Button type="dashed" block icon={<PlusOutlined />} style={{ borderRadius: 12, height: 40 }}>Add Task</Button>
-        </div>
-    </div>
-);
+    );
+};
 
 const KanbanBoard = () => {
     const tasks = {

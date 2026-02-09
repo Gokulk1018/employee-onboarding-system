@@ -20,11 +20,11 @@ const ThemeSettings = () => {
     ];
 
     return (
-        <div className="glass-card" style={{ padding: 24 }}>
-            <Title level={4} style={{ marginTop: 0, marginBottom: 24, color: 'var(--text-primary)' }}>Appearance</Title>
+        <div className="glass-card" style={{ padding: 24, borderColor: token.colorBorder }}>
+            <Title level={4} style={{ marginTop: 0, marginBottom: 24, color: token.colorText }}>Appearance</Title>
 
             <div style={{ marginBottom: 24 }}>
-                <Text strong style={{ display: 'block', marginBottom: 12, color: 'var(--text-primary)' }}>Accent Color</Text>
+                <Text strong style={{ display: 'block', marginBottom: 12, color: token.colorText }}>Accent Color</Text>
                 <Space size={16}>
                     {colors.map(color => (
                         <div
@@ -39,9 +39,9 @@ const ThemeSettings = () => {
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                border: primaryColor === color ? `2px solid var(--text-primary)` : 'none',
+                                border: primaryColor === color ? `2px solid ${token.colorText}` : 'none',
                                 transition: 'all 0.2s',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                boxShadow: token.boxShadow
                             }}
                         >
                             {primaryColor === color && <CheckCircleFilled style={{ color: '#fff' }} />}
@@ -50,22 +50,22 @@ const ThemeSettings = () => {
                 </Space>
             </div>
 
-            <Divider style={{ borderColor: 'var(--border-color)' }} />
+            <Divider style={{ borderColor: token.colorBorder }} />
 
             <div style={{ marginBottom: 24 }}>
-                <Text strong style={{ display: 'block', marginBottom: 12, color: 'var(--text-primary)' }}>Interface Density</Text>
+                <Text strong style={{ display: 'block', marginBottom: 12, color: token.colorText }}>Interface Density</Text>
                 <Radio.Group value={density} onChange={e => setDensity(e.target.value)}>
                     <Radio.Button value="compact">Compact</Radio.Button>
                     <Radio.Button value="comfortable">Comfortable</Radio.Button>
                 </Radio.Group>
             </div>
 
-            <Divider style={{ borderColor: 'var(--border-color)' }} />
+            <Divider style={{ borderColor: token.colorBorder }} />
 
             <div className="flex-between">
                 <div>
-                    <Text strong style={{ display: 'block', color: 'var(--text-primary)' }}>Dark Mode</Text>
-                    <Text style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Switch between light and dark themes</Text>
+                    <Text strong style={{ display: 'block', color: token.colorText }}>Dark Mode</Text>
+                    <Text style={{ fontSize: 12, color: token.colorTextSecondary }}>Switch between light and dark themes</Text>
                 </div>
                 <Switch
                     checked={mode === 'dark'}

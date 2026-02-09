@@ -10,7 +10,7 @@ const AddEmployeeModal = ({ open, onClose }) => {
             open={open}
             onCancel={onClose}
             onOk={() => form.submit()}
-            destroyOnClose
+            destroyOnHidden
         >
             <Form layout="vertical" form={form}>
                 <Form.Item label="Full Name" name="name" rules={[{ required: true }]}>

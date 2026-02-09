@@ -29,15 +29,15 @@ const NotificationSettings = () => {
     ];
 
     return (
-        <div className="glass-card" style={{ padding: 24 }}>
-            <Title level={4} style={{ marginTop: 0, marginBottom: 24, color: 'var(--text-primary)' }}>Notifications</Title>
+        <div className="glass-card" style={{ padding: 24, borderColor: token.colorBorder }}>
+            <Title level={4} style={{ marginTop: 0, marginBottom: 24, color: token.colorText }}>Notifications</Title>
             <List
                 itemLayout="horizontal"
                 dataSource={data}
                 renderItem={item => (
                     <List.Item
                         actions={[<Switch defaultChecked={item.defaultChecked} />]}
-                        style={{ padding: '16px 0', borderBlockEnd: '1px solid var(--border-color)' }}
+                        style={{ padding: '16px 0', borderBlockEnd: `1px solid ${token.colorBorder}` }}
                     >
                         <List.Item.Meta
                             avatar={
@@ -45,7 +45,7 @@ const NotificationSettings = () => {
                                     width: 40,
                                     height: 40,
                                     borderRadius: 8,
-                                    background: 'var(--bg-primary)',
+                                    background: token.colorBgLayout,
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
@@ -55,8 +55,8 @@ const NotificationSettings = () => {
                                     {item.icon}
                                 </div>
                             }
-                            title={<Text strong style={{ color: 'var(--text-primary)' }}>{item.title}</Text>}
-                            description={<Text style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{item.description}</Text>}
+                            title={<Text strong style={{ color: token.colorText }}>{item.title}</Text>}
+                            description={<Text style={{ fontSize: 13, color: token.colorTextSecondary }}>{item.description}</Text>}
                         />
                     </List.Item>
                 )}
