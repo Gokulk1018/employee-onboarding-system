@@ -1,4 +1,8 @@
+import React from 'react';
+import { theme, Skeleton } from 'antd';
+import { motion } from 'framer-motion';
 import CountUp from './CountUp';
+
 
 const StatCard = ({ title, value, icon, prefix, suffix, color, trend, loading }) => {
     const { token } = theme.useToken();

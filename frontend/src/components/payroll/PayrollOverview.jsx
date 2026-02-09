@@ -23,13 +23,13 @@ const PayrollOverview = () => {
         <div>
             <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
                 <Col xs={24} sm={8}>
-                    <StatCard title="Net Salary" value="$5,000" icon={<DollarOutlined />} color={token.colorSuccess} trend={0} />
+                    <StatCard title="Net Salary" value={5000} prefix="$" icon={<DollarOutlined />} color={token.colorSuccess} trend={0} />
                 </Col>
                 <Col xs={24} sm={8}>
-                    <StatCard title="Total Earnings (YTD)" value="$48,900" icon={<BankOutlined />} color={token.colorPrimary} />
+                    <StatCard title="Total Earnings (YTD)" value={48900} prefix="$" icon={<BankOutlined />} color={token.colorPrimary} />
                 </Col>
                 <Col xs={24} sm={8}>
-                    <StatCard title="Taxes Deducted (YTD)" value="$12,400" icon={<SafetyCertificateOutlined />} color={token.colorWarning} />
+                    <StatCard title="Taxes Deducted (YTD)" value={12400} prefix="$" icon={<SafetyCertificateOutlined />} color={token.colorWarning} />
                 </Col>
             </Row>
 
