@@ -31,8 +31,11 @@ const Onboarding = () => {
     const [statusFilter, setStatusFilter] = useState('All');
     const [offersData, setOffersData] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [selectedCandidate, setSelectedCandidate] = useState(null);
+    const [selectedOfferId, setSelectedOfferId] = useState(null);
     const [editingOffer, setEditingOffer] = useState(null);
+
+    // Derived state for the detail panels
+    const selectedOffer = offersData.find(o => o.id === selectedOfferId) || (offersData.length > 0 ? offersData[0] : null);
 
     const fetchOffers = useCallback(async () => {
         setLoading(true);
@@ -63,8 +66,10 @@ const Onboarding = () => {
                     salary: offer.salary
                 }));
                 setOffersData(formattedData);
-                if (formattedData.length > 0 && !selectedCandidate) {
-                    setSelectedCandidate(formattedData[0]);
+
+                // Auto-select first offer if none selected or previous selection gone
+                if (formattedData.length > 0 && (!selectedOfferId || !formattedData.find(o => o.id === selectedOfferId))) {
+                    setSelectedOfferId(formattedData[0].id);
                 }
             }
         } catch (error) {
@@ -73,7 +78,7 @@ const Onboarding = () => {
         } finally {
             setLoading(false);
         }
-    }, [statusFilter, searchText, selectedCandidate]);
+    }, [statusFilter, searchText]); // Removed selectedOfferId from dependency to avoid loop on auto-select
 
     useEffect(() => {
         fetchOffers();
@@ -119,8 +124,7 @@ const Onboarding = () => {
                 message.success(`Downloading offer letter for ${record.name}`);
                 break;
             case 'view':
-                setSelectedCandidate(record);
-                // Fetch onboarding status logic can be added here if needed
+                setSelectedOfferId(record.id);
                 break;
             default:
                 break;
@@ -209,12 +213,20 @@ const Onboarding = () => {
                         type="text"
                         icon={<FileTextOutlined />}
                         size="small"
-                        onClick={() => handleOfferAction('view', record)}
+                        onClick={(e) => {
+                            e.stopPropagation(); // Prevent row click
+                            handleOfferAction('view', record);
+                        }}
                     >
                         View Offer
                     </Button>
                     <Dropdown menu={getActionMenu(record)} trigger={['click']}>
-                        <Button type="text" icon={<MoreOutlined />} size="small" />
+                        <Button
+                            type="text"
+                            icon={<MoreOutlined />}
+                            size="small"
+                            onClick={(e) => e.stopPropagation()} // Prevent row click
+                        />
                     </Dropdown>
                 </Space>
             )
@@ -291,17 +303,31 @@ const Onboarding = () => {
                                 </Select>
                             </Space>
 
+                            <style>
+                                {`
+                                    .selected-row {
+                                        background-color: ${token.colorPrimary}15 !important;
+                                    }
+                                    .glass-table .ant-table-row {
+                                        cursor: pointer;
+                                    }
+                                `}
+                            </style>
                             <Table
                                 dataSource={offersData}
                                 columns={columns}
                                 pagination={{ pageSize: 5 }}
                                 className="glass-table"
                                 loading={loading}
+                                onRow={(record) => ({
+                                    onClick: () => setSelectedOfferId(record.id),
+                                })}
+                                rowClassName={(record) => record.id === selectedOfferId ? 'selected-row' : ''}
                             />
                         </motion.div>
 
                         <motion.div variants={itemVariants} style={{ marginBottom: 24 }}>
-                            <OnboardingDocuments employeeId={selectedCandidate?.id} />
+                            <OnboardingDocuments employeeId={selectedOffer?.id} />
                         </motion.div>
 
                         <motion.div variants={itemVariants}>
@@ -311,7 +337,7 @@ const Onboarding = () => {
 
                     <Col xs={24} lg={8}>
                         <motion.div variants={itemVariants} style={{ marginBottom: 24 }}>
-                            <OnboardingStepper candidateData={selectedCandidate} fetchStatus={true} />
+                            <OnboardingStepper candidateData={selectedOffer} fetchStatus={true} />
                         </motion.div>
                         <motion.div variants={itemVariants}>
                             <MentorshipProgram />

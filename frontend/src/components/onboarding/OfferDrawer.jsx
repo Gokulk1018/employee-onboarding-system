@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 const OfferDrawer = ({ open, onClose, onSuccess, editData }) => {
     const { token } = theme.useToken();
     const [form] = Form.useForm();
+    const [loading, setLoading] = React.useState(false);
 
     useEffect(() => {
         if (open) {
@@ -28,6 +29,7 @@ const OfferDrawer = ({ open, onClose, onSuccess, editData }) => {
     const handleSubmit = async () => {
         try {
             const values = await form.validateFields();
+            setLoading(true);
             const payload = {
                 ...values,
                 joiningDate: values.joiningDate ? values.joiningDate.toISOString() : null
@@ -41,8 +43,11 @@ const OfferDrawer = ({ open, onClose, onSuccess, editData }) => {
                 message.success('Offer sent successfully');
             }
 
+            setLoading(false);
             onSuccess();
+            onClose();
         } catch (error) {
+            setLoading(false);
             if (error.response) {
                 message.error(error.response.data.error || 'Failed to process offer');
             } else if (error.errorFields) {
@@ -62,14 +67,21 @@ const OfferDrawer = ({ open, onClose, onSuccess, editData }) => {
             styles={{ body: { paddingBottom: 80 } }}
             extra={
                 <Space>
-                    <Button onClick={onClose}>Cancel</Button>
-                    <Button type="primary" onClick={handleSubmit}>
-                        {editData ? "Update Offer" : "Send Offer"}
+                    <Button onClick={onClose} disabled={loading}>
+                        Cancel
+                    </Button>
+                    <Button
+                        type="primary"
+                        onClick={handleSubmit}
+                        loading={loading}
+                        disabled={loading}
+                    >
+                        {loading ? "Sending..." : (editData ? "Update Offer" : "Send Offer")}
                     </Button>
                 </Space>
             }
         >
-            <Form form={form} layout="vertical" hideRequiredMark>
+            <Form form={form} layout="vertical" hideRequiredMark disabled={loading}>
                 <Form.Item
                     name="name"
                     label="Candidate Name"
