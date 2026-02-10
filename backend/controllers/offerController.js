@@ -1,0 +1,233 @@
+const Offer = require('../models/Offer');
+const Candidate = require('../models/Candidate');
+const OnboardingStatus = require('../models/OnboardingStatus');
+const Employee = require('../models/Employee');
+const sendEmail = require('../utils/emailHelper');
+
+// @desc    Create new offer & Send Email
+// @route   POST /api/offers/create
+exports.createOffer = async (req, res, next) => {
+    console.log('[DEBUG] Incoming Offer Request:', req.body);
+
+    try {
+        const { name, email, phone, role, department, salary, joiningDate } = req.body;
+
+        // 1. Explicit Validation
+        if (!name || !email || !role || !department || !salary || !joiningDate) {
+            res.status(400);
+            throw new Error('All fields are required (name, email, role, department, salary, joiningDate)');
+        }
+
+        // Validate Email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            res.status(400);
+            throw new Error('Please provide a valid email address');
+        }
+
+        // Validate Salary is a number
+        if (isNaN(salary) || Number(salary) <= 0) {
+            res.status(400);
+            throw new Error('Salary must be a positive number');
+        }
+
+        // Validate Date
+        const date = new Date(joiningDate);
+        if (isNaN(date.getTime())) {
+            res.status(400);
+            throw new Error('Please provide a valid joining date');
+        }
+
+        // 2. Database Operations
+        let candidate = await Candidate.findOne({ email });
+        if (!candidate) {
+            candidate = await Candidate.create({ name, email, phone });
+        } else {
+            candidate.name = name;
+            candidate.phone = phone || candidate.phone;
+            await candidate.save();
+        }
+
+        const offer = await Offer.create({
+            candidateId: candidate._id,
+            role,
+            department,
+            salary,
+            joiningDate: date,
+            status: 'Sent'
+        });
+
+        // 3. Email Notification
+        const acceptUrl = `${process.env.BASE_URL}/api/offers/accept/${offer._id}`;
+        const rejectUrl = `${process.env.BASE_URL}/api/offers/reject/${offer._id}`;
+
+        const htmlContent = `
+            <h1>Job Offer - ${role}</h1>
+            <p>Dear ${name},</p>
+            <p>We are pleased to offer you the position of <strong>${role}</strong> in our <strong>${department}</strong> department.</p>
+            <p>Joining Date: ${date.toLocaleDateString()}</p>
+            <p>Annual Salary: $${salary}</p>
+            <br>
+            <a href="${acceptUrl}" style="background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Accept Offer</a>
+            <a href="${rejectUrl}" style="background-color: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-left: 10px;">Reject Offer</a>
+        `;
+
+        try {
+            await sendEmail({
+                email: candidate.email,
+                subject: `Job Offer from EOS - ${role}`,
+                html: htmlContent
+            });
+        } catch (err) {
+            console.error('[WARNING] Email could not be sent:', err.message);
+            // Non-blocking for the final response
+        }
+
+        res.status(201).json({ success: true, data: offer });
+    } catch (err) {
+        // Pass to centralized error handler
+        next(err);
+    }
+};
+
+// @desc    Accept offer via email link
+// @route   GET /api/offers/accept/:id
+exports.acceptOffer = async (req, res, next) => {
+    try {
+        const offer = await Offer.findById(req.params.id).populate('candidateId');
+        if (!offer) {
+            return res.status(404).send('<h1>Error</h1><p>Offer not found.</p>');
+        }
+
+        if (offer.status !== 'Sent') {
+            return res.send(`<h1>Notice</h1><p>This offer is already ${offer.status.toLowerCase()}.</p>`);
+        }
+
+        // Update status
+        offer.status = 'Accepted';
+        await offer.save();
+
+        // Create Employee Account Automatically
+        const employee = await Employee.create({
+            name: offer.candidateId.name,
+            email: offer.candidateId.email,
+            position: offer.role,
+            department: offer.department,
+            offerId: offer._id,
+            joiningDate: offer.joiningDate
+        });
+
+        // Initialize Onboarding Status
+        const onboarding = await OnboardingStatus.create({
+            employeeId: employee._id,
+            currentStep: 'OFFER_ACCEPTED',
+            stepHistory: [{ step: 'OFFER_CREATED' }, { step: 'OFFER_ACCEPTED' }]
+        });
+
+        employee.onboardingStatusId = onboarding._id;
+        await employee.save();
+
+        res.send(`<h1>Success!</h1><p>You have accepted the offer for ${offer.role}. Welcome to the team!</p>`);
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @desc    Reject offer via email link
+// @route   GET /api/offers/reject/:id
+exports.rejectOffer = async (req, res, next) => {
+    try {
+        const offer = await Offer.findById(req.params.id);
+        if (!offer) {
+            return res.status(404).send('<h1>Error</h1><p>Offer not found.</p>');
+        }
+
+        if (offer.status !== 'Sent') {
+            return res.send(`<h1>Notice</h1><p>This offer is already ${offer.status.toLowerCase()}.</p>`);
+        }
+
+        offer.status = 'Rejected';
+        await offer.save();
+
+        res.send('<h1>Offer Rejected</h1><p>You have declined the offer. We wish you the best in your future endeavors.</p>');
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @desc    Get all offers (with filtering & searching)
+// @route   GET /api/offers
+exports.getOffers = async (req, res, next) => {
+    try {
+        const { status, search } = req.query;
+        let query = {};
+        if (status && status !== 'All') query.status = status;
+
+        let offers = await Offer.find(query).populate('candidateId').sort({ createdAt: -1 });
+
+        if (search) {
+            const searchLower = search.toLowerCase();
+            offers = offers.filter(offer =>
+                offer.candidateId && (
+                    offer.candidateId.name.toLowerCase().includes(searchLower) ||
+                    offer.candidateId.email.toLowerCase().includes(searchLower)
+                )
+            );
+        }
+
+        res.status(200).json({ success: true, count: offers.length, data: offers });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @desc    Update offer details
+// @route   PUT /api/offers/:id
+exports.updateOffer = async (req, res, next) => {
+    try {
+        const { name, phone, role, department, salary, joiningDate, status } = req.body;
+        let offer = await Offer.findById(req.params.id);
+        if (!offer) {
+            res.status(404);
+            throw new Error('Offer not found');
+        }
+
+        if (offer.status === 'Accepted') {
+            res.status(400);
+            throw new Error('Cannot edit an accepted offer');
+        }
+
+        if (name || phone) await Candidate.findByIdAndUpdate(offer.candidateId, { name, phone });
+
+        offer = await Offer.findByIdAndUpdate(req.params.id, {
+            role, department, salary, joiningDate,
+            status: status || offer.status
+        }, { new: true, runValidators: true }).populate('candidateId');
+
+        res.status(200).json({ success: true, data: offer });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @desc    Delete offer
+// @route   DELETE /api/offers/:id
+exports.deleteOffer = async (req, res, next) => {
+    try {
+        const offer = await Offer.findById(req.params.id);
+        if (!offer) {
+            res.status(404);
+            throw new Error('Offer not found');
+        }
+
+        if (offer.status === 'Accepted') {
+            res.status(400);
+            throw new Error('Cannot delete an accepted offer');
+        }
+
+        await Offer.findByIdAndDelete(req.params.id);
+        res.status(200).json({ success: true, data: {} });
+    } catch (err) {
+        next(err);
+    }
+};
