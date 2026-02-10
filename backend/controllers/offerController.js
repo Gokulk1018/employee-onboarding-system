@@ -10,7 +10,7 @@ exports.createOffer = async (req, res, next) => {
     console.log('[DEBUG] Incoming Offer Request:', req.body);
 
     try {
-        const { name, email, phone, role, department, salary, joiningDate } = req.body;
+        const { name, email, phone, role, department, salary, joiningDate, message } = req.body;
 
         // 1. Explicit Validation
         if (!name || !email || !role || !department || !salary || !joiningDate) {
@@ -62,14 +62,29 @@ exports.createOffer = async (req, res, next) => {
         const rejectUrl = `${process.env.BASE_URL}/api/offers/reject/${offer._id}`;
 
         const htmlContent = `
-            <h1>Job Offer - ${role}</h1>
-            <p>Dear ${name},</p>
-            <p>We are pleased to offer you the position of <strong>${role}</strong> in our <strong>${department}</strong> department.</p>
-            <p>Joining Date: ${date.toLocaleDateString()}</p>
-            <p>Annual Salary: $${salary}</p>
-            <br>
-            <a href="${acceptUrl}" style="background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Accept Offer</a>
-            <a href="${rejectUrl}" style="background-color: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-left: 10px;">Reject Offer</a>
+            <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
+                <h1 style="color: #007bff;">Job Offer - ${role}</h1>
+                <p>Dear ${name},</p>
+                <p>We are pleased to offer you the position of <strong>${role}</strong> in our <strong>${department}</strong> department.</p>
+                
+                ${message ? `<div style="background: #f8f9fa; padding: 15px; border-left: 4px solid #007bff; margin: 20px 0;">
+                    <p style="margin: 0; font-style: italic;">"${message}"</p>
+                </div>` : ''}
+
+                <p><strong>Offer Details:</strong></p>
+                <ul>
+                    <li>Joining Date: ${date.toLocaleDateString()}</li>
+                    <li>Annual Salary: $${salary}</li>
+                </ul>
+                <br>
+                <div style="text-align: center; margin-top: 30px;">
+                    <a href="${acceptUrl}" style="background-color: #28a745; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-right: 10px;">Accept Offer</a>
+                    <a href="${rejectUrl}" style="background-color: #dc3545; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reject Offer</a>
+                </div>
+                <br>
+                <p style="font-size: 0.9em; color: #666;">If the buttons above do not work, copy and paste these links into your browser:</p>
+                <p style="font-size: 0.8em; color: #007bff;">Accept: ${acceptUrl}<br>Reject: ${rejectUrl}</p>
+            </div>
         `;
 
         try {
@@ -127,7 +142,29 @@ exports.acceptOffer = async (req, res, next) => {
         employee.onboardingStatusId = onboarding._id;
         await employee.save();
 
-        res.send(`<h1>Success!</h1><p>You have accepted the offer for ${offer.role}. Welcome to the team!</p>`);
+        // 4. Send Welcome Email
+        const portalUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/onboarding`;
+        const welcomeHtml = `
+            <h1>Welcome to the Team, ${offer.candidateId.name}!</h1>
+            <p>We are thrilled to have you join us as a <strong>${offer.role}</strong>.</p>
+            <p>Your employee account has been successfully created. The next step in your onboarding journey is to upload the required documents.</p>
+            <br>
+            <a href="${portalUrl}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Onboarding Portal</a>
+            <br><br>
+            <p>If you have any questions, please reach out to HR.</p>
+        `;
+
+        try {
+            await sendEmail({
+                email: offer.candidateId.email,
+                subject: `Welcome to EOS! Next Steps for Your Onboarding`,
+                html: welcomeHtml
+            });
+        } catch (err) {
+            console.error('[WARNING] Welcome email could not be sent:', err.message);
+        }
+
+        res.send(`<h1>Success!</h1><p>You have accepted the offer for ${offer.role}. Check your email for next steps!</p>`);
     } catch (err) {
         next(err);
     }

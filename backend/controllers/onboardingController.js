@@ -1,37 +1,53 @@
 const OnboardingStatus = require('../models/OnboardingStatus');
 const Employee = require('../models/Employee');
 
-exports.getOnboardingStatus = async (req, res) => {
+// @desc    Get onboarding status for an employee
+// @route   GET /api/onboarding/:employeeId
+exports.getOnboardingStatus = async (req, res, next) => {
     try {
         const status = await OnboardingStatus.findOne({ employeeId: req.params.employeeId });
-        if (!status) return res.status(404).json({ success: false, error: 'Onboarding status not found' });
+        if (!status) {
+            res.status(404);
+            throw new Error('Onboarding status not found');
+        }
         res.status(200).json({ success: true, data: status });
-    } catch (error) {
-        res.status(400).json({ success: false, error: error.message });
+    } catch (err) {
+        next(err);
     }
 };
 
-exports.updateOnboardingStep = async (req, res) => {
+// @desc    Update onboarding step manually
+// @route   PUT /api/onboarding/:employeeId/update-step
+exports.updateOnboardingStep = async (req, res, next) => {
     try {
         const { step } = req.body;
+
+        if (!step) {
+            res.status(400);
+            throw new Error('Please provide the new onboarding step');
+        }
+
         const status = await OnboardingStatus.findOneAndUpdate(
             { employeeId: req.params.employeeId },
             {
                 $set: { currentStep: step },
                 $push: { stepHistory: { step } }
             },
-            { new: true }
+            { new: true, runValidators: true }
         );
 
-        if (!status) return res.status(404).json({ success: false, error: 'Onboarding status not found' });
+        if (!status) {
+            res.status(404);
+            throw new Error('Onboarding status not found');
+        }
 
-        // If step is ACTIVE, update Employee status
+        // If step is ACTIVE, update Employee overall status
         if (step === 'ACTIVE') {
             await Employee.findByIdAndUpdate(req.params.employeeId, { status: 'ACTIVE' });
         }
 
         res.status(200).json({ success: true, data: status });
-    } catch (error) {
-        res.status(400).json({ success: false, error: error.message });
+    } catch (err) {
+        next(err);
     }
 };

@@ -1,9 +1,16 @@
 const Document = require('../models/Document');
 const OnboardingStatus = require('../models/OnboardingStatus');
 
-exports.uploadDocument = async (req, res) => {
+// @desc    Upload document
+// @route   POST /api/documents/upload
+exports.uploadDocument = async (req, res, next) => {
     try {
         const { employeeId, documentType, url } = req.body;
+
+        if (!employeeId || !documentType || !url) {
+            res.status(400);
+            throw new Error('Please provide employeeId, documentType, and url');
+        }
 
         const document = await Document.create({
             employeeId,
@@ -11,37 +18,48 @@ exports.uploadDocument = async (req, res) => {
             url
         });
 
-        // Update Onboarding status to DOCUMENTS_UPLOADED if it's the first document or relevant
+        // Update Onboarding status to DOCUMENTS_UPLOADED
         await OnboardingStatus.findOneAndUpdate(
             { employeeId },
             {
                 $set: { currentStep: 'DOCUMENTS_UPLOADED' },
                 $push: { stepHistory: { step: 'DOCUMENTS_UPLOADED' } }
-            }
+            },
+            { upsert: true } // Just in case it doesn't exist
         );
 
         res.status(201).json({ success: true, data: document });
-    } catch (error) {
-        res.status(400).json({ success: false, error: error.message });
+    } catch (err) {
+        next(err);
     }
 };
 
-exports.verifyDocument = async (req, res) => {
+// @desc    Verify document
+// @route   PUT /api/documents/:id/verify
+exports.verifyDocument = async (req, res, next) => {
     try {
         const { status } = req.body;
+
+        if (!['PENDING', 'VERIFIED', 'REJECTED'].includes(status)) {
+            res.status(400);
+            throw new Error('Invalid document status');
+        }
+
         const document = await Document.findByIdAndUpdate(
             req.params.id,
             { status, verifiedAt: status === 'VERIFIED' ? Date.now() : null },
             { new: true }
         );
 
-        if (!document) return res.status(404).json({ success: false, error: 'Document not found' });
+        if (!document) {
+            res.status(404);
+            throw new Error('Document not found');
+        }
 
         // Check if all documents for this employee are verified
-        // This is a simplified check for the flow
         if (status === 'VERIFIED') {
             const allDocs = await Document.find({ employeeId: document.employeeId });
-            const allVerified = allDocs.every(doc => doc.status === 'VERIFIED');
+            const allVerified = allDocs.length > 0 && allDocs.every(doc => doc.status === 'VERIFIED');
 
             if (allVerified) {
                 await OnboardingStatus.findOneAndUpdate(
@@ -55,16 +73,18 @@ exports.verifyDocument = async (req, res) => {
         }
 
         res.status(200).json({ success: true, data: document });
-    } catch (error) {
-        res.status(400).json({ success: false, error: error.message });
+    } catch (err) {
+        next(err);
     }
 };
 
-exports.getEmployeeDocuments = async (req, res) => {
+// @desc    Get all documents for an employee
+// @route   GET /api/documents/:employeeId
+exports.getEmployeeDocuments = async (req, res, next) => {
     try {
         const documents = await Document.find({ employeeId: req.params.employeeId });
-        res.status(200).json({ success: true, data: documents });
-    } catch (error) {
-        res.status(400).json({ success: false, error: error.message });
+        res.status(200).json({ success: true, count: documents.length, data: documents });
+    } catch (err) {
+        next(err);
     }
 };
