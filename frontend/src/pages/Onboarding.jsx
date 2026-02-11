@@ -62,6 +62,7 @@ const Onboarding = () => {
                     rawStatus: offer.status,
                     date: new Date(offer.createdAt).toLocaleDateString(),
                     joiningDate: offer.joiningDate ? new Date(offer.joiningDate).toLocaleDateString() : 'N/A',
+                    rawJoiningDate: offer.joiningDate,
                     department: offer.department,
                     salary: offer.salary
                 }));
@@ -87,18 +88,10 @@ const Onboarding = () => {
     const handleOfferAction = async (action, record) => {
         switch (action) {
             case 'edit':
-                if (record.rawStatus === 'OFFER_ACCEPTED') {
-                    message.error('Cannot edit an accepted offer');
-                    return;
-                }
                 setEditingOffer(record);
                 setIsDrawerOpen(true);
                 break;
             case 'delete':
-                if (record.rawStatus === 'OFFER_ACCEPTED') {
-                    message.error('Cannot delete an accepted offer');
-                    return;
-                }
                 confirm({
                     title: 'Are you sure you want to delete this offer?',
                     icon: <ExclamationCircleOutlined />,
@@ -118,7 +111,16 @@ const Onboarding = () => {
                 });
                 break;
             case 'resend':
-                message.success(`Offer resent to ${record.name}`);
+                const resendHide = message.loading(`Resending offer to ${record.name}...`, 0);
+                try {
+                    await axios.post(`http://localhost:5000/api/offers/resend/${record.id}`);
+                    message.success(`Offer resent successfully to ${record.name}`);
+                    fetchOffers(); // Refresh to show updated status
+                } catch (error) {
+                    message.error(error.response?.data?.message || 'Failed to resend offer email');
+                } finally {
+                    resendHide();
+                }
                 break;
             case 'download':
                 message.success(`Downloading offer letter for ${record.name}`);
@@ -137,14 +139,13 @@ const Onboarding = () => {
                 key: 'edit',
                 label: 'Edit Offer',
                 icon: <EditOutlined />,
-                disabled: record.rawStatus === 'OFFER_ACCEPTED',
                 onClick: () => handleOfferAction('edit', record)
             },
             {
                 key: 'resend',
                 label: 'Resend Offer',
                 icon: <MailOutlined />,
-                disabled: record.rawStatus === 'Draft' || record.rawStatus === 'OFFER_ACCEPTED',
+                disabled: record.rawStatus === 'Draft' || record.rawStatus === 'Accepted' || record.rawStatus === 'OFFER_ACCEPTED',
                 onClick: () => handleOfferAction('resend', record)
             },
             {
@@ -161,7 +162,6 @@ const Onboarding = () => {
                 label: 'Delete Offer',
                 icon: <CloseCircleOutlined />,
                 danger: true,
-                disabled: record.rawStatus === 'OFFER_ACCEPTED',
                 onClick: () => handleOfferAction('delete', record)
             }
         ]

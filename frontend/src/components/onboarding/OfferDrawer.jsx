@@ -18,7 +18,7 @@ const OfferDrawer = ({ open, onClose, onSuccess, editData }) => {
                     role: editData.role,
                     department: editData.department,
                     salary: editData.salary,
-                    joiningDate: editData.joiningDate !== 'N/A' ? dayjs(editData.joiningDate) : null
+                    joiningDate: editData.rawJoiningDate ? dayjs(editData.rawJoiningDate) : null
                 });
             } else {
                 form.resetFields();

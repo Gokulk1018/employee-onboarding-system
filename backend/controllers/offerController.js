@@ -39,14 +39,8 @@ exports.createOffer = async (req, res, next) => {
         }
 
         // 2. Database Operations
-        let candidate = await Candidate.findOne({ email });
-        if (!candidate) {
-            candidate = await Candidate.create({ name, email, phone });
-        } else {
-            candidate.name = name;
-            candidate.phone = phone || candidate.phone;
-            await candidate.save();
-        }
+        // Always create a new candidate record to avoid mixing data for same email
+        candidate = await Candidate.create({ name, email, phone });
 
         const offer = await Offer.create({
             candidateId: candidate._id,
@@ -114,10 +108,7 @@ exports.acceptOffer = async (req, res, next) => {
             return res.status(404).send('<h1>Error</h1><p>Offer not found.</p>');
         }
 
-        if (offer.status !== 'Sent') {
-            return res.send(`<h1>Notice</h1><p>This offer is already ${offer.status.toLowerCase()}.</p>`);
-        }
-
+        // Allow re-processing of offers (remove status check)
         // Update status
         offer.status = 'Accepted';
         await offer.save();
@@ -179,10 +170,7 @@ exports.rejectOffer = async (req, res, next) => {
             return res.status(404).send('<h1>Error</h1><p>Offer not found.</p>');
         }
 
-        if (offer.status !== 'Sent') {
-            return res.send(`<h1>Notice</h1><p>This offer is already ${offer.status.toLowerCase()}.</p>`);
-        }
-
+        // Allow re-processing of offers (remove status check)
         offer.status = 'Rejected';
         await offer.save();
 
@@ -229,11 +217,6 @@ exports.updateOffer = async (req, res, next) => {
             throw new Error('Offer not found');
         }
 
-        if (offer.status === 'Accepted') {
-            res.status(400);
-            throw new Error('Cannot edit an accepted offer');
-        }
-
         if (name || phone) await Candidate.findByIdAndUpdate(offer.candidateId, { name, phone });
 
         offer = await Offer.findByIdAndUpdate(req.params.id, {
@@ -257,13 +240,65 @@ exports.deleteOffer = async (req, res, next) => {
             throw new Error('Offer not found');
         }
 
-        if (offer.status === 'Accepted') {
-            res.status(400);
-            throw new Error('Cannot delete an accepted offer');
-        }
-
         await Offer.findByIdAndDelete(req.params.id);
         res.status(200).json({ success: true, data: {} });
+    } catch (err) {
+        next(err);
+    }
+};
+// @desc    Resend offer email
+// @route   POST /api/offers/resend/:id
+exports.resendOffer = async (req, res, next) => {
+    try {
+        // Reset status to 'Sent' when resending (allows re-processing)
+        await Offer.findByIdAndUpdate(req.params.id, { status: 'Sent' });
+        console.log(`[DEBUG] Offer ${req.params.id} status reset to 'Sent'`);
+
+        const offer = await Offer.findById(req.params.id).populate('candidateId');
+        if (!offer) {
+            res.status(404);
+            throw new Error('Offer not found');
+        }
+
+        const candidate = offer.candidateId;
+        const role = offer.role;
+        const department = offer.department;
+        const salary = offer.salary;
+        const date = offer.joiningDate;
+
+        // reused email template logic
+        const acceptUrl = `${process.env.BASE_URL}/api/offers/accept/${offer._id}`;
+        const rejectUrl = `${process.env.BASE_URL}/api/offers/reject/${offer._id}`;
+
+        const htmlContent = `
+            <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
+                <h1 style="color: #007bff;">Job Offer Reminder - ${role}</h1>
+                <p>Dear ${candidate.name},</p>
+                <p>This is a reminder regarding your offer for the position of <strong>${role}</strong> in our <strong>${department}</strong> department.</p>
+                
+                <p><strong>Offer Details:</strong></p>
+                <ul>
+                    <li>Joining Date: ${date ? new Date(date).toLocaleDateString() : 'N/A'}</li>
+                    <li>Annual Salary: $${salary}</li>
+                </ul>
+                <br>
+                <div style="text-align: center; margin-top: 30px;">
+                    <a href="${acceptUrl}" style="background-color: #28a745; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-right: 10px;">Accept Offer</a>
+                    <a href="${rejectUrl}" style="background-color: #dc3545; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reject Offer</a>
+                </div>
+                <br>
+                <p style="font-size: 0.9em; color: #666;">If the buttons above do not work, copy and paste these links into your browser:</p>
+                <p style="font-size: 0.8em; color: #007bff;">Accept: ${acceptUrl}<br>Reject: ${rejectUrl}</p>
+            </div>
+        `;
+
+        await sendEmail({
+            email: candidate.email,
+            subject: `Reminder: Job Offer from EOS - ${role}`,
+            html: htmlContent
+        });
+
+        res.status(200).json({ success: true, message: 'Offer email resent successfully' });
     } catch (err) {
         next(err);
     }
