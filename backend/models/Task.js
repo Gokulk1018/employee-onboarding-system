@@ -6,6 +6,10 @@ const taskSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    description: {
+        type: String,
+        trim: true
+    },
     priority: {
         type: String,
         enum: ['Low', 'Medium', 'High'],
@@ -19,10 +23,14 @@ const taskSchema = new mongoose.Schema({
     dueDate: {
         type: Date
     },
-    assignee: {
-        type: String,
-        required: true
+    estimatedHours: {
+        type: Number,
+        default: 0
     },
+    assignees: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Employee'
+    }],
     department: {
         type: String,
         required: true
@@ -30,17 +38,13 @@ const taskSchema = new mongoose.Schema({
     tags: [{
         type: String
     }],
-    pinned: {
-        type: Boolean,
-        default: false
-    },
     attachments: {
         type: Number,
         default: 0
     },
-    comments: {
-        type: Number,
-        default: 0
+    pinned: {
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true });
 

@@ -28,7 +28,7 @@ const DepartmentPieChart = ({ data, loading }) => {
     return (
         <div className="glass-card" style={{ padding: 24, height: 350 }}>
             <Title level={4} style={{ marginTop: 0, marginBottom: 24, color: 'var(--text-primary)' }}>Department Distribution</Title>
-            <div style={{ width: '100%', height: '85%', minWidth: 0, position: 'relative' }}>
+            <div style={{ width: '100%', height: '85%', minWidth: 0, minHeight: 200, position: 'relative' }}>
                 <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <PieChart>
                         <Pie

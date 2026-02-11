@@ -1,14 +1,33 @@
-import React, { useState } from 'react';
-import { Modal, Form, Input, DatePicker, Select, Button, Row, Col, Upload, Checkbox, InputNumber, theme, message } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Modal, Form, DatePicker, Select, Button, Row, Col, Upload, Checkbox, InputNumber, theme, message, Avatar, Input, Space } from 'antd';
 import { UploadOutlined, PlusOutlined, CloseOutlined } from '@ant-design/icons';
+import axios from 'axios';
+import dayjs from 'dayjs';
 
 const { TextArea } = Input;
 
-const CreateTaskModal = ({ open, onClose, onSubmit, editTask = null }) => {
+const CreateTaskModal = ({ open, onClose, onSubmit, editTask = null, employees = [], loadingEmployees = false }) => {
     const { token } = theme.useToken();
     const [form] = Form.useForm();
-    const [subtasks, setSubtasks] = useState(editTask?.subtasks || []);
+    const [subtasks, setSubtasks] = useState([]);
     const [newSubtask, setNewSubtask] = useState('');
+
+    // Update subtasks and form fields when editTask or open state changes
+    useEffect(() => {
+        if (open) {
+            if (editTask) {
+                setSubtasks(editTask.subtasks || []);
+                form.setFieldsValue({
+                    ...editTask,
+                    dueDate: editTask.dueDate ? dayjs(editTask.dueDate) : undefined,
+                    assignees: editTask.assignees?.map(a => a._id || a)
+                });
+            } else {
+                setSubtasks([]);
+                form.resetFields();
+            }
+        }
+    }, [editTask, open, form]);
 
     const handleAddSubtask = () => {
         if (newSubtask.trim()) {
@@ -26,6 +45,7 @@ const CreateTaskModal = ({ open, onClose, onSubmit, editTask = null }) => {
             .then(values => {
                 const taskData = {
                     ...values,
+                    dueDate: values.dueDate ? values.dueDate.toISOString() : undefined,
                     subtasks,
                     ...(editTask?._id && { _id: editTask._id })
                 };
@@ -44,6 +64,8 @@ const CreateTaskModal = ({ open, onClose, onSubmit, editTask = null }) => {
             open={open}
             onCancel={onClose}
             width={800}
+            destroyOnHidden
+            styles={{ mask: { backdropFilter: 'blur(8px)' } }}
             footer={[
                 <Button key="cancel" onClick={onClose}>
                     Cancel
@@ -56,7 +78,7 @@ const CreateTaskModal = ({ open, onClose, onSubmit, editTask = null }) => {
             <Form
                 form={form}
                 layout="vertical"
-                initialValues={editTask || {
+                initialValues={{
                     priority: 'Medium',
                     status: 'To Do'
                 }}
@@ -85,21 +107,38 @@ const CreateTaskModal = ({ open, onClose, onSubmit, editTask = null }) => {
                 </Row>
 
                 <Row gutter={16}>
-                    <Col span={12}>
+                    <Col span={24}>
                         <Form.Item
-                            name="assignee"
-                            label="Assignee"
-                            rules={[{ required: true, message: 'Please select assignee' }]}
+                            name="assignees"
+                            label="Assignees"
+                            rules={[{ required: true, message: 'Please select at least one assignee' }]}
                         >
-                            <Select placeholder="Select assignee" size="large">
-                                <Select.Option value="John Doe">John Doe</Select.Option>
-                                <Select.Option value="Jane Smith">Jane Smith</Select.Option>
-                                <Select.Option value="Mike Johnson">Mike Johnson</Select.Option>
-                                <Select.Option value="Sarah Williams">Sarah Williams</Select.Option>
-                                <Select.Option value="David Brown">David Brown</Select.Option>
+                            <Select
+                                mode="multiple"
+                                placeholder="Select assignees"
+                                size="large"
+                                loading={loadingEmployees}
+                                optionFilterProp="label"
+                            >
+                                {employees.map(emp => (
+                                    <Select.Option key={emp._id} value={emp._id} label={emp.name}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                            <Avatar src={emp.avatar} size="small">
+                                                {emp.name?.charAt(0)}
+                                            </Avatar>
+                                            <div>
+                                                <div style={{ fontWeight: 500 }}>{emp.name}</div>
+                                                <div style={{ fontSize: 12, color: token.colorTextSecondary }}>{emp.email}</div>
+                                            </div>
+                                        </div>
+                                    </Select.Option>
+                                ))}
                             </Select>
                         </Form.Item>
                     </Col>
+                </Row>
+
+                <Row gutter={16}>
                     <Col span={12}>
                         <Form.Item
                             name="department"
@@ -115,9 +154,6 @@ const CreateTaskModal = ({ open, onClose, onSubmit, editTask = null }) => {
                             </Select>
                         </Form.Item>
                     </Col>
-                </Row>
-
-                <Row gutter={16}>
                     <Col span={12}>
                         <Form.Item
                             name="dueDate"
@@ -125,14 +161,6 @@ const CreateTaskModal = ({ open, onClose, onSubmit, editTask = null }) => {
                             rules={[{ required: true, message: 'Please select due date' }]}
                         >
                             <DatePicker style={{ width: '100%' }} size="large" />
-                        </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                        <Form.Item
-                            name="estimatedTime"
-                            label="Estimated Time (hours)"
-                        >
-                            <InputNumber min={0} style={{ width: '100%' }} size="large" placeholder="e.g. 8" />
                         </Form.Item>
                     </Col>
                 </Row>
@@ -166,10 +194,10 @@ const CreateTaskModal = ({ open, onClose, onSubmit, editTask = null }) => {
                     </Col>
                     <Col span={8}>
                         <Form.Item
-                            name="tags"
-                            label="Tags"
+                            name="estimatedHours"
+                            label="Est. Hours"
                         >
-                            <Select mode="tags" placeholder="Add tags" size="large" />
+                            <InputNumber min={0} style={{ width: '100%' }} size="large" />
                         </Form.Item>
                     </Col>
                 </Row>
@@ -177,12 +205,10 @@ const CreateTaskModal = ({ open, onClose, onSubmit, editTask = null }) => {
                 <Row gutter={16}>
                     <Col span={24}>
                         <Form.Item
-                            name="attachments"
-                            label="Attachments"
+                            name="tags"
+                            label="Tags"
                         >
-                            <Upload beforeUpload={() => false} maxCount={5}>
-                                <Button icon={<UploadOutlined />}>Upload Files</Button>
-                            </Upload>
+                            <Select mode="tags" placeholder="Add tags" size="large" />
                         </Form.Item>
                     </Col>
                 </Row>
@@ -205,7 +231,7 @@ const CreateTaskModal = ({ open, onClose, onSubmit, editTask = null }) => {
                                     </div>
                                 ))}
                             </div>
-                            <Input.Group compact style={{ display: 'flex' }}>
+                            <Space.Compact style={{ display: 'flex', width: '100%' }}>
                                 <Input
                                     placeholder="Add subtask"
                                     value={newSubtask}
@@ -216,7 +242,7 @@ const CreateTaskModal = ({ open, onClose, onSubmit, editTask = null }) => {
                                 <Button icon={<PlusOutlined />} onClick={handleAddSubtask}>
                                     Add
                                 </Button>
-                            </Input.Group>
+                            </Space.Compact>
                         </Form.Item>
                     </Col>
                 </Row>

@@ -1,11 +1,17 @@
 import React from 'react';
-import { Drawer, Select, DatePicker, Button, Space, Divider, Typography, theme } from 'antd';
+import { Drawer, Select, Button, Space, Divider, Typography, theme } from 'antd';
 import { FilterOutlined, ClearOutlined } from '@ant-design/icons';
 
 const { Text } = Typography;
 
-const TaskFilterPanel = ({ open, onClose, filters, onFilterChange, onClearFilters }) => {
+const TaskFilterPanel = ({ open, onClose, filters, onFilterChange, onClearFilters, employees = [] }) => {
     const { token } = theme.useToken();
+
+    // Safety check for employees
+    const employeeOptions = Array.isArray(employees) ? employees.map(emp => ({
+        label: emp.name,
+        value: emp._id
+    })) : [];
 
     return (
         <Drawer
@@ -59,13 +65,7 @@ const TaskFilterPanel = ({ open, onClose, filters, onFilterChange, onClearFilter
                         style={{ width: '100%' }}
                         value={filters.assignee}
                         onChange={(value) => onFilterChange('assignee', value)}
-                        options={[
-                            { label: 'John Doe', value: 'John Doe' },
-                            { label: 'Jane Smith', value: 'Jane Smith' },
-                            { label: 'Mike Johnson', value: 'Mike Johnson' },
-                            { label: 'Sarah Williams', value: 'Sarah Williams' },
-                            { label: 'David Brown', value: 'David Brown' }
-                        ]}
+                        options={employeeOptions}
                     />
                 </div>
 

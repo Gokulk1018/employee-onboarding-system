@@ -16,10 +16,19 @@ import { motion } from 'framer-motion';
 
 const { Text } = Typography;
 
-const TaskCard = ({ task, onEdit, onDelete, onPin, onMoveLeft, onMoveRight, showMoveLeft, showMoveRight }) => {
+const TaskCard = ({ task, onDetail, onEdit, onDelete, onPin, onMoveLeft, onMoveRight, showMoveLeft, showMoveRight }) => {
     const { token } = theme.useToken();
 
     const isOverdue = task.isOverdue;
+
+    const getPriorityColor = (priority) => {
+        switch (priority) {
+            case 'High': return token.colorError;
+            case 'Medium': return token.colorWarning;
+            case 'Low': return token.colorSuccess;
+            default: return token.colorTextSecondary;
+        }
+    };
 
     const menuItems = {
         items: [
@@ -65,27 +74,19 @@ const TaskCard = ({ task, onEdit, onDelete, onPin, onMoveLeft, onMoveRight, show
         ]
     };
 
-    const getPriorityColor = (priority) => {
-        switch (priority) {
-            case 'High': return token.colorError;
-            case 'Medium': return token.colorWarning;
-            case 'Low': return token.colorSuccess;
-            default: return token.colorTextSecondary;
-        }
-    };
-
     return (
         <motion.div
             whileHover={{ y: -2, scale: 1.01 }}
-            style={{ marginBottom: 12 }}
+            style={{ marginBottom: 12, cursor: 'pointer' }}
+            onClick={() => onDetail(task)}
         >
             <div
                 className="glass-card"
                 style={{
-                    padding: 16,
-                    borderRadius: 12,
+                    padding: '16px',
+                    borderRadius: '12px',
                     border: `1px solid ${task.pinned ? token.colorPrimary : token.colorBorder}`,
-                    background: token.colorBgContainer,
+                    background: task.pinned ? `${token.colorPrimary}05` : token.colorBgContainer,
                     position: 'relative'
                 }}
             >
@@ -93,24 +94,33 @@ const TaskCard = ({ task, onEdit, onDelete, onPin, onMoveLeft, onMoveRight, show
                     <PushpinOutlined
                         style={{
                             position: 'absolute',
-                            top: 8,
-                            right: 8,
+                            top: 12,
+                            right: 12,
                             color: token.colorPrimary,
                             fontSize: 12
                         }}
                     />
                 )}
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
                     <Tag
-                        color={task.priority === 'High' ? 'red' : task.priority === 'Medium' ? 'orange' : 'green'}
-                        style={{ borderRadius: 12, marginRight: 0 }}
+                        bordered={false}
+                        style={{
+                            borderRadius: '4px',
+                            fontSize: '10px',
+                            fontWeight: 600,
+                            textTransform: 'uppercase',
+                            background: `${getPriorityColor(task.priority)}15`,
+                            color: getPriorityColor(task.priority)
+                        }}
                     >
                         {task.priority}
                     </Tag>
-                    <Dropdown menu={menuItems} trigger={['click']}>
-                        <MoreOutlined style={{ color: token.colorTextSecondary, cursor: 'pointer' }} />
-                    </Dropdown>
+                    <span onClick={(e) => e.stopPropagation()}>
+                        <Dropdown menu={menuItems} trigger={['click']}>
+                            <MoreOutlined style={{ color: token.colorTextSecondary, cursor: 'pointer' }} />
+                        </Dropdown>
+                    </span>
                 </div>
 
                 <Text strong style={{ display: 'block', marginBottom: 8, color: token.colorText }}>
@@ -118,9 +128,9 @@ const TaskCard = ({ task, onEdit, onDelete, onPin, onMoveLeft, onMoveRight, show
                 </Text>
 
                 {task.tags && task.tags.length > 0 && (
-                    <div style={{ marginBottom: 8 }}>
-                        {task.tags.slice(0, 2).map((tag, i) => (
-                            <Tag key={i} bordered={false} style={{ fontSize: 11, marginRight: 4 }}>
+                    <div style={{ marginBottom: 12, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                        {task.tags.map((tag, index) => (
+                            <Tag key={index} bordered={false} style={{ fontSize: '10px', margin: 0 }}>
                                 {tag}
                             </Tag>
                         ))}
@@ -133,7 +143,7 @@ const TaskCard = ({ task, onEdit, onDelete, onPin, onMoveLeft, onMoveRight, show
                             <Space size={4} style={{ color: isOverdue ? token.colorError : token.colorTextSecondary }}>
                                 {isOverdue && <ExclamationCircleOutlined />}
                                 <ClockCircleOutlined />
-                                <span>{task.dueDate}</span>
+                                <span>{task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'No date'}</span>
                             </Space>
                         </Tooltip>
                         {task.attachments > 0 && (
@@ -149,18 +159,31 @@ const TaskCard = ({ task, onEdit, onDelete, onPin, onMoveLeft, onMoveRight, show
                             </Space>
                         )}
                     </Space>
-                    <Tooltip title={task.assignee}>
-                        <Avatar size="small" style={{ backgroundColor: getPriorityColor(task.priority) }}>
-                            {task.assignee.charAt(0)}
-                        </Avatar>
-                    </Tooltip>
+                    <Avatar.Group
+                        max={{
+                            count: 3,
+                            style: { color: '#f56a00', backgroundColor: '#fde3cf' }
+                        }}
+                        size="small"
+                    >
+                        {task.assignees?.map(assignee => (
+                            <Tooltip key={assignee._id} title={assignee.name}>
+                                <Avatar
+                                    src={assignee.avatar}
+                                    style={{ backgroundColor: getPriorityColor(task.priority) }}
+                                >
+                                    {assignee.name?.charAt(0)}
+                                </Avatar>
+                            </Tooltip>
+                        ))}
+                    </Avatar.Group>
                 </div>
             </div>
         </motion.div>
     );
 };
 
-const Column = ({ title, tasks, columnId, color, onEdit, onDelete, onPin, onMoveLeft, onMoveRight }) => {
+const Column = ({ title, tasks, columnId, color, onDetail, onEdit, onDelete, onPin, onMoveLeft, onMoveRight }) => {
     const { token } = theme.useToken();
 
     return (
@@ -186,6 +209,7 @@ const Column = ({ title, tasks, columnId, color, onEdit, onDelete, onPin, onMove
                     <TaskCard
                         key={task._id}
                         task={task}
+                        onDetail={onDetail}
                         onEdit={onEdit}
                         onDelete={onDelete}
                         onPin={onPin}
@@ -200,7 +224,7 @@ const Column = ({ title, tasks, columnId, color, onEdit, onDelete, onPin, onMove
     );
 };
 
-const KanbanBoard = ({ tasks, onTaskMove, onEdit, onDelete, onPin }) => {
+const KanbanBoard = ({ tasks, onTaskMove, onDetail, onEdit, onDelete, onPin }) => {
     const { token } = theme.useToken();
 
     const handleMoveRight = (taskId, sourceColumn) => {
@@ -208,8 +232,7 @@ const KanbanBoard = ({ tasks, onTaskMove, onEdit, onDelete, onPin }) => {
         const currentIndex = columnOrder.indexOf(sourceColumn);
         if (currentIndex < columnOrder.length - 1) {
             const destColumn = columnOrder[currentIndex + 1];
-            const sourceIndex = tasks[sourceColumn].findIndex(t => t.id === taskId);
-            onTaskMove(taskId, sourceColumn, destColumn, sourceIndex, 0);
+            onTaskMove(taskId, sourceColumn, destColumn);
             message.success('Task moved successfully');
         }
     };
@@ -219,8 +242,7 @@ const KanbanBoard = ({ tasks, onTaskMove, onEdit, onDelete, onPin }) => {
         const currentIndex = columnOrder.indexOf(sourceColumn);
         if (currentIndex > 0) {
             const destColumn = columnOrder[currentIndex - 1];
-            const sourceIndex = tasks[sourceColumn].findIndex(t => t.id === taskId);
-            onTaskMove(taskId, sourceColumn, destColumn, sourceIndex, 0);
+            onTaskMove(taskId, sourceColumn, destColumn);
             message.success('Task moved successfully');
         }
     };
@@ -244,6 +266,7 @@ const KanbanBoard = ({ tasks, onTaskMove, onEdit, onDelete, onPin }) => {
                     tasks={tasks.todo}
                     columnId="todo"
                     color={token.colorTextSecondary}
+                    onDetail={onDetail}
                     onEdit={onEdit}
                     onDelete={onDelete}
                     onPin={onPin}
@@ -255,6 +278,7 @@ const KanbanBoard = ({ tasks, onTaskMove, onEdit, onDelete, onPin }) => {
                     tasks={tasks.inProgress}
                     columnId="inProgress"
                     color={token.colorInfo}
+                    onDetail={onDetail}
                     onEdit={onEdit}
                     onDelete={onDelete}
                     onPin={onPin}
@@ -266,6 +290,7 @@ const KanbanBoard = ({ tasks, onTaskMove, onEdit, onDelete, onPin }) => {
                     tasks={tasks.done}
                     columnId="done"
                     color={token.colorSuccess}
+                    onDetail={onDetail}
                     onEdit={onEdit}
                     onDelete={onDelete}
                     onPin={onPin}

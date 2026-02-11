@@ -20,7 +20,7 @@ const CompanySettings = () => {
     ];
 
     return (
-        <Card bordered={false} className="glass-card">
+        <Card variant="borderless" className="glass-card">
             <Form
                 form={form}
                 layout="vertical"
@@ -44,11 +44,16 @@ const CompanySettings = () => {
                 <Form.Item
                     name="logo"
                     label="Company Logo"
+                    valuePropName="fileList"
+                    getValueFromEvent={e => {
+                        if (Array.isArray(e)) return e;
+                        return e?.fileList;
+                    }}
                 >
                     <Upload
                         maxCount={1}
                         beforeUpload={() => false}
-                        listType="picture"
+                        listType="picture-card"
                     >
                         <Button icon={<UploadOutlined />}>Upload Logo</Button>
                     </Upload>

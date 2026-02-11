@@ -55,8 +55,8 @@ const AddEmployeeModal = ({ open, onClose, onSuccess }) => {
             centered
             width={600}
             className="glass-modal"
-            destroyOnClose
-            maskStyle={{ backdropFilter: 'blur(8px)' }}
+            destroyOnHidden
+            styles={{ mask: { backdropFilter: 'blur(8px)' } }}
         >
             <Form
                 layout="vertical"

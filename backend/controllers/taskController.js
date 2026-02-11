@@ -4,7 +4,9 @@ const Task = require('../models/Task');
 // @route   GET /api/tasks
 exports.getTasks = async (req, res, next) => {
     try {
-        const tasks = await Task.find().sort({ createdAt: -1 });
+        const tasks = await Task.find()
+            .populate('assignees', 'name email avatar')
+            .sort({ createdAt: -1 });
 
         // Group tasks by status for the Kanban board
         const groupedTasks = {

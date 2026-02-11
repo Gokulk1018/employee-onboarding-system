@@ -7,7 +7,11 @@ const AIAssistant = () => {
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ height: 'calc(100vh - 150px)', display: 'flex', flexDirection: 'column' }}>
             <Typography.Title level={2}>AI Assistant</Typography.Title>
-            <Card bordered={false} style={{ flex: 1, borderRadius: 16, display: 'flex', flexDirection: 'column' }} bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <Card
+                variant="borderless"
+                style={{ flex: 1, borderRadius: 16, display: 'flex', flexDirection: 'column' }}
+                styles={{ body: { flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } }}
+            >
                 <List
                     itemLayout="horizontal"
                     dataSource={[
