@@ -126,10 +126,10 @@ exports.acceptOffer = async (req, res, next) => {
         const employee = await Employee.create({
             name: offer.candidateId.name,
             email: offer.candidateId.email,
-            position: offer.role,
+            role: offer.role,
             department: offer.department,
             offerId: offer._id,
-            joiningDate: offer.joiningDate
+            joinDate: offer.joiningDate
         });
 
         // Initialize Onboarding Status

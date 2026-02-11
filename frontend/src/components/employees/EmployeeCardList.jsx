@@ -9,7 +9,7 @@ const EmployeeCardList = ({ data }) => {
     return (
         <Row gutter={[24, 24]}>
             {data.map((employee, index) => (
-                <Col xs={24} sm={12} lg={8} xl={6} key={employee.id}>
+                <Col xs={24} sm={12} lg={8} xl={6} key={employee._id}>
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -26,7 +26,7 @@ const EmployeeCardList = ({ data }) => {
                             style={{ borderRadius: 16 }}
                         >
                             <Card.Meta
-                                avatar={<Avatar src={employee.avatar} size={64} style={{ border: `2px solid ${token.colorBgContainer}` }} />}
+                                avatar={<Avatar src={employee.avatar || `https://ui-avatars.com/api/?name=${employee.name}&background=random`} size={64} style={{ border: `2px solid ${token.colorBgContainer}` }} />}
                                 title={
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <span>{employee.name}</span>

@@ -18,9 +18,9 @@ const data = [
 ];
 
 const PayrollOverview = () => {
-    const { token } = theme.useToken();git 
+    const { token } = theme.useToken();
     return (
-        <div>
+        <div style={{ width: '100%', minHeight: '100%' }}>
             <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
                 <Col xs={24} sm={8}>
                     <StatCard title="Net Salary" value={5000} prefix="$" icon={<DollarOutlined />} color={token.colorSuccess} trend={0} />
@@ -33,10 +33,10 @@ const PayrollOverview = () => {
                 </Col>
             </Row>
 
-            <div className="glass-card" style={{ padding: 24, borderColor: token.colorBorder }}>
+            <div className="glass-card" style={{ padding: 24, borderColor: token.colorBorder, overflow: 'hidden' }}>
                 <div style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, color: token.colorText }}>Salary Trend</div>
-                <div style={{ height: 300, width: '100%', minWidth: 0 }}>
-                    <ResponsiveContainer width="100%" height="100%">
+                <div style={{ height: 300, width: '100%', minWidth: 0, position: 'relative' }}>
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                         <BarChart data={data}>
                             <XAxis
                                 dataKey="name"

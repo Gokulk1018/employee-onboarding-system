@@ -2,7 +2,7 @@ import React from 'react';
 import { Row, Col, Input, Button, Radio, Space, theme } from 'antd';
 import { SearchOutlined, PlusOutlined, AppstoreOutlined, BarsOutlined, ImportOutlined, ExportOutlined } from '@ant-design/icons';
 
-const EmployeesHeader = ({ viewType, setViewType, onSearch }) => {
+const EmployeesHeader = ({ viewType, setViewType, onSearch, onAdd }) => {
     const { token } = theme.useToken();
 
     return (
@@ -28,7 +28,12 @@ const EmployeesHeader = ({ viewType, setViewType, onSearch }) => {
                         <Radio.Button value="table"><BarsOutlined /></Radio.Button>
                         <Radio.Button value="card"><AppstoreOutlined /></Radio.Button>
                     </Radio.Group>
-                    <Button type="primary" icon={<PlusOutlined />} size="large">
+                    <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        size="large"
+                        onClick={onAdd}
+                    >
                         Add Employee
                     </Button>
                 </Space>

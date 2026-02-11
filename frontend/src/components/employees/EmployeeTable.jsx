@@ -1,8 +1,8 @@
 import React from 'react';
-import { Table, Avatar, Tag, Space, Button, theme, Tooltip } from 'antd';
-import { EditOutlined, MoreOutlined, EyeOutlined } from '@ant-design/icons';
+import { Table, Avatar, Tag, Space, Button, theme, Tooltip, Popconfirm } from 'antd';
+import { EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 
-const EmployeeTable = ({ data }) => {
+const EmployeeTable = ({ data, loading, onDelete }) => {
     const { token } = theme.useToken();
 
     const columns = [
@@ -12,7 +12,7 @@ const EmployeeTable = ({ data }) => {
             key: 'name',
             render: (text, record) => (
                 <Space>
-                    <Avatar src={record.avatar} size="large" style={{ border: `1px solid ${token.colorBorder}` }} />
+                    <Avatar src={record.avatar || `https://ui-avatars.com/api/?name=${text}&background=random`} size="large" style={{ border: `1px solid ${token.colorBorder}` }} />
                     <div style={{ marginLeft: 8 }}>
                         <div style={{ fontWeight: 600, color: token.colorText }}>{text}</div>
                         <div style={{ fontSize: 13, color: token.colorTextSecondary }}>{record.email}</div>
@@ -51,6 +51,11 @@ const EmployeeTable = ({ data }) => {
                     bg = `${token.colorWarning}15`;
                     border = `${token.colorWarning}30`;
                 }
+                if (status === 'Inactive') {
+                    color = token.colorError;
+                    bg = `${token.colorError}15`;
+                    border = `${token.colorError}30`;
+                }
                 if (status === 'Probation') {
                     color = token.colorInfo;
                     bg = `${token.colorInfo}15`;
@@ -77,7 +82,7 @@ const EmployeeTable = ({ data }) => {
             title: 'Join Date',
             dataIndex: 'joinDate',
             key: 'joinDate',
-            render: (text) => <span style={{ color: token.colorTextSecondary }}>{text}</span>,
+            render: (text) => <span style={{ color: token.colorTextSecondary }}>{text ? new Date(text).toLocaleDateString() : 'N/A'}</span>,
         },
         {
             title: 'Actions',
@@ -90,7 +95,15 @@ const EmployeeTable = ({ data }) => {
                     <Tooltip title="Edit">
                         <Button type="text" icon={<EditOutlined />} />
                     </Tooltip>
-                    <Button type="text" icon={<MoreOutlined />} style={{ color: token.colorTextSecondary }} />
+                    <Popconfirm
+                        title="Delete employee"
+                        description="Are you sure you want to delete this employee?"
+                        onConfirm={() => onDelete(record._id)}
+                        okText="Yes"
+                        cancelText="No"
+                    >
+                        <Button type="text" icon={<DeleteOutlined />} style={{ color: token.colorError }} />
+                    </Popconfirm>
                 </Space>
             ),
         },
@@ -100,7 +113,8 @@ const EmployeeTable = ({ data }) => {
         <Table
             columns={columns}
             dataSource={data}
-            rowKey="id"
+            rowKey="_id"
+            loading={loading}
             pagination={{
                 pageSize: 5,
                 position: ['bottomRight'],

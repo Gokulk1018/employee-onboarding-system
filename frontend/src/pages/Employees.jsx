@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Row, Col, Typography, theme } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Row, Col, Typography, theme, message } from 'antd';
 import { UserOutlined, TeamOutlined, UserAddOutlined } from '@ant-design/icons';
 import StatCard from '../components/common/StatCard';
 import EmployeesHeader from '../components/employees/EmployeesHeader';
@@ -7,24 +7,80 @@ import EmployeeTable from '../components/employees/EmployeeTable';
 import EmployeeCardList from '../components/employees/EmployeeCardList';
 import DepartmentPieChart from '../components/employees/DepartmentPieChart';
 import AddEmployeeModal from '../components/employees/AddEmployeeModal';
-import { employees as mockEmployees } from '../data/mockData';
 import { motion } from 'framer-motion';
 import PageContainer from '../components/layout/PageContainer';
+import axios from 'axios';
 
 const { Title } = Typography;
 
 const Employees = () => {
     const { token } = theme.useToken();
+    const [employees, setEmployees] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [viewType, setViewType] = useState('table');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
-    const safeEmployees = mockEmployees || [];
+    const fetchEmployees = async () => {
+        try {
+            setLoading(true);
+            const response = await axios.get('http://localhost:5000/api/employees');
+            if (response.data.success) {
+                setEmployees(response.data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching employees:', error);
+            message.error('Failed to load employees');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-    const filteredData = safeEmployees.filter(emp =>
+    useEffect(() => {
+        fetchEmployees();
+    }, []);
+
+    const handleDelete = async (id) => {
+        try {
+            const response = await axios.delete(`http://localhost:5000/api/employees/${id}`);
+            if (response.data.success) {
+                message.success('Employee deleted successfully');
+                fetchEmployees();
+            }
+        } catch (error) {
+            console.error('Error deleting employee:', error);
+            message.error('Failed to delete employee');
+        }
+    };
+
+    const filteredData = employees.filter(emp =>
         (emp?.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
         (emp?.role?.toLowerCase() || '').includes(searchTerm.toLowerCase())
     );
+
+    // Calculate dynamic stats
+    const totalEmployees = employees.length;
+    const activeEmployees = employees.filter(e => e.status === 'Active').length;
+
+    // New joiners this month
+    const now = new Date();
+    const newJoiners = employees.filter(e => {
+        if (!e.joinDate) return false;
+        const joinDate = new Date(e.joinDate);
+        return joinDate.getMonth() === now.getMonth() && joinDate.getFullYear() === now.getFullYear();
+    }).length;
+
+    // Chart Data Calculation
+    const deptCounts = employees.reduce((acc, emp) => {
+        const dept = emp.department || 'Other';
+        acc[dept] = (acc[dept] || 0) + 1;
+        return acc;
+    }, {});
+
+    const chartData = Object.keys(deptCounts).map(dept => ({
+        name: dept,
+        value: deptCounts[dept]
+    }));
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -64,10 +120,10 @@ const Employees = () => {
                         <motion.div variants={itemVariants} style={{ height: '100%' }}>
                             <StatCard
                                 title="Total Employees"
-                                value={safeEmployees.length}
+                                value={totalEmployees}
                                 icon={<TeamOutlined />}
                                 color={token.colorInfo}
-                                trend={12}
+                                loading={loading}
                             />
                         </motion.div>
                     </Col>
@@ -75,10 +131,10 @@ const Employees = () => {
                         <motion.div variants={itemVariants} style={{ height: '100%' }}>
                             <StatCard
                                 title="Active"
-                                value={safeEmployees.filter(e => e?.status === 'Active').length}
+                                value={activeEmployees}
                                 icon={<UserOutlined />}
                                 color={token.colorSuccess}
-                                trend={5}
+                                loading={loading}
                             />
                         </motion.div>
                     </Col>
@@ -86,10 +142,11 @@ const Employees = () => {
                         <motion.div variants={itemVariants} style={{ height: '100%' }}>
                             <StatCard
                                 title="New Joiners"
-                                value={2}
+                                value={newJoiners}
                                 icon={<UserAddOutlined />}
                                 color={token.colorWarning}
                                 suffix=" (This Month)"
+                                loading={loading}
                             />
                         </motion.div>
                     </Col>
@@ -107,7 +164,7 @@ const Employees = () => {
 
                             <div style={{ marginTop: 24 }}>
                                 {viewType === 'table' ? (
-                                    <EmployeeTable data={filteredData} />
+                                    <EmployeeTable data={filteredData} loading={loading} onDelete={handleDelete} />
                                 ) : (
                                     <EmployeeCardList data={filteredData} />
                                 )}
@@ -116,12 +173,16 @@ const Employees = () => {
                     </Col>
                     <Col xs={24} lg={8}>
                         <motion.div variants={itemVariants}>
-                            <DepartmentPieChart />
+                            <DepartmentPieChart data={chartData} loading={loading} />
                         </motion.div>
                     </Col>
                 </Row>
 
-                <AddEmployeeModal open={isModalOpen} onClose={() => setIsModalOpen(false)} />
+                <AddEmployeeModal
+                    open={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onSuccess={fetchEmployees}
+                />
             </motion.div>
         </PageContainer>
     );

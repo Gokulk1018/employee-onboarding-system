@@ -1,26 +1,35 @@
 import React from 'react';
-import { Typography, theme } from 'antd';
+import { Typography, theme, Empty, Spin } from 'antd';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 const { Title } = Typography;
 
-const data = [
-    { name: 'Engineering', value: 45 },
-    { name: 'Design', value: 25 },
-    { name: 'Marketing', value: 20 },
-    { name: 'HR', value: 10 },
-];
+const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#ef4444', '#06b6d4'];
 
-const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ec4899'];
-
-const DepartmentPieChart = () => {
+const DepartmentPieChart = ({ data, loading }) => {
     const { token } = theme.useToken();
+
+    if (loading) {
+        return (
+            <div className="glass-card flex-center" style={{ padding: 24, height: 350 }}>
+                <Spin size="large" />
+            </div>
+        );
+    }
+
+    if (!data || data.length === 0) {
+        return (
+            <div className="glass-card flex-center" style={{ padding: 24, height: 350 }}>
+                <Empty description="No data available" />
+            </div>
+        );
+    }
 
     return (
         <div className="glass-card" style={{ padding: 24, height: 350 }}>
             <Title level={4} style={{ marginTop: 0, marginBottom: 24, color: 'var(--text-primary)' }}>Department Distribution</Title>
-            <div style={{ width: '100%', height: '85%', minWidth: 0 }}>
-                <ResponsiveContainer width="100%" height="100%">
+            <div style={{ width: '100%', height: '85%', minWidth: 0, position: 'relative' }}>
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <PieChart>
                         <Pie
                             data={data}
