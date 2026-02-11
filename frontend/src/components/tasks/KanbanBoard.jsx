@@ -33,7 +33,7 @@ const TaskCard = ({ task, onEdit, onDelete, onPin, onMoveLeft, onMoveRight, show
                 key: 'pin',
                 label: task.pinned ? 'Unpin' : 'Pin',
                 icon: <PushpinOutlined />,
-                onClick: () => onPin(task.id)
+                onClick: () => onPin(task._id)
             },
             {
                 key: 'comment',
@@ -44,13 +44,13 @@ const TaskCard = ({ task, onEdit, onDelete, onPin, onMoveLeft, onMoveRight, show
                 key: 'moveLeft',
                 label: 'Move Left',
                 icon: <ArrowLeftOutlined />,
-                onClick: () => onMoveLeft(task.id)
+                onClick: () => onMoveLeft(task._id)
             }] : []),
             ...(showMoveRight ? [{
                 key: 'moveRight',
                 label: 'Move Right',
                 icon: <ArrowRightOutlined />,
-                onClick: () => onMoveRight(task.id)
+                onClick: () => onMoveRight(task._id)
             }] : []),
             {
                 type: 'divider'
@@ -60,7 +60,7 @@ const TaskCard = ({ task, onEdit, onDelete, onPin, onMoveLeft, onMoveRight, show
                 label: 'Delete',
                 icon: <DeleteOutlined />,
                 danger: true,
-                onClick: () => onDelete(task.id)
+                onClick: () => onDelete(task._id)
             }
         ]
     };
@@ -184,13 +184,13 @@ const Column = ({ title, tasks, columnId, color, onEdit, onDelete, onPin, onMove
             <div style={{ minHeight: 400 }}>
                 {tasks.map((task) => (
                     <TaskCard
-                        key={task.id}
+                        key={task._id}
                         task={task}
                         onEdit={onEdit}
                         onDelete={onDelete}
                         onPin={onPin}
-                        onMoveLeft={columnId !== 'todo' ? () => onMoveLeft(task.id, columnId) : null}
-                        onMoveRight={columnId !== 'done' ? () => onMoveRight(task.id, columnId) : null}
+                        onMoveLeft={columnId !== 'todo' ? () => onMoveLeft(task._id, columnId) : null}
+                        onMoveRight={columnId !== 'done' ? () => onMoveRight(task._id, columnId) : null}
                         showMoveLeft={columnId !== 'todo'}
                         showMoveRight={columnId !== 'done'}
                     />

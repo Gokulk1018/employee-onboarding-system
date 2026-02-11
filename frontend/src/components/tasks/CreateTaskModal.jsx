@@ -12,7 +12,7 @@ const CreateTaskModal = ({ open, onClose, onSubmit, editTask = null }) => {
 
     const handleAddSubtask = () => {
         if (newSubtask.trim()) {
-            setSubtasks([...subtasks, { id: Date.now(), text: newSubtask, completed: false }]);
+            setSubtasks([...subtasks, { id: `sub-${Date.now()}`, text: newSubtask, completed: false }]);
             setNewSubtask('');
         }
     };
@@ -27,12 +27,11 @@ const CreateTaskModal = ({ open, onClose, onSubmit, editTask = null }) => {
                 const taskData = {
                     ...values,
                     subtasks,
-                    id: editTask?.id || Date.now(),
+                    ...(editTask?._id && { _id: editTask._id })
                 };
                 onSubmit(taskData);
                 form.resetFields();
                 setSubtasks([]);
-                message.success(editTask ? 'Task updated successfully' : 'Task created successfully');
             })
             .catch(errorInfo => {
                 console.log('Validation Failed:', errorInfo);

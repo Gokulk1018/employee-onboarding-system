@@ -8,6 +8,7 @@ const offerRoutes = require('./routes/offerRoutes');
 const employeeRoutes = require('./routes/employeeRoutes');
 const documentRoutes = require('./routes/documentRoutes');
 const onboardingRoutes = require('./routes/onboardingRoutes');
+const taskRoutes = require('./routes/taskRoutes');
 
 const { errorHandler } = require('./middleware/errorMiddleware');
 
@@ -27,6 +28,7 @@ app.use('/api/offers', offerRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/onboarding', onboardingRoutes);
+app.use('/api/tasks', taskRoutes);
 
 app.get('/', (req, res) => {
     res.send('Employee Onboarding System API - Backend Running');

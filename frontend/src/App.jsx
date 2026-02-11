@@ -14,12 +14,18 @@ import Payroll from './pages/Payroll';
 import Settings from './pages/Settings';
 import './index.css';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
+import enUS from 'antd/locale/en_US';
+import dayjs from 'dayjs';
+import 'dayjs/locale/en';
+
+dayjs.locale('en');
 
 const AppContent = () => {
     const { isDarkMode } = useTheme();
 
     return (
         <ConfigProvider
+            locale={enUS}
             theme={{
                 ...themeConfig,
                 cssVar: true,

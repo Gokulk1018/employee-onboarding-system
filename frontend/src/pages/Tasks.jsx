@@ -121,12 +121,15 @@ const initialTasks = {
     ]
 };
 
+import axios from 'axios';
+
 const Tasks = () => {
     const { token } = theme.useToken();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [view, setView] = useState('board');
-    const [tasks, setTasks] = useState(initialTasks);
+    const [tasks, setTasks] = useState({ todo: [], inProgress: [], done: [] });
+    const [loading, setLoading] = useState(false);
     const [searchText, setSearchText] = useState('');
     const [editingTask, setEditingTask] = useState(null);
     const [filters, setFilters] = useState({
@@ -136,11 +139,30 @@ const Tasks = () => {
         dueDate: null
     });
 
+    const fetchTasks = async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get('http://localhost:5000/api/tasks');
+            if (response.data.success) {
+                setTasks(response.data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching tasks:', error);
+            message.error('Failed to load tasks');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    React.useEffect(() => {
+        fetchTasks();
+    }, []);
+
     // Calculate statistics
     const allTasks = [...tasks.todo, ...tasks.inProgress, ...tasks.done];
     const totalTasks = allTasks.length;
-    const overdueTasks = allTasks.filter(t => t.isOverdue).length;
-    const dueTodayTasks = allTasks.filter(t => t.dueDate === 'Today').length;
+    const overdueTasks = allTasks.filter(t => t.isOverdue || (t.dueDate && new Date(t.dueDate) < new Date())).length;
+    const dueTodayTasks = allTasks.filter(t => t.dueDate && new Date(t.dueDate).toDateString() === new Date().toDateString()).length;
     const completedTasks = tasks.done.length;
 
     // Filter tasks
@@ -152,8 +174,11 @@ const Tasks = () => {
             const matchesDepartment = filters.department.length === 0 || filters.department.includes(task.department);
 
             let matchesDueDate = true;
-            if (filters.dueDate === 'overdue') matchesDueDate = task.isOverdue;
-            if (filters.dueDate === 'today') matchesDueDate = task.dueDate === 'Today';
+            const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'done';
+            const isDueToday = task.dueDate && new Date(task.dueDate).toDateString() === new Date().toDateString();
+
+            if (filters.dueDate === 'overdue') matchesDueDate = isOverdue;
+            if (filters.dueDate === 'today') matchesDueDate = isDueToday;
 
             return matchesSearch && matchesPriority && matchesAssignee && matchesDepartment && matchesDueDate;
         });
@@ -165,45 +190,46 @@ const Tasks = () => {
         done: filterTasks(tasks.done)
     };
 
-    const handleTaskMove = (taskId, sourceColumn, destColumn, sourceIndex, destIndex) => {
-        const newTasks = { ...tasks };
-        const [movedTask] = newTasks[sourceColumn].splice(sourceIndex, 1);
+    const handleTaskMove = async (taskId, sourceColumn, destColumn, sourceIndex, destIndex) => {
+        try {
+            const statusMap = {
+                'todo': 'todo',
+                'inProgress': 'inProgress',
+                'done': 'done'
+            };
 
-        // Update task status based on destination column
-        const statusMap = {
-            'todo': 'To Do',
-            'inProgress': 'In Progress',
-            'done': 'Done'
-        };
-        movedTask.status = statusMap[destColumn];
+            await axios.put(`http://localhost:5000/api/tasks/${taskId}`, {
+                status: statusMap[destColumn]
+            });
 
-        newTasks[destColumn].splice(destIndex, 0, movedTask);
-        setTasks(newTasks);
+            fetchTasks(); // Refresh from server
+        } catch (error) {
+            console.error('Error moving task:', error);
+            message.error('Failed to move task');
+        }
     };
 
-    const handleCreateTask = (taskData) => {
-        const statusMap = {
-            'To Do': 'todo',
-            'In Progress': 'inProgress',
-            'Done': 'done'
-        };
+    const handleCreateTask = async (taskData) => {
+        try {
+            const statusMap = {
+                'To Do': 'todo',
+                'In Progress': 'inProgress',
+                'Done': 'done'
+            };
 
-        const columnKey = statusMap[taskData.status];
-        const newTask = {
-            ...taskData,
-            id: Date.now(),
-            dueDate: taskData.dueDate?.format('MMM DD') || 'No date',
-            attachments: 0,
-            comments: 0,
-            isOverdue: false,
-            pinned: false
-        };
+            const payload = {
+                ...taskData,
+                status: statusMap[taskData.status] || 'todo'
+            };
 
-        setTasks({
-            ...tasks,
-            [columnKey]: [...tasks[columnKey], newTask]
-        });
-        setIsModalOpen(false);
+            await axios.post('http://localhost:5000/api/tasks', payload);
+            message.success('Task created successfully');
+            setIsModalOpen(false);
+            fetchTasks();
+        } catch (error) {
+            console.error('Error creating task:', error);
+            message.error('Failed to create task');
+        }
     };
 
     const handleEditTask = (task) => {
@@ -211,40 +237,41 @@ const Tasks = () => {
         setIsModalOpen(true);
     };
 
-    const handleUpdateTask = (updatedTask) => {
-        // Find and update the task
-        const newTasks = { ...tasks };
-        Object.keys(newTasks).forEach(column => {
-            const index = newTasks[column].findIndex(t => t.id === updatedTask.id);
-            if (index !== -1) {
-                newTasks[column][index] = {
-                    ...updatedTask,
-                    dueDate: updatedTask.dueDate?.format('MMM DD') || newTasks[column][index].dueDate
-                };
-            }
-        });
-        setTasks(newTasks);
-        setIsModalOpen(false);
-        setEditingTask(null);
+    const handleUpdateTask = async (updatedTask) => {
+        try {
+            await axios.put(`http://localhost:5000/api/tasks/${updatedTask._id}`, updatedTask);
+            message.success('Task updated successfully');
+            setIsModalOpen(false);
+            setEditingTask(null);
+            fetchTasks();
+        } catch (error) {
+            console.error('Error updating task:', error);
+            message.error('Failed to update task');
+        }
     };
 
-    const handleDeleteTask = (taskId) => {
-        const newTasks = { ...tasks };
-        Object.keys(newTasks).forEach(column => {
-            newTasks[column] = newTasks[column].filter(t => t.id !== taskId);
-        });
-        setTasks(newTasks);
+    const handleDeleteTask = async (taskId) => {
+        try {
+            await axios.delete(`http://localhost:5000/api/tasks/${taskId}`);
+            message.success('Task deleted successfully');
+            fetchTasks();
+        } catch (error) {
+            console.error('Error deleting task:', error);
+            message.error('Failed to delete task');
+        }
     };
 
-    const handlePinTask = (taskId) => {
-        const newTasks = { ...tasks };
-        Object.keys(newTasks).forEach(column => {
-            const task = newTasks[column].find(t => t.id === taskId);
-            if (task) {
-                task.pinned = !task.pinned;
-            }
-        });
-        setTasks(newTasks);
+    const handlePinTask = async (taskId) => {
+        try {
+            const task = allTasks.find(t => t._id === taskId);
+            await axios.put(`http://localhost:5000/api/tasks/${taskId}`, {
+                pinned: !task.pinned
+            });
+            fetchTasks();
+        } catch (error) {
+            console.error('Error pinning task:', error);
+            message.error('Failed to pin task');
+        }
     };
 
     const handleFilterChange = (filterType, value) => {
@@ -391,13 +418,14 @@ const Tasks = () => {
                     {view === 'board' ? (
                         <KanbanBoard
                             tasks={filteredTasks}
+                            loading={loading}
                             onTaskMove={handleTaskMove}
                             onEdit={handleEditTask}
                             onDelete={handleDeleteTask}
                             onPin={handlePinTask}
                         />
                     ) : (
-                        <TasksCalendar />
+                        <TasksCalendar tasks={allTasks} loading={loading} />
                     )}
                 </motion.div>
 
