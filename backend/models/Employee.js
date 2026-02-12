@@ -12,10 +12,6 @@ const employeeSchema = new mongoose.Schema({
         trim: true,
         lowercase: true
     },
-    role: {
-        type: String,
-        required: true
-    },
     department: {
         type: String,
         required: true
@@ -32,6 +28,25 @@ const employeeSchema = new mongoose.Schema({
     },
     avatar: {
         type: String
+    },
+    username: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
+    password: {
+        type: String,
+        select: false
+    },
+    role: {
+        type: String,
+        enum: ['hr', 'employee'],
+        default: 'employee'
+    },
+    accountStatus: {
+        type: String,
+        enum: ['active', 'inactive'],
+        default: 'inactive'
     }
 }, {
     timestamps: true

@@ -65,7 +65,11 @@ const LoginPage = () => {
                 return;
             }
 
-            // Employee Auth (Dummy)
+            // Employee Auth
+            // For now, we simulate the check against "mock" but the user role will be set correctly.
+            // In a real app, this would be an API call verifying credentials from the database.
+            // Since we're told NOT to modify the backend auth yet, we'll keep it simple.
+
             localStorage.setItem('userRole', 'employee');
             localStorage.setItem('token', 'mock-employee-jwt');
             localStorage.setItem('isAuthenticated', 'true');

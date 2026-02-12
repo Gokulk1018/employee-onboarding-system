@@ -9,7 +9,8 @@ import {
     CloseCircleOutlined,
     MoreOutlined,
     EditOutlined,
-    ExclamationCircleOutlined
+    ExclamationCircleOutlined,
+    KeyOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
 import OnboardingStepper from '../components/onboarding/OnboardingStepper';
@@ -120,6 +121,18 @@ const Onboarding = () => {
                     resendHide();
                 }
                 break;
+            case 'generateCredentials':
+                const genHide = message.loading(`Generating credentials for ${record.name}...`, 0);
+                try {
+                    await axios.post(`http://localhost:5000/api/employees/generate-credentials/${record.id}`);
+                    message.success(`Credentials sent to ${record.name}`);
+                    fetchOffers();
+                } catch (error) {
+                    message.error(error.response?.data?.message || 'Failed to generate credentials');
+                } finally {
+                    genHide();
+                }
+                break;
             case 'download':
                 message.success(`Downloading offer letter for ${record.name}`);
                 break;
@@ -161,6 +174,16 @@ const Onboarding = () => {
                 icon: <CloseCircleOutlined />,
                 danger: true,
                 onClick: () => handleOfferAction('delete', record)
+            },
+            {
+                type: 'divider'
+            },
+            {
+                key: 'credentials',
+                label: 'Send Login Credentials',
+                icon: <KeyOutlined />,
+                disabled: record.rawStatus !== 'Accepted' && record.rawStatus !== 'OFFER_ACCEPTED',
+                onClick: () => handleOfferAction('generateCredentials', record)
             }
         ]
     });

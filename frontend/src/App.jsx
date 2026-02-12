@@ -65,7 +65,7 @@ const AppContent = () => {
                         <Route path="/login" element={<LoginPage />} />
 
                         {/* HR Routes */}
-                        <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+                        <Route path="/" element={<ProtectedRoute allowedRole="hr"><MainLayout /></ProtectedRoute>}>
                             <Route path="dashboard" element={<Dashboard />} />
                             <Route path="employees" element={<Employees />} />
                             <Route path="recruitment" element={<Recruitment />} />
@@ -78,7 +78,7 @@ const AppContent = () => {
                         </Route>
 
                         {/* Employee Routes */}
-                        <Route path="/employee-portal" element={<ProtectedRoute><EmployeePortal /></ProtectedRoute>} />
+                        <Route path="/employee-portal" element={<ProtectedRoute allowedRole="employee"><EmployeePortal /></ProtectedRoute>} />
 
                         {/* Fallback */}
                         <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,4 +1,5 @@
 const Offer = require('../models/Offer');
+const Notification = require('../models/Notification');
 const sendEmail = require('../utils/emailHelper');
 const crypto = require('crypto');
 
@@ -129,6 +130,14 @@ exports.acceptOffer = async (req, res) => {
         offer.status = 'Accepted';
         await offer.save();
 
+        // Create notification for HR
+        await Notification.create({
+            candidateName: offer.candidateName,
+            candidateEmail: offer.candidateEmail,
+            status: 'Accepted',
+            message: `${offer.candidateName} has ACCEPTED the offer.`
+        });
+
         res.send(`
             <div style="text-align: center; font-family: sans-serif; padding: 50px;">
                 <h1 style="color: #10b981;">Offer Accepted!</h1>
@@ -150,6 +159,14 @@ exports.rejectOffer = async (req, res) => {
 
         offer.status = 'Rejected';
         await offer.save();
+
+        // Create notification for HR
+        await Notification.create({
+            candidateName: offer.candidateName,
+            candidateEmail: offer.candidateEmail,
+            status: 'Rejected',
+            message: `${offer.candidateName} has REJECTED the offer.`
+        });
 
         res.send(`
             <div style="text-align: center; font-family: sans-serif; padding: 50px;">

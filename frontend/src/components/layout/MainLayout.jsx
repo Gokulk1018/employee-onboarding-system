@@ -1,6 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ProLayout } from '@ant-design/pro-components';
-import { Input, Badge, Dropdown, theme, Avatar, Space, Typography } from 'antd';
+import { Input, Badge, Dropdown, theme, Avatar, Space, Typography, List, message, Skeleton } from 'antd';
+import axios from 'axios';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+dayjs.extend(relativeTime);
 import {
     UserOutlined,
     BellOutlined,
@@ -26,6 +31,83 @@ const MainLayout = () => {
     const location = useLocation();
     const { token } = theme.useToken();
     const [pathname, setPathname] = useState(location.pathname);
+    const [notifications, setNotifications] = useState([]);
+    const [loadingNotifications, setLoadingNotifications] = useState(false);
+
+    const fetchNotifications = async () => {
+        try {
+            const response = await axios.get('http://localhost:5000/api/notifications');
+            if (response.data.success) {
+                setNotifications(response.data.data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch notifications:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchNotifications();
+        const interval = setInterval(fetchNotifications, 30000); // Poll every 30s
+        return () => clearInterval(interval);
+    }, []);
+
+    const markAllAsRead = async () => {
+        try {
+            await axios.put('http://localhost:5000/api/notifications/read-all');
+            fetchNotifications();
+        } catch (error) {
+            message.error('Failed to mark notifications as read');
+        }
+    };
+
+    const notificationMenu = (
+        <div style={{
+            width: 350,
+            background: token.colorBgContainer,
+            borderRadius: 12,
+            boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+            overflow: 'hidden'
+        }}>
+            <div style={{ padding: '16px 20px', borderBottom: `1px solid ${token.colorBorderSecondary}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography.Text strong style={{ fontSize: 16 }}>Notifications</Typography.Text>
+                <Typography.Link onClick={markAllAsRead} style={{ fontSize: 12 }}>Mark all as read</Typography.Link>
+            </div>
+            <List
+                style={{ maxHeight: 400, overflowY: 'auto' }}
+                dataSource={notifications}
+                renderItem={(item) => (
+                    <List.Item
+                        style={{
+                            padding: '12px 20px',
+                            cursor: 'pointer',
+                            background: item.isRead ? 'transparent' : `${token.colorPrimary}08`,
+                            borderLeft: item.isRead ? 'none' : `3px solid ${token.colorPrimary}`,
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        <List.Item.Meta
+                            avatar={
+                                <Avatar
+                                    size="small"
+                                    style={{
+                                        backgroundColor: item.status === 'Accepted' ? token.colorSuccess : token.colorError,
+                                        marginTop: 4
+                                    }}
+                                />
+                            }
+                            title={<Typography.Text strong={!item.isRead} style={{ fontSize: 13 }}>{item.message}</Typography.Text>}
+                            description={
+                                <Typography.Text type="secondary" style={{ fontSize: 11 }}>
+                                    {dayjs(item.createdAt).fromNow()}
+                                </Typography.Text>
+                            }
+                        />
+                    </List.Item>
+                )}
+                locale={{ emptyText: <div style={{ padding: 40, textAlign: 'center' }}>No notifications</div> }}
+            />
+        </div>
+    );
 
     const menuItems = [
         { path: '/', name: 'Dashboard', icon: <DashboardOutlined /> },
@@ -132,17 +214,19 @@ const MainLayout = () => {
                             }}
                         />,
                         <ThemeToggle key="theme" />,
-                        <Badge dot count={3} size="small" key="notifications" offset={[-4, 4]}>
-                            <div style={{
-                                width: 40, height: 40,
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                borderRadius: '50%', background: token.colorBgContainer,
-                                cursor: 'pointer', marginLeft: 16,
-                                border: `1px solid ${token.colorBorder}`
-                            }}>
-                                <BellOutlined style={{ fontSize: 18, color: token.colorTextSecondary }} />
-                            </div>
-                        </Badge>,
+                        <Dropdown dropdownRender={() => notificationMenu} trigger={['click']} key="notifications-dropdown">
+                            <Badge dot={notifications.some(n => !n.isRead)} count={notifications.filter(n => !n.isRead).length} size="small" offset={[-4, 4]}>
+                                <div style={{
+                                    width: 40, height: 40,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    borderRadius: '50%', background: token.colorBgContainer,
+                                    cursor: 'pointer', marginLeft: 16,
+                                    border: `1px solid ${token.colorBorder}`
+                                }}>
+                                    <BellOutlined style={{ fontSize: 18, color: token.colorTextSecondary }} />
+                                </div>
+                            </Badge>
+                        </Dropdown>,
                     ];
                 }}
                 token={{
