@@ -33,8 +33,11 @@ const LoginPage = () => {
     const [loading, setLoading] = useState(false);
 
     React.useEffect(() => {
+        if (localStorage.getItem('isAuthenticated') === 'true') {
+            navigate('/dashboard', { replace: true });
+        }
         form.resetFields();
-    }, [form]);
+    }, [form, navigate]);
 
     const onFinish = (values) => {
         setLoading(true);
@@ -53,6 +56,7 @@ const LoginPage = () => {
                 if (validUsernames.includes(normalizedInput) && password === '1018') {
                     localStorage.setItem('userRole', 'hr');
                     localStorage.setItem('token', 'mock-hr-jwt');
+                    localStorage.setItem('isAuthenticated', 'true');
                     message.success('Welcome back, Admin!');
                     navigate('/dashboard');
                 } else {
@@ -64,6 +68,7 @@ const LoginPage = () => {
             // Employee Auth (Dummy)
             localStorage.setItem('userRole', 'employee');
             localStorage.setItem('token', 'mock-employee-jwt');
+            localStorage.setItem('isAuthenticated', 'true');
             message.success('Welcome back, Employee!');
             navigate('/employee-portal');
 
@@ -129,55 +134,13 @@ const LoginPage = () => {
                                     left: `${Math.random() * 100}%`,
                                     width: Math.random() * 4 + 2,
                                     height: Math.random() * 4 + 2,
-                                    background: isDarkMode ? '#fff' : '#a855f7',
+                                    background: '#fff',
                                     borderRadius: '50%',
-                                    filter: isDarkMode ? 'blur(1px)' : 'blur(2px)',
+                                    filter: 'blur(1px)'
                                 }}
                             />
                         ))}
                     </div>
-
-                    {/* Light Mode: Floating Glass Shapes */}
-                    {!isDarkMode && (
-                        <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-                            <motion.div
-                                animate={{
-                                    y: [0, -30, 0],
-                                    x: [0, 20, 0],
-                                    rotate: [0, 10, 0]
-                                }}
-                                transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-                                style={{
-                                    position: 'absolute',
-                                    top: '10%',
-                                    left: '-5%',
-                                    width: '300px',
-                                    height: '300px',
-                                    background: 'rgba(168, 85, 247, 0.08)',
-                                    borderRadius: '40% 60% 70% 30% / 40% 50% 60% 50%',
-                                    filter: 'blur(80px)',
-                                }}
-                            />
-                            <motion.div
-                                animate={{
-                                    y: [0, 40, 0],
-                                    x: [0, -25, 0],
-                                    rotate: [0, -15, 0]
-                                }}
-                                transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-                                style={{
-                                    position: 'absolute',
-                                    bottom: '5%',
-                                    right: '5%',
-                                    width: '400px',
-                                    height: '400px',
-                                    background: 'rgba(99, 102, 241, 0.1)',
-                                    borderRadius: '50%',
-                                    filter: 'blur(100px)',
-                                }}
-                            />
-                        </div>
-                    )}
 
                     <motion.div
                         initial={{ opacity: 0, x: -30 }}
@@ -204,6 +167,7 @@ const LoginPage = () => {
                     </motion.div>
                 </div>
 
+                {/* Right Side: Login Card */}
                 <div style={{
                     flex: 1,
                     display: 'flex',
@@ -216,22 +180,6 @@ const LoginPage = () => {
                         : 'radial-gradient(circle at 70% 30%, rgba(139,92,246,0.08), transparent 60%)',
                     position: 'relative'
                 }}>
-                    {!isDarkMode && (
-                        <motion.div
-                            animate={{ opacity: [0.4, 0.8, 0.4] }}
-                            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                            style={{
-                                position: 'absolute',
-                                top: '30%',
-                                right: '20%',
-                                width: '300px',
-                                height: '300px',
-                                background: 'radial-gradient(circle, rgba(139,92,246,0.1), transparent 70%)',
-                                filter: 'blur(40px)',
-                                pointerEvents: 'none'
-                            }}
-                        />
-                    )}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -275,9 +223,7 @@ const LoginPage = () => {
                                             : 'none'
                                     }}
                                 />
-                                <motion.div
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
+                                <div
                                     onClick={() => setActiveRole('hr')}
                                     style={{
                                         flex: 1,
@@ -291,10 +237,8 @@ const LoginPage = () => {
                                     }}
                                 >
                                     HR ADMIN
-                                </motion.div>
-                                <motion.div
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
+                                </div>
+                                <div
                                     onClick={() => setActiveRole('employee')}
                                     style={{
                                         flex: 1,
@@ -308,7 +252,7 @@ const LoginPage = () => {
                                     }}
                                 >
                                     EMPLOYEE
-                                </motion.div>
+                                </div>
                             </div>
 
                             <Form
@@ -319,82 +263,72 @@ const LoginPage = () => {
                                 autoComplete="off"
                             >
                                 <motion.div
-                                    variants={{
-                                        hidden: { opacity: 0, y: 20 },
-                                        visible: {
-                                            opacity: 1,
-                                            y: 0,
-                                            transition: { staggerChildren: 0.1, delayChildren: 0.2 }
-                                        }
-                                    }}
-                                    initial="hidden"
-                                    animate="visible"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.1 }}
                                 >
-                                    <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}>
-                                        <Form.Item
-                                            name="email"
-                                            rules={[{ required: true, message: 'Required' }]}
-                                        >
-                                            <Input
-                                                prefix={<UserOutlined style={{ color: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)' }} />}
-                                                placeholder="Email or Username"
-                                                style={{ height: 52, fontSize: 16 }}
-                                                autoComplete="off"
-                                            />
-                                        </Form.Item>
-                                    </motion.div>
-
-                                    <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}>
-                                        <Form.Item
-                                            name="password"
-                                            rules={[{ required: true, message: 'Required' }]}
-                                        >
-                                            <Input.Password
-                                                prefix={<LockOutlined style={{ color: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)' }} />}
-                                                placeholder="Password"
-                                                iconRender={visible => (visible ? <EyeTwoTone twoToneColor="#a855f7" /> : <EyeInvisibleOutlined />)}
-                                                style={{ height: 52, fontSize: 16 }}
-                                                autoComplete="new-password"
-                                            />
-                                        </Form.Item>
-                                    </motion.div>
-
-                                    <motion.div
-                                        variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}
-                                        style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 32 }}
+                                    <Form.Item
+                                        name="email"
+                                        rules={[{ required: true, message: 'Required' }]}
                                     >
-                                        <Checkbox style={{ color: isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(15, 23, 42, 0.5)' }}>Remember me</Checkbox>
-                                        <Link style={{ color: '#a855f7', fontWeight: 500 }}>Forgot?</Link>
-                                    </motion.div>
-
-                                    <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1 } }}>
-                                        <Form.Item>
-                                            <Button
-                                                type="primary"
-                                                htmlType="submit"
-                                                block
-                                                loading={loading}
-                                                icon={!loading && <ArrowRightOutlined />}
-                                                style={{
-                                                    height: 52,
-                                                    fontSize: 16,
-                                                    fontWeight: 700,
-                                                    background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
-                                                    border: 'none',
-                                                    boxShadow: isDarkMode ? '0 10px 20px -5px rgba(168, 85, 247, 0.5)' : '0 10px 30px -5px rgba(139, 92, 246, 0.3)'
-                                                }}
-                                            >
-                                                {loading ? 'AUTHENTICATING...' : 'SIGN IN'}
-                                            </Button>
-                                        </Form.Item>
-                                    </motion.div>
+                                        <Input
+                                            prefix={<UserOutlined style={{ color: 'rgba(255,255,255,0.3)' }} />}
+                                            placeholder="Email or Username"
+                                            style={{ height: 52, fontSize: 16 }}
+                                            autoComplete="off"
+                                        />
+                                    </Form.Item>
                                 </motion.div>
+
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.2 }}
+                                >
+                                    <Form.Item
+                                        name="password"
+                                        rules={[{ required: true, message: 'Required' }]}
+                                    >
+                                        <Input.Password
+                                            prefix={<LockOutlined style={{ color: 'rgba(255,255,255,0.3)' }} />}
+                                            placeholder="Password"
+                                            iconRender={visible => (visible ? <EyeTwoTone twoToneColor="#a855f7" /> : <EyeInvisibleOutlined />)}
+                                            style={{ height: 52, fontSize: 16 }}
+                                            autoComplete="new-password"
+                                        />
+                                    </Form.Item>
+                                </motion.div>
+
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 32 }}>
+                                    <Checkbox style={{ color: isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(15, 23, 42, 0.5)' }}>Remember me</Checkbox>
+                                    <Link style={{ color: '#a855f7', fontWeight: 500 }}>Forgot?</Link>
+                                </div>
+
+                                <Form.Item>
+                                    <Button
+                                        type="primary"
+                                        htmlType="submit"
+                                        block
+                                        loading={loading}
+                                        icon={!loading && <ArrowRightOutlined />}
+                                        style={{
+                                            height: 52,
+                                            fontSize: 16,
+                                            fontWeight: 700,
+                                            background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)',
+                                            border: 'none',
+                                            boxShadow: '0 10px 20px -5px rgba(168, 85, 247, 0.5)'
+                                        }}
+                                    >
+                                        {loading ? 'AUTHENTICATING...' : 'SIGN IN'}
+                                    </Button>
+                                </Form.Item>
                             </Form>
                         </Card>
                     </motion.div>
                 </div>
             </div>
-        </ConfigProvider >
+        </ConfigProvider>
     );
 };
 

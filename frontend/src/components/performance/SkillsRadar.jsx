@@ -17,7 +17,7 @@ const SkillsRadar = () => {
     return (
         <div className="glass-card" style={{ padding: 24, height: '100%', borderColor: token.colorBorder }}>
             <Typography.Title level={4} style={{ margin: '0 0 24px 0', color: token.colorText }}>Team Skills Assessment</Typography.Title>
-            <div style={{ width: '100%', height: 300, minWidth: 0 }}>
+            <div style={{ width: '100%', height: 300, minWidth: 0, minHeight: 0 }}>
                 <ResponsiveContainer width="100%" height="100%">
                     <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
                         <PolarGrid stroke={token.colorBorder} />

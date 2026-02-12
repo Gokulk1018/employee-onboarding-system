@@ -16,7 +16,7 @@ const RecruitmentFunnel = () => {
     return (
         <div className="glass-card" style={{ padding: 24, borderColor: token.colorBorder }}>
             <Typography.Title level={4} style={{ margin: '0 0 24px 0', color: token.colorText }}>Recruitment Funnel</Typography.Title>
-            <div style={{ width: '100%', height: 300, minWidth: 0 }}>
+            <div style={{ width: '100%', height: 300, minWidth: 0, minHeight: 0 }}>
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={data} layout="vertical" margin={{ left: 20 }}>
                         <XAxis type="number" hide />

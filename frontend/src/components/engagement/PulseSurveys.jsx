@@ -54,7 +54,7 @@ const PulseSurveys = () => {
                 </div>
             </div>
 
-            <div style={{ width: '100%', height: 250, minWidth: 0 }}>
+            <div style={{ width: '100%', height: 250, minWidth: 0, minHeight: 0 }}>
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={data} layout="vertical" margin={{ left: 20 }}>
                         <XAxis type="number" hide />

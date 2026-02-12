@@ -1,3 +1,4 @@
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Typography } from 'antd';
 import { motion } from 'framer-motion';
@@ -11,6 +12,7 @@ const SplashScreen = () => {
 
     React.useEffect(() => {
         const timer = setTimeout(() => {
+            localStorage.setItem('hasSeenSplash', 'true');
             navigate('/login');
         }, 2500);
         return () => clearTimeout(timer);

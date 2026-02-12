@@ -24,6 +24,25 @@ dayjs.locale('en');
 import SplashScreen from './components/auth/SplashScreen';
 import LoginPage from './pages/Login';
 import EmployeePortal from './pages/EmployeePortal';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+
+const RootRedirect = () => {
+    const hasSeenSplash = localStorage.getItem('hasSeenSplash') === 'true';
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    const userRole = localStorage.getItem('userRole');
+
+    if (!hasSeenSplash) {
+        return <Navigate to="/splash" replace />;
+    }
+
+    if (isAuthenticated) {
+        return userRole === 'hr'
+            ? <Navigate to="/dashboard" replace />
+            : <Navigate to="/employee-portal" replace />;
+    }
+
+    return <Navigate to="/login" replace />;
+};
 
 const AppContent = () => {
     const { isDarkMode } = useTheme();
@@ -41,12 +60,12 @@ const AppContent = () => {
             <AntApp>
                 <AnimatePresence mode="wait">
                     <Routes location={location} key={location.pathname}>
+                        <Route path="/" element={<RootRedirect />} />
                         <Route path="/splash" element={<SplashScreen />} />
                         <Route path="/login" element={<LoginPage />} />
 
                         {/* HR Routes */}
-                        <Route path="/" element={<MainLayout />}>
-                            <Route index element={<Navigate to="/splash" replace />} />
+                        <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
                             <Route path="dashboard" element={<Dashboard />} />
                             <Route path="employees" element={<Employees />} />
                             <Route path="recruitment" element={<Recruitment />} />
@@ -59,10 +78,10 @@ const AppContent = () => {
                         </Route>
 
                         {/* Employee Routes */}
-                        <Route path="/employee-portal" element={<EmployeePortal />} />
+                        <Route path="/employee-portal" element={<ProtectedRoute><EmployeePortal /></ProtectedRoute>} />
 
                         {/* Fallback */}
-                        <Route path="*" element={<Navigate to="/splash" replace />} />
+                        <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                 </AnimatePresence>
             </AntApp>
@@ -73,7 +92,7 @@ const AppContent = () => {
 function App() {
     return (
         <ThemeProvider>
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <AppContent />
             </BrowserRouter>
         </ThemeProvider>

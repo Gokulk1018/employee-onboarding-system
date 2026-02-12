@@ -40,9 +40,11 @@ const MainLayout = () => {
     ];
 
     const handleLogout = () => {
-        localStorage.clear();
+        localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('token');
+        localStorage.removeItem('userRole');
         sessionStorage.clear();
-        navigate('/login');
+        navigate('/login', { replace: true });
     };
 
     const profileMenu = {
