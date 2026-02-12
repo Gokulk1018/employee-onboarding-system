@@ -113,25 +113,30 @@ exports.acceptOffer = async (req, res, next) => {
         offer.status = 'Accepted';
         await offer.save();
 
-        // Create Employee Account Automatically
-        const employee = await Employee.create({
-            name: offer.candidateId.name,
-            email: offer.candidateId.email,
-            role: offer.role,
-            department: offer.department,
-            offerId: offer._id,
-            joinDate: offer.joiningDate
-        });
+        // Check if employee already exists for this offer to prevent double creation
+        let employee = await Employee.findOne({ offerId: offer._id });
 
-        // Initialize Onboarding Status
-        const onboarding = await OnboardingStatus.create({
-            employeeId: employee._id,
-            currentStep: 'OFFER_ACCEPTED',
-            stepHistory: [{ step: 'OFFER_CREATED' }, { step: 'OFFER_ACCEPTED' }]
-        });
+        if (!employee) {
+            // Create Employee Account Automatically
+            employee = await Employee.create({
+                name: offer.candidateId.name,
+                email: offer.candidateId.email,
+                role: offer.role,
+                department: offer.department,
+                offerId: offer._id,
+                joinDate: offer.joiningDate
+            });
 
-        employee.onboardingStatusId = onboarding._id;
-        await employee.save();
+            // Initialize Onboarding Status
+            const onboarding = await OnboardingStatus.create({
+                employeeId: employee._id,
+                currentStep: 'OFFER_ACCEPTED',
+                stepHistory: [{ step: 'OFFER_CREATED' }, { step: 'OFFER_ACCEPTED' }]
+            });
+
+            employee.onboardingStatusId = onboarding._id;
+            await employee.save();
+        }
 
         // 4. Send Welcome Email
         const portalUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/onboarding`;
@@ -157,7 +162,16 @@ exports.acceptOffer = async (req, res, next) => {
 
         res.send(`<h1>Success!</h1><p>You have accepted the offer for ${offer.role}. Check your email for next steps!</p>`);
     } catch (err) {
-        next(err);
+        console.error('Error accepting offer:', err);
+        res.send(`
+            <div style="font-family: Arial, sans-serif; text-align: center; margin-top: 50px;">
+                <h1 style="color: #dc3545;">Oops! Something went wrong</h1>
+                <p>We encountered an error while processing your request. This might be due to a technical issue or if the offer was already processed.</p>
+                <p style="color: #666; font-size: 0.9em;">Error: ${err.message}</p>
+                <br>
+                <a href="mailto:hr@example.com" style="color: #007bff; text-decoration: none;">Contact Support</a>
+            </div>
+        `);
     }
 };
 
@@ -251,14 +265,18 @@ exports.deleteOffer = async (req, res, next) => {
 exports.resendOffer = async (req, res, next) => {
     try {
         // Reset status to 'Sent' when resending (allows re-processing)
-        await Offer.findByIdAndUpdate(req.params.id, { status: 'Sent' });
-        console.log(`[DEBUG] Offer ${req.params.id} status reset to 'Sent'`);
+        const offer = await Offer.findByIdAndUpdate(
+            req.params.id,
+            { status: 'Sent' },
+            { new: true }
+        ).populate('candidateId');
 
-        const offer = await Offer.findById(req.params.id).populate('candidateId');
         if (!offer) {
             res.status(404);
             throw new Error('Offer not found');
         }
+
+        console.log(`[DEBUG] Offer ${offer._id} status reset to 'Sent' and populated.`);
 
         const candidate = offer.candidateId;
         const role = offer.role;

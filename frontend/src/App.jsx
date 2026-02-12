@@ -1,6 +1,6 @@
 import React from 'react';
 import { ConfigProvider, App as AntApp, theme as antTheme } from 'antd';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { themeConfig } from './config/theme';
 import MainLayout from './components/layout/MainLayout';
 import Dashboard from './pages/Dashboard';
@@ -17,11 +17,17 @@ import { ThemeProvider, useTheme } from './context/ThemeContext';
 import enUS from 'antd/locale/en_US';
 import dayjs from 'dayjs';
 import 'dayjs/locale/en';
+import { AnimatePresence } from 'framer-motion';
 
 dayjs.locale('en');
 
+import SplashScreen from './components/auth/SplashScreen';
+import LoginPage from './pages/Login';
+import EmployeePortal from './pages/EmployeePortal';
+
 const AppContent = () => {
     const { isDarkMode } = useTheme();
+    const location = useLocation();
 
     return (
         <ConfigProvider
@@ -33,10 +39,15 @@ const AppContent = () => {
             }}
         >
             <AntApp>
-                <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                    <Routes>
+                <AnimatePresence mode="wait">
+                    <Routes location={location} key={location.pathname}>
+                        <Route path="/splash" element={<SplashScreen />} />
+                        <Route path="/login" element={<LoginPage />} />
+
+                        {/* HR Routes */}
                         <Route path="/" element={<MainLayout />}>
-                            <Route index element={<Dashboard />} />
+                            <Route index element={<Navigate to="/splash" replace />} />
+                            <Route path="dashboard" element={<Dashboard />} />
                             <Route path="employees" element={<Employees />} />
                             <Route path="recruitment" element={<Recruitment />} />
                             <Route path="performance" element={<Performance />} />
@@ -45,10 +56,15 @@ const AppContent = () => {
                             <Route path="tasks" element={<Tasks />} />
                             <Route path="payroll" element={<Payroll />} />
                             <Route path="settings" element={<Settings />} />
-                            <Route path="*" element={<Navigate to="/" replace />} />
                         </Route>
+
+                        {/* Employee Routes */}
+                        <Route path="/employee-portal" element={<EmployeePortal />} />
+
+                        {/* Fallback */}
+                        <Route path="*" element={<Navigate to="/splash" replace />} />
                     </Routes>
-                </BrowserRouter>
+                </AnimatePresence>
             </AntApp>
         </ConfigProvider>
     );
@@ -57,7 +73,9 @@ const AppContent = () => {
 function App() {
     return (
         <ThemeProvider>
-            <AppContent />
+            <BrowserRouter>
+                <AppContent />
+            </BrowserRouter>
         </ThemeProvider>
     );
 }

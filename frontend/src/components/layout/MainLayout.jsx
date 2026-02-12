@@ -39,6 +39,12 @@ const MainLayout = () => {
         { path: '/settings', name: 'Settings', icon: <SettingOutlined /> },
     ];
 
+    const handleLogout = () => {
+        localStorage.clear();
+        sessionStorage.clear();
+        navigate('/login');
+    };
+
     const profileMenu = {
         items: [
             { key: 'profile', label: 'Profile' },
@@ -46,6 +52,11 @@ const MainLayout = () => {
             { type: 'divider' },
             { key: 'logout', label: 'Logout', icon: <LogoutOutlined />, danger: true },
         ],
+        onClick: ({ key }) => {
+            if (key === 'logout') {
+                handleLogout();
+            }
+        }
     };
 
     return (

@@ -66,6 +66,7 @@ const Onboarding = () => {
                     department: offer.department,
                     salary: offer.salary
                 }));
+                console.log('[DEBUG] Fetched Offers:', formattedData);
                 setOffersData(formattedData);
 
                 // Auto-select first offer if none selected or previous selection gone
