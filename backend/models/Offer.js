@@ -1,21 +1,48 @@
 const mongoose = require('mongoose');
 
 const offerSchema = new mongoose.Schema({
-    candidateId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Candidate',
-        required: true
+    candidateName: {
+        type: String,
+        required: [true, 'Candidate name is required'],
+        default: ""
     },
-    role: { type: String, required: true },
-    department: { type: String, required: true },
-    salary: { type: Number, required: true },
-    joiningDate: { type: Date },
+    candidateEmail: {
+        type: String,
+        required: [true, 'Candidate email is required']
+    },
+    candidatePhone: {
+        type: String
+    },
+    department: {
+        type: String,
+        required: [true, 'Department is required']
+    },
+    role: {
+        type: String,
+        required: [true, 'Role is required']
+    },
+    salary: {
+        type: Number,
+        required: [true, 'Salary is required']
+    },
+    joiningDate: {
+        type: Date,
+        required: [true, 'Joining date is required']
+    },
+    personalMessage: {
+        type: String
+    },
     status: {
         type: String,
-        enum: ['Draft', 'Sent', 'Accepted', 'Rejected'],
-        default: 'Draft'
+        enum: ['Sent', 'Accepted', 'Rejected'],
+        default: 'Sent'
     },
-    offerDate: { type: Date, default: Date.now }
-}, { timestamps: true });
+    token: {
+        type: String,
+        unique: true
+    }
+}, {
+    timestamps: true
+});
 
 module.exports = mongoose.model('Offer', offerSchema);

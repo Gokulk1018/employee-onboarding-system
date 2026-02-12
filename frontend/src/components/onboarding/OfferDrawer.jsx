@@ -12,13 +12,14 @@ const OfferDrawer = ({ open, onClose, onSuccess, editData }) => {
         if (open) {
             if (editData) {
                 form.setFieldsValue({
-                    name: editData.name,
-                    email: editData.email,
-                    phone: editData.phone,
+                    candidateName: editData.name || editData.candidateName,
+                    candidateEmail: editData.email || editData.candidateEmail,
+                    candidatePhone: editData.phone || editData.candidatePhone,
                     role: editData.role,
                     department: editData.department,
-                    salary: editData.salary,
-                    joiningDate: editData.rawJoiningDate ? dayjs(editData.rawJoiningDate) : null
+                    annualSalary: editData.salary || editData.annualSalary,
+                    joiningDate: editData.rawJoiningDate ? dayjs(editData.rawJoiningDate) : (editData.joiningDate ? dayjs(editData.joiningDate) : null),
+                    personalMessage: editData.message || editData.personalMessage
                 });
             } else {
                 form.resetFields();
@@ -30,13 +31,20 @@ const OfferDrawer = ({ open, onClose, onSuccess, editData }) => {
         try {
             const values = await form.validateFields();
             setLoading(true);
+
             const payload = {
                 ...values,
-                joiningDate: values.joiningDate ? values.joiningDate.toISOString() : null
+                candidateName: values.candidateName,
+                joiningDate: values.joiningDate ? values.joiningDate.toISOString() : null,
+                name: values.candidateName, // Map for backend compatibility if needed
+                email: values.candidateEmail,
+                phone: values.candidatePhone,
+                salary: values.annualSalary,
+                message: values.personalMessage
             };
 
             if (editData) {
-                await axios.put(`http://localhost:5000/api/offers/${editData.id}`, payload);
+                await axios.put(`http://localhost:5000/api/offers/${editData.id || editData._id}`, payload);
                 message.success('Offer updated successfully');
             } else {
                 await axios.post('http://localhost:5000/api/offers/create', payload);
@@ -44,68 +52,65 @@ const OfferDrawer = ({ open, onClose, onSuccess, editData }) => {
             }
 
             setLoading(false);
-            onSuccess();
+            if (onSuccess) onSuccess();
             onClose();
         } catch (error) {
             setLoading(false);
-            if (error.response) {
-                message.error(error.response.data.error || 'Failed to process offer');
-            } else if (error.errorFields) {
-                // Form validation error, do nothing
-            } else {
-                message.error('Something went wrong');
-            }
+            console.error('Submit Error:', error);
+            message.error(error.response?.data?.message || 'Failed to process offer');
         }
     };
 
     return (
         <Drawer
-            title={editData ? "Edit Offer Details" : "Create Offer Letter"}
+            title={editData ? "Edit Offer Details" : "Send New Offer Letter"}
             width={720}
             onClose={onClose}
             open={open}
             styles={{ body: { paddingBottom: 80 } }}
             extra={
                 <Space>
-                    <Button onClick={onClose} disabled={loading}>
-                        Cancel
-                    </Button>
+                    <Button onClick={onClose} disabled={loading}>Cancel</Button>
                     <Button
                         type="primary"
                         onClick={handleSubmit}
                         loading={loading}
                         disabled={loading}
+                        style={{ background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)', border: 'none' }}
                     >
-                        {loading ? "Sending..." : (editData ? "Update Offer" : "Send Offer")}
+                        {editData ? "Update Offer" : "Send Offer"}
                     </Button>
                 </Space>
             }
         >
-            <Form form={form} layout="vertical" hideRequiredMark disabled={loading}>
-                <Form.Item
-                    name="name"
-                    label="Candidate Name"
-                    rules={[{ required: true, message: 'Please enter candidate name' }]}
-                >
-                    <Input placeholder="Please enter candidate name" size="large" />
-                </Form.Item>
-                <Form.Item
-                    name="email"
-                    label="Candidate Email"
-                    rules={[
-                        { required: true, message: 'Please enter candidate email' },
-                        { type: 'email', message: 'Please enter a valid email address' }
-                    ]}
-                >
-                    <Input placeholder="candidate@example.com" size="large" type="email" />
-                </Form.Item>
-                <Form.Item
-                    name="phone"
-                    label="Candidate Phone"
-                    rules={[{ required: true, message: 'Please enter candidate phone' }]}
-                >
-                    <Input placeholder="+1 (555) 000-0000" size="large" />
-                </Form.Item>
+            <Form form={form} layout="vertical" disabled={loading} size="large">
+                <Row gutter={16}>
+                    <Col span={24}>
+                        <Form.Item
+                            name="candidateName"
+                            label="Candidate Name"
+                            rules={[{ required: true, message: 'Required' }]}
+                        >
+                            <Input placeholder="John Doe" />
+                        </Form.Item>
+                    </Col>
+                </Row>
+                <Row gutter={16}>
+                    <Col span={12}>
+                        <Form.Item
+                            name="candidateEmail"
+                            label="Candidate Email"
+                            rules={[{ required: true, type: 'email' }]}
+                        >
+                            <Input placeholder="john@example.com" />
+                        </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                        <Form.Item name="candidatePhone" label="Candidate Phone">
+                            <Input placeholder="+1 234 567 890" />
+                        </Form.Item>
+                    </Col>
+                </Row>
                 <Row gutter={16}>
                     <Col span={12}>
                         <Form.Item name="department" label="Department" rules={[{ required: true }]}>
@@ -113,7 +118,6 @@ const OfferDrawer = ({ open, onClose, onSuccess, editData }) => {
                                 <Select.Option value="Engineering">Engineering</Select.Option>
                                 <Select.Option value="Design">Design</Select.Option>
                                 <Select.Option value="Product">Product</Select.Option>
-                                <Select.Option value="Marketing">Marketing</Select.Option>
                                 <Select.Option value="Sales">Sales</Select.Option>
                                 <Select.Option value="HR">HR</Select.Option>
                             </Select>
@@ -121,14 +125,14 @@ const OfferDrawer = ({ open, onClose, onSuccess, editData }) => {
                     </Col>
                     <Col span={12}>
                         <Form.Item name="role" label="Role" rules={[{ required: true }]}>
-                            <Input placeholder="e.g. Senior Developer" />
+                            <Input placeholder="e.g. Senior Backend Engineer" />
                         </Form.Item>
                     </Col>
                 </Row>
                 <Row gutter={16}>
                     <Col span={12}>
-                        <Form.Item name="salary" label="Annual Salary" rules={[{ required: true }]}>
-                            <Input prefix="$" placeholder="e.g. 120,000" type="number" />
+                        <Form.Item name="annualSalary" label="Annual Salary ($)" rules={[{ required: true }]}>
+                            <Input type="number" placeholder="120000" />
                         </Form.Item>
                     </Col>
                     <Col span={12}>
@@ -137,13 +141,12 @@ const OfferDrawer = ({ open, onClose, onSuccess, editData }) => {
                         </Form.Item>
                     </Col>
                 </Row>
-                {!editData && (
-                    <Form.Item name="message" label="Personal Message">
-                        <Input.TextArea rows={4} placeholder="Welcome message..." />
-                    </Form.Item>
-                )}
+                <Form.Item name="personalMessage" label="Personal Message">
+                    <Input.TextArea rows={4} placeholder="Anything you want to say to the candidate..." />
+                </Form.Item>
             </Form>
         </Drawer>
     );
 };
+
 export default OfferDrawer;

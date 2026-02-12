@@ -274,7 +274,7 @@ const LoginPage = () => {
                                         <Input
                                             prefix={<UserOutlined style={{ color: 'rgba(255,255,255,0.3)' }} />}
                                             placeholder="Email or Username"
-                                            style={{ height: 52, fontSize: 16 }}
+                                            style={{ height: 52, fontSize: 16, backgroundColor: 'transparent' }}
                                             autoComplete="off"
                                         />
                                     </Form.Item>
@@ -293,7 +293,7 @@ const LoginPage = () => {
                                             prefix={<LockOutlined style={{ color: 'rgba(255,255,255,0.3)' }} />}
                                             placeholder="Password"
                                             iconRender={visible => (visible ? <EyeTwoTone twoToneColor="#a855f7" /> : <EyeInvisibleOutlined />)}
-                                            style={{ height: 52, fontSize: 16 }}
+                                            style={{ height: 52, fontSize: 16, backgroundColor: 'transparent' }}
                                             autoComplete="new-password"
                                         />
                                     </Form.Item>

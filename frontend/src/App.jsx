@@ -27,7 +27,7 @@ import EmployeePortal from './pages/EmployeePortal';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 const RootRedirect = () => {
-    const hasSeenSplash = localStorage.getItem('hasSeenSplash') === 'true';
+    const hasSeenSplash = sessionStorage.getItem('hasSeenSplash') === 'true';
     const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
     const userRole = localStorage.getItem('userRole');
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Row, Col, Typography, Button, Segmented, theme } from 'antd';
 import { PlusOutlined, UnorderedListOutlined, AppstoreOutlined } from '@ant-design/icons';
 import RecruitmentStats from '../components/recruitment/RecruitmentStats';
+import TopOffers from '../components/recruitment/TopOffers';
 import ApplicationList from '../components/recruitment/ApplicationList';
 import RecruitmentFunnel from '../components/recruitment/RecruitmentFunnel';
 import RecruitmentKanban from '../components/recruitment/RecruitmentKanban';
@@ -64,6 +65,10 @@ const Recruitment = () => {
                     <RecruitmentStats />
                 </motion.div>
 
+                <motion.div variants={itemVariants} style={{ marginTop: 24 }}>
+                    <TopOffers />
+                </motion.div>
+
                 {viewMode === 'kanban' ? (
                     <motion.div
                         variants={itemVariants}
@@ -88,7 +93,16 @@ const Recruitment = () => {
                     </Row>
                 )}
 
-                <JobPostingDrawer open={isJobDrawerOpen} onClose={() => setIsJobDrawerOpen(false)} />
+                <JobPostingDrawer
+                    open={isJobDrawerOpen}
+                    onClose={() => setIsJobDrawerOpen(false)}
+                    onSuccess={() => {
+                        // Refresh data logic here if needed, 
+                        // Kanban and lists will re-fetch if they have internal state or are connected to a provider
+                        console.log('Refreshing recruitment data...');
+                        // If components like RecruitmentKanban listen to a global store or context, this is enough.
+                    }}
+                />
             </motion.div>
         </PageContainer>
     );

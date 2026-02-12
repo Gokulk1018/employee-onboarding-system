@@ -1,17 +1,40 @@
 import React from 'react';
-import { Drawer, Form, Input, DatePicker, Select, Button, Space, theme, Row, Col } from 'antd';
+import { Drawer, Form, Input, DatePicker, Select, Button, Space, theme, Row, Col, App } from 'antd';
 
-const JobPostingDrawer = ({ open, onClose }) => {
+const JobPostingDrawer = ({ open, onClose, onSuccess }) => {
     const { token } = theme.useToken();
     const [form] = Form.useForm();
+    const [loading, setLoading] = React.useState(false);
+    const { message } = App.useApp();
 
     const handleSubmit = () => {
         form.validateFields()
-            .then(values => {
-                console.log('Job Posting Data:', values);
-                // Frontend-only: Just log the data
-                form.resetFields();
-                onClose();
+            .then(async values => {
+                setLoading(true);
+                try {
+                    const response = await fetch('http://localhost:5000/api/jobs/create', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(values),
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        message.success('Job posted successfully');
+                        form.resetFields();
+                        onClose();
+                        if (onSuccess) onSuccess();
+                    } else {
+                        message.error(data.message || 'Failed to post job');
+                    }
+                } catch (error) {
+                    message.error('Connection error. Please try again.');
+                } finally {
+                    setLoading(false);
+                }
             })
             .catch(errorInfo => {
                 console.log('Validation Failed:', errorInfo);
@@ -28,7 +51,7 @@ const JobPostingDrawer = ({ open, onClose }) => {
             extra={
                 <Space>
                     <Button onClick={onClose}>Cancel</Button>
-                    <Button type="primary" onClick={handleSubmit}>
+                    <Button type="primary" onClick={handleSubmit} loading={loading}>
                         Post Job
                     </Button>
                 </Space>

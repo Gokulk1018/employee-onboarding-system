@@ -35,7 +35,7 @@ const Onboarding = () => {
     const [editingOffer, setEditingOffer] = useState(null);
 
     // Derived state for the detail panels
-    const selectedOffer = offersData.find(o => o.id === selectedOfferId) || (offersData.length > 0 ? offersData[0] : null);
+    const selectedOffer = offersData.find(o => o.id === selectedOfferId) || null;
 
     const fetchOffers = useCallback(async () => {
         setLoading(true);
@@ -51,14 +51,11 @@ const Onboarding = () => {
                 const formattedData = response.data.data.map(offer => ({
                     key: offer._id,
                     id: offer._id,
-                    name: offer.candidateId?.name || 'Unknown',
-                    email: offer.candidateId?.email || '',
-                    phone: offer.candidateId?.phone || '',
+                    name: offer.candidateName || "N/A",
+                    email: offer.candidateEmail || '',
+                    phone: offer.candidatePhone || '',
                     role: offer.role,
-                    status: offer.status === 'OFFER_ACCEPTED' ? 'Accepted' :
-                        offer.status === 'Sent' ? 'Sent' :
-                            offer.status === 'Draft' ? 'Draft' :
-                                offer.status === 'DECLINED' ? 'Rejected' : offer.status,
+                    status: offer.status,
                     rawStatus: offer.status,
                     date: new Date(offer.createdAt).toLocaleDateString(),
                     joiningDate: offer.joiningDate ? new Date(offer.joiningDate).toLocaleDateString() : 'N/A',
@@ -190,7 +187,6 @@ const Onboarding = () => {
                 let bg = 'rgba(0,0,0,0.05)';
                 if (status === 'Accepted') { color = 'success'; bg = `${token.colorSuccess}15`; }
                 if (status === 'Sent') { color = 'processing'; bg = `${token.colorInfo}15`; }
-                if (status === 'Draft') { color = 'default'; bg = `${token.colorTextSecondary}15`; }
                 if (status === 'Rejected') { color = 'error'; bg = `${token.colorError}15`; }
                 return (
                     <Tag bordered={false} color={color} style={{ borderRadius: 12, background: bg, fontWeight: 500 }}>

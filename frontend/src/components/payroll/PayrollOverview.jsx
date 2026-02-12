@@ -40,7 +40,7 @@ const PayrollOverview = () => {
                         <BarChart data={data}>
                             <XAxis
                                 dataKey="name"
-                                axisLine={false}
+                                axisgitLine={false}
                                 tickLine={false}
                                 tick={{ fill: token.colorTextSecondary, fontSize: 12 }}
                             />

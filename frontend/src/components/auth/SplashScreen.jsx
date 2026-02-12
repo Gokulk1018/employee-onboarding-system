@@ -12,7 +12,7 @@ const SplashScreen = () => {
 
     React.useEffect(() => {
         const timer = setTimeout(() => {
-            localStorage.setItem('hasSeenSplash', 'true');
+            sessionStorage.setItem('hasSeenSplash', 'true');
             navigate('/login');
         }, 2500);
         return () => clearTimeout(timer);
