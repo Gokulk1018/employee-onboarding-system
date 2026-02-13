@@ -3,15 +3,15 @@ const mongoose = require('mongoose');
 const notificationSchema = new mongoose.Schema({
     candidateName: {
         type: String,
-        required: true
+        required: false
     },
     candidateEmail: {
         type: String,
-        required: true
+        required: false
     },
     status: {
         type: String,
-        enum: ['Accepted', 'Rejected'],
+        enum: ['Accepted', 'Rejected', 'Pending', 'Info'],
         required: true
     },
     message: {

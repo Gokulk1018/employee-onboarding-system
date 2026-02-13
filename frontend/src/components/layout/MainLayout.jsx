@@ -90,7 +90,11 @@ const MainLayout = () => {
                                 <Avatar
                                     size="small"
                                     style={{
-                                        backgroundColor: item.status === 'Accepted' ? token.colorSuccess : token.colorError,
+                                        backgroundColor:
+                                            item.status === 'Accepted' ? token.colorSuccess :
+                                                item.status === 'Pending' ? token.colorInfo :
+                                                    item.status === 'Info' ? token.colorPrimary :
+                                                        token.colorError,
                                         marginTop: 4
                                     }}
                                 />

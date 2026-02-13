@@ -22,6 +22,8 @@ exports.submitOnboardingForm = async (req, res, next) => {
         // Create HR Notification
         await Notification.create({
             message: `New onboarding form submitted by ${user.candidateName}`,
+            candidateName: user.candidateName,
+            candidateEmail: user.candidateEmail,
             status: 'Pending',
             createdAt: new Date()
         });
