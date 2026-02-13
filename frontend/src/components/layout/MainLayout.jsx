@@ -122,7 +122,8 @@ const MainLayout = () => {
     ];
 
     const handleLogout = () => {
-        localStorage.clear();
+        const authKeys = ['isAuthenticated', 'token', 'userRole', 'username', 'candidateName', 'offerId'];
+        authKeys.forEach(key => localStorage.removeItem(key));
         sessionStorage.clear();
         navigate('/login', { replace: true });
     };

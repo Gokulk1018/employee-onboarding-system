@@ -1,5 +1,36 @@
 const OnboardingStatus = require('../models/OnboardingStatus');
 const Employee = require('../models/Employee');
+const OnboardingUser = require('../models/OnboardingUser');
+
+// @desc    Candidate login for onboarding
+// @route   POST /api/onboarding/login
+exports.candidateLogin = async (req, res, next) => {
+    try {
+        const { username, password } = req.body;
+
+        if (!username || !password) {
+            return res.status(400).json({ success: false, message: 'Please provide username and password' });
+        }
+
+        const user = await OnboardingUser.findOne({ username: username.toLowerCase() });
+
+        if (!user || user.password !== password) {
+            return res.status(401).json({ success: false, message: 'Invalid credentials' });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: {
+                username: user.username,
+                candidateName: user.candidateName,
+                offerId: user.offerId,
+                role: 'candidate'
+            }
+        });
+    } catch (err) {
+        next(err);
+    }
+};
 
 // @desc    Get onboarding status for an employee
 // @route   GET /api/onboarding/:employeeId

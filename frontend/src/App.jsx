@@ -23,6 +23,7 @@ dayjs.locale('en');
 
 import SplashScreen from './components/auth/SplashScreen';
 import LoginPage from './pages/Login';
+import CandidateLogin from './pages/CandidateLogin';
 import EmployeePortal from './pages/EmployeePortal';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
@@ -63,6 +64,7 @@ const AppContent = () => {
                         <Route path="/" element={<RootRedirect />} />
                         <Route path="/splash" element={<SplashScreen />} />
                         <Route path="/login" element={<LoginPage />} />
+                        <Route path="/candidate-login" element={<CandidateLogin />} />
 
                         {/* HR Routes */}
                         <Route path="/" element={<ProtectedRoute allowedRole="hr"><MainLayout /></ProtectedRoute>}>

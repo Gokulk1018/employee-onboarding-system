@@ -1,4 +1,6 @@
 const Employee = require('../models/Employee');
+const Offer = require('../models/Offer');
+const OnboardingUser = require('../models/OnboardingUser');
 const crypto = require('crypto');
 const sendEmail = require('../utils/emailHelper');
 
@@ -36,54 +38,60 @@ exports.createEmployee = async (req, res) => {
     }
 };
 
-// @desc    Generate and send credentials to employee
+// @desc    Generate and send credentials to candidate for onboarding
 // @route   POST /api/employees/generate-credentials/:id
 exports.generateCredentials = async (req, res, next) => {
     try {
-        const employee = await Employee.findById(req.params.id);
-        if (!employee) {
-            return res.status(404).json({ success: false, message: 'Employee not found' });
+        // Find by Offer ID instead of Employee ID
+        const offer = await Offer.findById(req.params.id);
+        if (!offer) {
+            return res.status(404).json({ success: false, message: 'Offer not found' });
         }
 
-        // Generate username (email)
-        const username = employee.email;
-        const tempPassword = crypto.randomBytes(4).toString('hex'); // 8 char random hex
+        // Generate username = candidate name (lowercase, no spaces)
+        const username = offer.candidateName.toLowerCase().replace(/\s+/g, '');
+        const password = "123";
 
-        // Hash password using built-in crypto
-        const salt = crypto.randomBytes(16).toString('hex');
-        const hash = crypto.pbkdf2Sync(tempPassword, salt, 1000, 64, 'sha512').toString('hex');
-        const hashedPassword = `${salt}:${hash}`;
+        // Create or Update OnboardingUser
+        let onboardingUser = await OnboardingUser.findOne({ offerId: offer._id });
 
-        // Update employee
-        employee.username = username;
-        employee.password = hashedPassword;
-        employee.role = 'employee';
-        employee.accountStatus = 'active';
-        await employee.save();
+        if (onboardingUser) {
+            onboardingUser.username = username;
+            onboardingUser.password = password;
+            await onboardingUser.save();
+        } else {
+            onboardingUser = await OnboardingUser.create({
+                username,
+                password,
+                candidateName: offer.candidateName,
+                candidateEmail: offer.candidateEmail,
+                offerId: offer._id
+            });
+        }
 
         // Send email
-        const loginUrl = process.env.FRONTEND_URL || 'http://localhost:5173/login';
+        const loginUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
         const htmlContent = `
             <div style="font-family: sans-serif; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #7c3aed;">Your Employee Portal Login Credentials</h2>
-                <p>Hello ${employee.name},</p>
-                <p>Your account has been created. Use the following credentials to log in to the employee portal:</p>
+                <h2 style="color: #7c3aed;">Your Onboarding Portal Credentials</h2>
+                <p>Hello ${offer.candidateName},</p>
+                <p>Congratulations on your offer! Please use the following credentials to access the onboarding portal:</p>
                 <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
                     <p style="margin: 5px 0;"><strong>Username:</strong> ${username}</p>
-                    <p style="margin: 5px 0;"><strong>Temporary Password:</strong> ${tempPassword}</p>
+                    <p style="margin: 5px 0;"><strong>Password:</strong> ${password}</p>
                 </div>
-                <p>Login here: <a href="${loginUrl}" style="color: #7c3aed; font-weight: 600;">Log In</a></p>
-                <p style="color: #6b7280; font-size: 0.9rem;">Important: Please change your password after your first login.</p>
+                <p>Login here: <a href="${loginUrl}" style="color: #7c3aed; font-weight: 600;">Onboarding Portal</a></p>
+                <p style="color: #6b7280; font-size: 0.9rem;">Please complete your onboarding tasks as soon as possible.</p>
             </div>
         `;
 
         await sendEmail({
-            email: employee.email,
-            subject: 'Your Employee Portal Login Credentials',
+            email: offer.candidateEmail,
+            subject: 'Your Onboarding Portal Credentials',
             html: htmlContent
         });
 
-        res.status(200).json({ success: true, message: 'Credentials generated and sent successfully' });
+        res.status(200).json({ success: true, message: 'Onboarding credentials generated and sent' });
     } catch (err) {
         next(err);
     }
