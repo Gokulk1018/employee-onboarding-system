@@ -59,7 +59,7 @@ const AppContent = () => {
             }}
         >
             <AntApp>
-                <AnimatePresence mode="wait">
+                <AnimatePresence mode="popLayout" initial={false}>
                     <Routes location={location} key={location.pathname}>
                         <Route path="/" element={<RootRedirect />} />
                         <Route path="/splash" element={<SplashScreen />} />

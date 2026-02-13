@@ -22,16 +22,24 @@ const Recruitment = () => {
         visible: {
             opacity: 1,
             transition: {
-                staggerChildren: 0.1
+                staggerChildren: 0.12,
+                delayChildren: 0.1
             }
         }
     };
 
     const itemVariants = {
-        hidden: { y: 20, opacity: 0 },
+        hidden: { x: 40, opacity: 0, scale: 0.96 },
         visible: {
-            y: 0,
-            opacity: 1
+            x: 0,
+            opacity: 1,
+            scale: 1,
+            transition: {
+                type: 'spring',
+                stiffness: 60,
+                damping: 14,
+                mass: 0.8
+            }
         }
     };
 

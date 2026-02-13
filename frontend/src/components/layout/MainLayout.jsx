@@ -244,7 +244,7 @@ const MainLayout = () => {
                 contentStyle={{
                     padding: 32,
                     minHeight: '100vh',
-                    background: 'transparent',
+                    background: token.colorBgLayout,
                 }}
                 headerContentRender={() => {
                     const currentPath = menuItems.find(m => m.path === location.pathname);
