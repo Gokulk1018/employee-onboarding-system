@@ -13,7 +13,7 @@ const SplashScreen = () => {
     React.useEffect(() => {
         const timer = setTimeout(() => {
             sessionStorage.setItem('hasSeenSplash', 'true');
-            navigate('/login');
+            navigate('/');
         }, 2500);
         return () => clearTimeout(timer);
     }, [navigate]);
@@ -33,8 +33,7 @@ const SplashScreen = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 overflow: 'hidden',
-                position: 'relative',
-                color: isDarkMode ? '#fff' : '#0f172a'
+                position: 'relative'
             }}
         >
             {/* Floating Glass Shapes */}

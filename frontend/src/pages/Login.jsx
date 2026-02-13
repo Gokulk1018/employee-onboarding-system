@@ -41,41 +41,23 @@ const LoginPage = () => {
 
     const onFinish = (values) => {
         setLoading(true);
-        const { email, password } = values;
-        const normalizedInput = email.trim().toLowerCase();
-        const validUsernames = [
-            "gokulk.1018@gmail.com",
-            "gokul"
-        ];
+        const { username, password } = values;
+        const normalizedUsername = username ? username.trim().toLowerCase() : '';
 
         // Simulate API call
         setTimeout(() => {
             setLoading(false);
 
-            if (activeRole === 'hr') {
-                if (validUsernames.includes(normalizedInput) && password === '1018') {
-                    localStorage.setItem('userRole', 'hr');
-                    localStorage.setItem('token', 'mock-hr-jwt');
-                    localStorage.setItem('isAuthenticated', 'true');
-                    message.success('Welcome back, Admin!');
-                    navigate('/dashboard');
-                } else {
-                    message.error('Invalid HR credentials');
-                }
-                return;
+            const isValidUser = normalizedUsername === 'gokul' || normalizedUsername === 'gokulk.1018@gmail.com';
+            if (isValidUser && password === '1018') {
+                localStorage.setItem('userRole', 'hr');
+                localStorage.setItem('token', 'mock-hr-jwt');
+                localStorage.setItem('isAuthenticated', 'true');
+                message.success('Welcome back, Gokul!');
+                navigate('/dashboard');
+            } else {
+                message.error('Invalid credentials. Use gokul / 1018');
             }
-
-            // Employee Auth
-            // For now, we simulate the check against "mock" but the user role will be set correctly.
-            // In a real app, this would be an API call verifying credentials from the database.
-            // Since we're told NOT to modify the backend auth yet, we'll keep it simple.
-
-            localStorage.setItem('userRole', 'employee');
-            localStorage.setItem('token', 'mock-employee-jwt');
-            localStorage.setItem('isAuthenticated', 'true');
-            message.success('Welcome back, Employee!');
-            navigate('/employee-portal');
-
         }, 1500);
     };
 
@@ -103,8 +85,7 @@ const LoginPage = () => {
                 display: 'flex',
                 height: '100vh',
                 width: '100vw',
-                overflow: 'hidden',
-                backgroundColor: isDarkMode ? '#020617' : '#f8fafc'
+                overflow: 'hidden'
             }}>
                 {/* Left Side: Brand Panel */}
                 <div style={{
@@ -272,12 +253,12 @@ const LoginPage = () => {
                                     transition={{ delay: 0.1 }}
                                 >
                                     <Form.Item
-                                        name="email"
+                                        name="username"
                                         rules={[{ required: true, message: 'Required' }]}
                                     >
                                         <Input
                                             prefix={<UserOutlined style={{ color: 'rgba(255,255,255,0.3)' }} />}
-                                            placeholder="Email or Username"
+                                            placeholder="Username"
                                             style={{ height: 52, fontSize: 16, backgroundColor: 'transparent' }}
                                             autoComplete="off"
                                         />

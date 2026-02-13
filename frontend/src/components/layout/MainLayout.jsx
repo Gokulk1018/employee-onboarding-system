@@ -122,9 +122,7 @@ const MainLayout = () => {
     ];
 
     const handleLogout = () => {
-        localStorage.removeItem('isAuthenticated');
-        localStorage.removeItem('token');
-        localStorage.removeItem('userRole');
+        localStorage.clear();
         sessionStorage.clear();
         navigate('/login', { replace: true });
     };
