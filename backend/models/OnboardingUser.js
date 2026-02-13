@@ -25,7 +25,24 @@ const onboardingUserSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Offer',
         required: true
-    }
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'submitted', 'approved', 'rejected'],
+        default: 'pending'
+    },
+    onboardingData: {
+        type: Map,
+        of: String
+    },
+    documents: [{
+        name: String,
+        url: String,
+        uploadedAt: {
+            type: Date,
+            default: Date.now
+        }
+    }]
 }, {
     timestamps: true
 });

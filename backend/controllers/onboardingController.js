@@ -1,32 +1,93 @@
+const OnboardingUser = require('../models/OnboardingUser');
 const OnboardingStatus = require('../models/OnboardingStatus');
 const Employee = require('../models/Employee');
-const OnboardingUser = require('../models/OnboardingUser');
+const Notification = require('../models/Notification');
 
-// @desc    Candidate login for onboarding
-// @route   POST /api/onboarding/login
-exports.candidateLogin = async (req, res, next) => {
+// @desc    Submit onboarding form data
+// @route   POST /api/onboarding/submit
+exports.submitOnboardingForm = async (req, res, next) => {
     try {
-        const { username, password } = req.body;
+        const { userId, personalData, documents } = req.body;
 
-        if (!username || !password) {
-            return res.status(400).json({ success: false, message: 'Please provide username and password' });
+        const user = await OnboardingUser.findById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Onboarding user not found' });
         }
 
-        const user = await OnboardingUser.findOne({ username: username.toLowerCase() });
+        user.status = 'submitted';
+        user.onboardingData = personalData;
+        user.documents = documents;
+        await user.save();
 
-        if (!user || user.password !== password) {
-            return res.status(401).json({ success: false, message: 'Invalid credentials' });
-        }
-
-        res.status(200).json({
-            success: true,
-            data: {
-                username: user.username,
-                candidateName: user.candidateName,
-                offerId: user.offerId,
-                role: 'candidate'
-            }
+        // Create HR Notification
+        await Notification.create({
+            message: `New onboarding form submitted by ${user.candidateName}`,
+            status: 'Pending',
+            createdAt: new Date()
         });
+
+        res.status(200).json({ success: true, message: 'Onboarding form submitted' });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @desc    Approve onboarding (HR Only)
+// @route   POST /api/onboarding/approve/:id
+exports.approveOnboarding = async (req, res, next) => {
+    try {
+        const user = await OnboardingUser.findById(req.params.id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Onboarding user not found' });
+        }
+
+        // Create Employee record
+        const employee = await Employee.create({
+            name: user.candidateName,
+            email: user.candidateEmail,
+            username: user.username,
+            password: user.password, // Set their password
+            role: 'employee',
+            status: 'Active',
+            accountStatus: 'active',
+            offerId: user.offerId,
+            joinDate: new Date()
+        });
+
+        // Update onboarding user status
+        user.status = 'approved';
+        await user.save();
+
+        res.status(200).json({ success: true, message: 'Candidate approved and converted to employee', data: employee });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @desc    Reject onboarding (HR Only)
+// @route   POST /api/onboarding/reject/:id
+exports.rejectOnboarding = async (req, res, next) => {
+    try {
+        const user = await OnboardingUser.findById(req.params.id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Onboarding user not found' });
+        }
+
+        user.status = 'rejected';
+        await user.save();
+
+        res.status(200).json({ success: true, message: 'Onboarding rejected' });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @desc    Get all onboarding users (HR Only)
+// @route   GET /api/onboarding/users
+exports.getAllOnboardingUsers = async (req, res, next) => {
+    try {
+        const users = await OnboardingUser.find().sort('-createdAt');
+        res.status(200).json({ success: true, data: users });
     } catch (err) {
         next(err);
     }

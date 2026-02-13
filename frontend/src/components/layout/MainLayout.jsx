@@ -213,7 +213,7 @@ const MainLayout = () => {
                             }}
                         />,
                         <ThemeToggle key="theme" />,
-                        <Dropdown dropdownRender={() => notificationMenu} trigger={['click']} key="notifications-dropdown">
+                        <Dropdown popupRender={() => notificationMenu} trigger={['click']} key="notifications-dropdown">
                             <Badge dot={notifications.some(n => !n.isRead)} count={notifications.filter(n => !n.isRead).length} size="small" offset={[-4, 4]}>
                                 <div style={{
                                     width: 40, height: 40,

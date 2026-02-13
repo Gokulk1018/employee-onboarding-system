@@ -21,6 +21,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
+import axios from 'axios';
 
 const { Title, Text, Link } = Typography;
 
@@ -39,26 +40,41 @@ const LoginPage = () => {
         form.resetFields();
     }, [form, navigate]);
 
-    const onFinish = (values) => {
+    const onFinish = async (values) => {
         setLoading(true);
         const { username, password } = values;
-        const normalizedUsername = username ? username.trim().toLowerCase() : '';
 
-        // Simulate API call
-        setTimeout(() => {
-            setLoading(false);
+        try {
+            const response = await axios.post('http://localhost:5000/api/auth/login', {
+                username,
+                password,
+                roleToggle: activeRole
+            });
 
-            const isValidUser = normalizedUsername === 'gokul' || normalizedUsername === 'gokulk.1018@gmail.com';
-            if (isValidUser && password === '1018') {
-                localStorage.setItem('userRole', 'hr');
-                localStorage.setItem('token', 'mock-hr-jwt');
+            if (response.data.success) {
+                const { role, data } = response.data;
+                localStorage.setItem('userRole', role);
                 localStorage.setItem('isAuthenticated', 'true');
-                message.success('Welcome back, Gokul!');
-                navigate('/dashboard');
-            } else {
-                message.error('Invalid credentials. Use gokul / 1018');
+                localStorage.setItem('userId', data.userId);
+                localStorage.setItem('username', data.username);
+                localStorage.setItem('name', data.name);
+
+                if (role === 'onboarding') {
+                    localStorage.setItem('offerId', data.offerId);
+                }
+
+                message.success(`Welcome back, ${data.name}!`);
+
+                // Redirect based on role
+                if (role === 'hr') navigate('/dashboard');
+                else if (role === 'onboarding') navigate('/onboarding/form');
+                else if (role === 'employee') navigate('/employee/dashboard');
             }
-        }, 1500);
+        } catch (error) {
+            message.error(error.response?.data?.message || 'Login failed. Please check your credentials.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (

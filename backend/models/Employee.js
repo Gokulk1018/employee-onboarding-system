@@ -40,7 +40,6 @@ const employeeSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['hr', 'employee'],
         default: 'employee'
     },
     accountStatus: {

@@ -23,9 +23,10 @@ dayjs.locale('en');
 
 import SplashScreen from './components/auth/SplashScreen';
 import LoginPage from './pages/Login';
-import CandidateLogin from './pages/CandidateLogin';
 import EmployeePortal from './pages/EmployeePortal';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import OnboardingForm from './pages/OnboardingForm';
+import EmployeePortalLayout from './components/layout/EmployeePortalLayout';
 
 const RootRedirect = () => {
     const hasSeenSplash = sessionStorage.getItem('hasSeenSplash') === 'true';
@@ -37,9 +38,9 @@ const RootRedirect = () => {
     }
 
     if (isAuthenticated) {
-        return userRole === 'hr'
-            ? <Navigate to="/dashboard" replace />
-            : <Navigate to="/employee-portal" replace />;
+        if (userRole === 'hr') return <Navigate to="/dashboard" replace />;
+        if (userRole === 'onboarding') return <Navigate to="/onboarding/form" replace />;
+        if (userRole === 'employee') return <Navigate to="/employee/dashboard" replace />;
     }
 
     return <Navigate to="/login" replace />;
@@ -64,7 +65,6 @@ const AppContent = () => {
                         <Route path="/" element={<RootRedirect />} />
                         <Route path="/splash" element={<SplashScreen />} />
                         <Route path="/login" element={<LoginPage />} />
-                        <Route path="/candidate-login" element={<CandidateLogin />} />
 
                         {/* HR Routes */}
                         <Route path="/" element={<ProtectedRoute allowedRole="hr"><MainLayout /></ProtectedRoute>}>
@@ -79,8 +79,15 @@ const AppContent = () => {
                             <Route path="settings" element={<Settings />} />
                         </Route>
 
-                        {/* Employee Routes */}
-                        <Route path="/employee-portal" element={<ProtectedRoute allowedRole="employee"><EmployeePortal /></ProtectedRoute>} />
+                        {/* Onboarding Flow */}
+                        <Route path="/onboarding/form" element={<ProtectedRoute allowedRole="onboarding"><OnboardingForm /></ProtectedRoute>} />
+
+                        {/* Employee Portal Routes */}
+                        <Route path="/employee" element={<ProtectedRoute allowedRole="employee"><EmployeePortalLayout /></ProtectedRoute>}>
+                            <Route path="dashboard" element={<EmployeePortal />} />
+                            <Route path="profile" element={<div>My Profile Component</div>} />
+                            <Route path="tasks" element={<div>My Tasks Component</div>} />
+                        </Route>
 
                         {/* Fallback */}
                         <Route path="*" element={<Navigate to="/" replace />} />

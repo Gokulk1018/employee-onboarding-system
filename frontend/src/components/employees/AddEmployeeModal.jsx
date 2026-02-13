@@ -17,7 +17,7 @@ const AddEmployeeModal = ({ open, onClose, onSuccess }) => {
                 avatar: values.avatar || `https://ui-avatars.com/api/?name=${values.name}&background=random`
             };
 
-            const response = await axios.post('http://localhost:5000/api/employees/create', payload);
+            const response = await axios.post('http://localhost:5000/api/employees', payload);
 
             if (response.data.success) {
                 message.success('Employee added successfully');

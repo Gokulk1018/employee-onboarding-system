@@ -10,9 +10,10 @@ const ProtectedRoute = ({ children, allowedRole }) => {
     }
 
     if (allowedRole && userRole !== allowedRole) {
-        return userRole === 'hr'
-            ? <Navigate to="/dashboard" replace />
-            : <Navigate to="/employee-portal" replace />;
+        if (userRole === 'hr') return <Navigate to="/dashboard" replace />;
+        if (userRole === 'onboarding') return <Navigate to="/onboarding/form" replace />;
+        if (userRole === 'employee') return <Navigate to="/employee/dashboard" replace />;
+        return <Navigate to="/login" replace />;
     }
 
     return children;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Typography, Row, Col, Button, Table, Tag, theme, Input, Select, Space, Dropdown, message, Modal } from 'antd';
+import { Typography, Row, Col, Button, Table, Tag, theme, Input, Select, Space, Dropdown, message, Modal, Tabs } from 'antd';
 import {
     PlusOutlined,
     FileTextOutlined,
@@ -10,7 +10,8 @@ import {
     MoreOutlined,
     EditOutlined,
     ExclamationCircleOutlined,
-    KeyOutlined
+    KeyOutlined,
+    CheckCircleOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
 import OnboardingStepper from '../components/onboarding/OnboardingStepper';
@@ -34,9 +35,119 @@ const Onboarding = () => {
     const [loading, setLoading] = useState(false);
     const [selectedOfferId, setSelectedOfferId] = useState(null);
     const [editingOffer, setEditingOffer] = useState(null);
+    const [activeTab, setActiveTab] = useState('offers');
+    const [reviewData, setReviewData] = useState([]);
+    const [reviewLoading, setReviewLoading] = useState(false);
+    const [selectedReview, setSelectedReview] = useState(null);
+    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
     // Derived state for the detail panels
     const selectedOffer = offersData.find(o => o.id === selectedOfferId) || null;
+
+    const fetchReviews = async () => {
+        setReviewLoading(true);
+        try {
+            const response = await axios.get('http://localhost:5000/api/onboarding/users');
+            if (response.data.success) {
+                setReviewData(response.data.data.filter(u => u.status !== 'pending'));
+            }
+        } catch (error) {
+            message.error('Failed to fetch reviews');
+        } finally {
+            setReviewLoading(false);
+        }
+    };
+
+    const handleReviewAction = async (id, action) => {
+        try {
+            const response = await axios.post(`http://localhost:5000/api/onboarding/${action}/${id}`);
+            if (response.data.success) {
+                message.success(`${action === 'approve' ? 'Approved' : 'Rejected'} successfully`);
+                fetchReviews();
+                fetchOffers();
+            }
+        } catch (error) {
+            message.error('Action failed');
+        }
+    };
+
+    const OnboardingReviewList = () => {
+        const reviewColumns = [
+            { title: 'Candidate', dataIndex: 'candidateName', key: 'name' },
+            { title: 'Email', dataIndex: 'candidateEmail', key: 'email' },
+            {
+                title: 'Status',
+                dataIndex: 'status',
+                key: 'status',
+                render: status => (
+                    <Tag color={status === 'submitted' ? 'blue' : (status === 'approved' ? 'success' : 'error')}>
+                        {status.toUpperCase()}
+                    </Tag>
+                )
+            },
+            {
+                title: 'Actions',
+                key: 'actions',
+                render: (_, record) => (
+                    <Space>
+                        <Button type="link" onClick={() => { setSelectedReview(record); setIsReviewModalOpen(true); }}>View Details</Button>
+                        {record.status === 'submitted' && (
+                            <>
+                                <Button type="primary" size="small" onClick={() => handleReviewAction(record._id, 'approve')}>Approve</Button>
+                                <Button danger size="small" onClick={() => handleReviewAction(record._id, 'reject')}>Reject</Button>
+                            </>
+                        )}
+                    </Space>
+                )
+            }
+        ];
+
+        return (
+            <>
+                <Table
+                    dataSource={reviewData}
+                    columns={reviewColumns}
+                    loading={reviewLoading}
+                    rowKey="_id"
+                />
+                <Modal
+                    title="Candidate Details"
+                    open={isReviewModalOpen}
+                    onCancel={() => setIsReviewModalOpen(false)}
+                    footer={null}
+                    width={800}
+                >
+                    {selectedReview && (
+                        <div style={{ padding: '20px 0' }}>
+                            <Title level={4}>Personal Information</Title>
+                            <Row gutter={[16, 16]}>
+                                {Object.entries(selectedReview.onboardingData || {}).map(([key, val]) => (
+                                    <Col span={12} key={key}>
+                                        <Text type="secondary">{key.replace(/([A-Z])/g, ' $1').toUpperCase()}:</Text>
+                                        <div>{val}</div>
+                                    </Col>
+                                ))}
+                            </Row>
+                            <Title level={4} style={{ marginTop: 24 }}>Documents</Title>
+                            <Row gutter={[16, 16]}>
+                                {(selectedReview.documents || []).map((doc, idx) => (
+                                    <Col span={8} key={idx}>
+                                        <Card size="small" hoverable>
+                                            <Space direction="vertical">
+                                                <FileTextOutlined style={{ fontSize: 24, color: token.colorPrimary }} />
+                                                <Text ellipsis>{doc.name}</Text>
+                                                <Button type="link" href={doc.url} target="_blank" size="small">Download</Button>
+                                            </Space>
+                                        </Card>
+                                    </Col>
+                                ))}
+                            </Row>
+                        </div>
+                    )}
+                </Modal>
+            </>
+        );
+    };
 
     const fetchOffers = useCallback(async () => {
         setLoading(true);
@@ -294,76 +405,87 @@ const Onboarding = () => {
                 </div>
 
                 <Row gutter={[24, 24]}>
-                    <Col xs={24} lg={16}>
-                        <motion.div variants={itemVariants} className="glass-card" style={{ padding: 24, marginBottom: 24 }}>
-                            <Title level={4} style={{ marginTop: 0, marginBottom: 16, color: token.colorText }}>
-                                Recent Offers
-                            </Title>
-
-                            {/* Search and Filter */}
-                            <Space style={{ marginBottom: 16, width: '100%' }} size="middle">
-                                <Input
-                                    placeholder="Search by candidate name or email"
-                                    prefix={<SearchOutlined />}
-                                    value={searchText}
-                                    onChange={(e) => setSearchText(e.target.value)}
-                                    style={{ width: 280 }}
-                                    allowClear
-                                />
-                                <Select
-                                    value={statusFilter}
-                                    onChange={setStatusFilter}
-                                    style={{ width: 150 }}
-                                >
-                                    <Select.Option value="All">All Status</Select.Option>
-                                    <Select.Option value="Draft">Draft</Select.Option>
-                                    <Select.Option value="Sent">Sent</Select.Option>
-                                    <Select.Option value="OFFER_ACCEPTED">Accepted</Select.Option>
-                                    <Select.Option value="DECLINED">Rejected</Select.Option>
-                                </Select>
-                            </Space>
-
-                            <style>
-                                {`
-                                    .selected-row {
-                                        background-color: ${token.colorPrimary}15 !important;
+                    <Col xs={24}>
+                        <div className="glass-card" style={{ padding: 24, marginBottom: 24 }}>
+                            <Tabs
+                                defaultActiveKey="offers"
+                                onChange={(key) => {
+                                    setActiveTab(key);
+                                    if (key === 'review') fetchReviews();
+                                }}
+                                items={[
+                                    {
+                                        key: 'offers',
+                                        label: <span style={{ fontSize: 16 }}><FileTextOutlined /> Recruitment Offers</span>,
+                                        children: (
+                                            <>
+                                                <div className="flex-between" style={{ marginBottom: 16 }}>
+                                                    <Space size="middle">
+                                                        <Input
+                                                            placeholder="Search candidates"
+                                                            prefix={<SearchOutlined />}
+                                                            value={searchText}
+                                                            onChange={(e) => setSearchText(e.target.value)}
+                                                            style={{ width: 280 }}
+                                                            allowClear
+                                                        />
+                                                        <Select
+                                                            value={statusFilter}
+                                                            onChange={setStatusFilter}
+                                                            style={{ width: 150 }}
+                                                        >
+                                                            <Select.Option value="All">All Status</Select.Option>
+                                                            <Select.Option value="Draft">Draft</Select.Option>
+                                                            <Select.Option value="Sent">Sent</Select.Option>
+                                                            <Select.Option value="OFFER_ACCEPTED">Accepted</Select.Option>
+                                                            <Select.Option value="DECLINED">Rejected</Select.Option>
+                                                        </Select>
+                                                    </Space>
+                                                </div>
+                                                <Table
+                                                    dataSource={offersData}
+                                                    columns={columns}
+                                                    pagination={{ pageSize: 5 }}
+                                                    className="glass-table"
+                                                    loading={loading}
+                                                    onRow={(record) => ({
+                                                        onClick: () => setSelectedOfferId(record.id),
+                                                    })}
+                                                    rowClassName={(record) => record.id === selectedOfferId ? 'selected-row' : ''}
+                                                />
+                                            </>
+                                        )
+                                    },
+                                    {
+                                        key: 'review',
+                                        label: <span style={{ fontSize: 16 }}><CheckCircleOutlined /> Onboarding Reviews</span>,
+                                        children: <OnboardingReviewList />
                                     }
-                                    .glass-table .ant-table-row {
-                                        cursor: pointer;
-                                    }
-                                `}
-                            </style>
-                            <Table
-                                dataSource={offersData}
-                                columns={columns}
-                                pagination={{ pageSize: 5 }}
-                                className="glass-table"
-                                loading={loading}
-                                onRow={(record) => ({
-                                    onClick: () => setSelectedOfferId(record.id),
-                                })}
-                                rowClassName={(record) => record.id === selectedOfferId ? 'selected-row' : ''}
-                            />
-                        </motion.div>
-
-                        <motion.div variants={itemVariants} style={{ marginBottom: 24 }}>
-                            <OnboardingDocuments employeeId={selectedOffer?.id} />
-                        </motion.div>
-
-                        <motion.div variants={itemVariants}>
-                            <HRNotes />
-                        </motion.div>
-                    </Col>
-
-                    <Col xs={24} lg={8}>
-                        <motion.div variants={itemVariants} style={{ marginBottom: 24 }}>
-                            <OnboardingStepper candidateData={selectedOffer} fetchStatus={true} />
-                        </motion.div>
-                        <motion.div variants={itemVariants}>
-                            <MentorshipProgram />
-                        </motion.div>
+                                ]} />
+                        </div>
                     </Col>
                 </Row>
+
+                {activeTab === 'offers' && (
+                    <Row gutter={[24, 24]}>
+                        <Col xs={24} lg={16}>
+                            <motion.div variants={itemVariants} style={{ marginBottom: 24 }}>
+                                <OnboardingDocuments employeeId={selectedOffer?.id} />
+                            </motion.div>
+                            <motion.div variants={itemVariants}>
+                                <HRNotes />
+                            </motion.div>
+                        </Col>
+                        <Col xs={24} lg={8}>
+                            <motion.div variants={itemVariants} style={{ marginBottom: 24 }}>
+                                <OnboardingStepper candidateData={selectedOffer} fetchStatus={true} />
+                            </motion.div>
+                            <motion.div variants={itemVariants}>
+                                <MentorshipProgram />
+                            </motion.div>
+                        </Col>
+                    </Row>
+                )}
 
                 <OfferDrawer
                     open={isDrawerOpen}
