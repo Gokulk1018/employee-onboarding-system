@@ -29,6 +29,7 @@ const RecruitmentDashboard = () => {
     const [jobs, setJobs] = useState(() => getSessionJobs());
     const [searchText, setSearchText] = useState('');
     const [filterStatus, setFilterStatus] = useState('ALL');
+    const [viewType, setViewType] = useState('grid'); // 'grid' or 'list'
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
     // Filter logic
@@ -145,8 +146,20 @@ const RecruitmentDashboard = () => {
                                     </Select>
                                 </Space>
                                 <Space className="glass-card" style={{ padding: '4px 8px', borderRadius: 10 }}>
-                                    <Button type="text" icon={<AppstoreOutlined />} className="text-primary" />
-                                    <Button type="text" icon={<UnorderedListOutlined />} style={{ opacity: 0.5 }} />
+                                    <Button
+                                        type="text"
+                                        icon={<AppstoreOutlined />}
+                                        className={viewType === 'grid' ? 'text-primary' : ''}
+                                        onClick={() => setViewType('grid')}
+                                        style={{ color: viewType === 'grid' ? token.colorPrimary : 'inherit', opacity: viewType === 'grid' ? 1 : 0.5 }}
+                                    />
+                                    <Button
+                                        type="text"
+                                        icon={<UnorderedListOutlined />}
+                                        className={viewType === 'list' ? 'text-primary' : ''}
+                                        onClick={() => setViewType('list')}
+                                        style={{ color: viewType === 'list' ? token.colorPrimary : 'inherit', opacity: viewType === 'list' ? 1 : 0.5 }}
+                                    />
                                 </Space>
                             </Space>
                         </Col>
@@ -163,6 +176,7 @@ const RecruitmentDashboard = () => {
                     >
                         <JobList
                             jobs={filteredJobs}
+                            viewType={viewType}
                             onJobClick={(id) => navigate(`/recruitment/jobs/${id}`)}
                         />
                     </motion.div>
