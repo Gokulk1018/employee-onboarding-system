@@ -15,7 +15,7 @@ import PageContainer from '../components/layout/PageContainer';
 import JobPostingDrawer from '../components/recruitment/JobPostingDrawer';
 import JobList from '../components/recruitment/JobList';
 import { useNavigate } from 'react-router-dom';
-import { mockJobs } from '../data/mockRecruitmentData';
+import { getSessionJobs, saveSessionJobs } from '../data/mockRecruitmentData';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
@@ -25,8 +25,8 @@ const RecruitmentDashboard = () => {
     const navigate = useNavigate();
     const { message } = App.useApp();
 
-    // Using local state for mock data
-    const [jobs, setJobs] = useState(mockJobs);
+    // Using session-aware state for mock data
+    const [jobs, setJobs] = useState(() => getSessionJobs());
     const [searchText, setSearchText] = useState('');
     const [filterStatus, setFilterStatus] = useState('ALL');
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -173,7 +173,9 @@ const RecruitmentDashboard = () => {
                     onClose={() => setIsDrawerOpen(false)}
                     onSuccess={(newJob) => {
                         setIsDrawerOpen(false);
-                        setJobs(prev => [newJob, ...prev]);
+                        const updatedJobs = [newJob, ...jobs];
+                        setJobs(updatedJobs);
+                        saveSessionJobs(updatedJobs);
                     }}
                 />
             </motion.div>

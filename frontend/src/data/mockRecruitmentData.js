@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 
-export const mockJobs = [
+const INITIAL_JOBS = [
     {
         _id: 'job-1',
         jobTitle: 'Senior Frontend Developer',
@@ -63,7 +63,7 @@ export const mockJobs = [
     }
 ];
 
-export const mockCandidates = {
+const INITIAL_CANDIDATES = {
     'job-1': [
         { _id: 'c1', name: 'Alice Smith', email: 'alice@example.com', phone: '123-456-7890', experience: '6 yrs', skills: ['React', 'TS'], stage: 'Applied', resumeUrl: '#', appliedAt: dayjs().subtract(2, 'day').toISOString() },
         { _id: 'c2', name: 'Bob Jones', email: 'bob@example.com', phone: '234-567-8901', experience: '4 yrs', skills: ['Vue', 'D3'], stage: 'Screening', resumeUrl: '#', appliedAt: dayjs().subtract(5, 'day').toISOString() },
@@ -89,3 +89,37 @@ export const mockCandidates = {
         { _id: 'c16', name: 'Pam Beesly', email: 'pam@example.com', phone: '678-901-2346', experience: '4 yrs', skills: ['Art'], stage: 'HR Interview', resumeUrl: '#', appliedAt: dayjs().subtract(6, 'day').toISOString() }
     ]
 };
+
+// PERSISTENCE HELPERS
+export const getSessionJobs = () => {
+    const saved = localStorage.getItem('demo_jobs');
+    if (saved) return JSON.parse(saved);
+    localStorage.setItem('demo_jobs', JSON.stringify(INITIAL_JOBS));
+    return INITIAL_JOBS;
+};
+
+export const saveSessionJobs = (jobs) => {
+    localStorage.setItem('demo_jobs', JSON.stringify(jobs));
+};
+
+export const getSessionCandidates = (jobId) => {
+    const saved = localStorage.getItem('demo_candidates');
+    const allCandidates = saved ? JSON.parse(saved) : INITIAL_CANDIDATES;
+
+    if (!saved) {
+        localStorage.setItem('demo_candidates', JSON.stringify(INITIAL_CANDIDATES));
+    }
+
+    return allCandidates[jobId] || [];
+};
+
+export const updateSessionCandidates = (jobId, updatedList) => {
+    const saved = localStorage.getItem('demo_candidates');
+    const allCandidates = saved ? JSON.parse(saved) : { ...INITIAL_CANDIDATES };
+    allCandidates[jobId] = updatedList;
+    localStorage.setItem('demo_candidates', JSON.stringify(allCandidates));
+};
+
+// Static exports for backward compatibility (initial load)
+export const mockJobs = getSessionJobs();
+export const mockCandidates = INITIAL_CANDIDATES; // Still used for initialization mapping

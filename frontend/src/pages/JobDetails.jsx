@@ -12,7 +12,7 @@ import { motion } from 'framer-motion';
 import PageContainer from '../components/layout/PageContainer';
 import RecruitmentKanban from '../components/recruitment/RecruitmentKanban';
 import CandidateTable from '../components/recruitment/CandidateTable';
-import { mockJobs, mockCandidates } from '../data/mockRecruitmentData';
+import { getSessionJobs, getSessionCandidates, updateSessionCandidates } from '../data/mockRecruitmentData';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
@@ -28,10 +28,11 @@ const JobDetails = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const foundJob = mockJobs.find(j => j._id === id);
+        const allJobs = getSessionJobs();
+        const foundJob = allJobs.find(j => j._id === id);
         if (foundJob) {
             setJob(foundJob);
-            setCandidates(mockCandidates[id] || []);
+            setCandidates(getSessionCandidates(id));
         } else {
             message.error('Job not found');
             navigate('/recruitment');
@@ -40,9 +41,11 @@ const JobDetails = () => {
     }, [id]);
 
     const handleStageUpdate = (candidateId, newStage) => {
-        setCandidates(prev => prev.map(c =>
+        const updatedCandidates = candidates.map(c =>
             c._id === candidateId ? { ...c, stage: newStage } : c
-        ));
+        );
+        setCandidates(updatedCandidates);
+        updateSessionCandidates(id, updatedCandidates);
         message.success(`Candidate moved to ${newStage}`);
     };
 
