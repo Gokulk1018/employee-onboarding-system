@@ -5,31 +5,56 @@ import StatCard from '../common/StatCard';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
 import { motion } from 'framer-motion';
 
-const getYearlyData = (year) => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const baseValue = 4500;
+import axios from 'axios';
 
-    const multipliers = {
-        '2024': 0.9,
-        '2025': 1.0,
-        '2026': 1.15
-    };
-
-    const multiplier = multipliers[year] || 1.0;
-
-    return months.map((month, index) => ({
-        name: month,
-        value: Math.round((baseValue + (index * 150)) * multiplier)
-    }));
-};
-
-const PayrollOverview = ({ year }) => {
+const PayrollOverview = ({ year, employeeId }) => {
     const { token } = theme.useToken();
-    const data = getYearlyData(year);
+    const [data, setData] = React.useState({
+        monthlyNet: 0,
+        totalEarnings: 0,
+        totalTax: 0,
+        salaryTrend: []
+    });
+    const [loading, setLoading] = React.useState(true);
+    const [displayYear, setDisplayYear] = React.useState(year);
 
-    const netSalary = data[data.length - 1].value;
-    const totalEarnings = data.reduce((acc, curr) => acc + curr.value, 0);
-    const taxesDeducted = Math.round(totalEarnings * 0.22);
+    const fetchDashboardData = React.useCallback(async (targetYear) => {
+        try {
+            setLoading(true);
+            const res = await axios.get(`http://localhost:5000/api/payroll/dashboard/${employeeId}?year=${targetYear}`);
+
+            // Fallback logic: If empty but targetYear is not null, try scanning backwards
+            if (res.data.salaryTrend.length === 0 && targetYear > 2023) {
+                let foundYear = null;
+                for (let y = targetYear - 1; y >= 2024; y--) {
+                    const checkRes = await axios.get(`http://localhost:5000/api/payroll/dashboard/${employeeId}?year=${y}`);
+                    if (checkRes.data.salaryTrend.length > 0) {
+                        setData(checkRes.data);
+                        setDisplayYear(y);
+                        foundYear = y;
+                        break;
+                    }
+                }
+                if (!foundYear) {
+                    setData(res.data);
+                    setDisplayYear(targetYear);
+                }
+            } else {
+                setData(res.data);
+                setDisplayYear(targetYear);
+            }
+        } catch (err) {
+            console.error('Failed to fetch payroll dashboard', err);
+        } finally {
+            setLoading(false);
+        }
+    }, [employeeId]);
+
+    React.useEffect(() => {
+        fetchDashboardData(year);
+    }, [year, fetchDashboardData]);
+
+    const { monthlyNet, totalEarnings, totalTax, salaryTrend } = data;
 
     return (
         <div style={{ width: '100%', minHeight: '100%' }}>
@@ -37,11 +62,11 @@ const PayrollOverview = ({ year }) => {
                 <Col xs={24} sm={8}>
                     <StatCard
                         title="Monthly Net"
-                        value={netSalary}
+                        value={monthlyNet}
                         prefix="$"
                         icon={<DollarOutlined />}
                         color={token.colorSuccess}
-                        trend={year === '2026' ? 15 : (year === '2024' ? -10 : 0)}
+                        loading={loading}
                     />
                 </Col>
                 <Col xs={24} sm={8}>
@@ -51,15 +76,17 @@ const PayrollOverview = ({ year }) => {
                         prefix="$"
                         icon={<BankOutlined />}
                         color={token.colorPrimary}
+                        loading={loading}
                     />
                 </Col>
                 <Col xs={24} sm={8}>
                     <StatCard
                         title="Total Tax"
-                        value={taxesDeducted}
+                        value={totalTax}
                         prefix="$"
                         icon={<SafetyCertificateOutlined />}
                         color={token.colorWarning}
+                        loading={loading}
                     />
                 </Col>
             </Row>
@@ -83,77 +110,92 @@ const PayrollOverview = ({ year }) => {
                     marginBottom: 20
                 }}>
                     <div style={{ fontSize: 15, fontWeight: 600, color: token.colorText, opacity: 0.9 }}>
-                        Salary Growth Trend {year}
+                        Salary Growth Trend {displayYear}
                     </div>
                 </div>
 
                 <div style={{ height: '240px', width: '100%', position: 'relative' }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                            <defs>
-                                <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor={token.colorPrimary} stopOpacity={0.8} />
-                                    <stop offset="100%" stopColor={token.colorPrimary} stopOpacity={0.2} />
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid
-                                vertical={false}
-                                strokeDasharray="3 3"
-                                stroke="rgba(255,255,255,0.05)"
-                            />
-                            <XAxis
-                                dataKey="name"
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fill: token.colorTextSecondary, fontSize: 11 }}
-                                dy={10}
-                            />
-                            <YAxis
-                                hide
-                                domain={['dataMin - 1000', 'dataMax + 500']}
-                            />
-                            <Tooltip
-                                cursor={{ fill: 'rgba(255,255,255,0.03)' }}
-                                contentStyle={{
-                                    borderRadius: 12,
-                                    border: `1px solid ${token.colorBorder}`,
-                                    boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
-                                    background: 'rgba(20, 20, 20, 0.9)',
-                                    backdropFilter: 'blur(4px)',
-                                    padding: '8px 12px'
-                                }}
-                                content={({ active, payload, label }) => {
-                                    if (active && payload && payload.length) {
-                                        return (
-                                            <div style={{ pointerEvents: 'none' }}>
-                                                <div style={{ color: token.colorTextSecondary, fontSize: 11, marginBottom: 4 }}>
-                                                    {label} {year}
+                    {salaryTrend.length === 0 && !loading ? (
+                        <div style={{
+                            height: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: token.colorTextSecondary,
+                            fontSize: 14,
+                            background: 'rgba(255,255,255,0.02)',
+                            borderRadius: 12
+                        }}>
+                            No payroll data for selected year
+                        </div>
+                    ) : (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={salaryTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <defs>
+                                    <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor={token.colorPrimary} stopOpacity={0.8} />
+                                        <stop offset="100%" stopColor={token.colorPrimary} stopOpacity={0.2} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid
+                                    vertical={false}
+                                    strokeDasharray="3 3"
+                                    stroke="rgba(255,255,255,0.05)"
+                                />
+                                <XAxis
+                                    dataKey="month"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: token.colorTextSecondary, fontSize: 11 }}
+                                    dy={10}
+                                />
+                                <YAxis
+                                    hide
+                                    domain={['dataMin - 1000', 'dataMax + 500']}
+                                />
+                                <Tooltip
+                                    cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+                                    contentStyle={{
+                                        borderRadius: 12,
+                                        border: `1px solid ${token.colorBorder}`,
+                                        boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
+                                        background: 'rgba(20, 20, 20, 0.9)',
+                                        backdropFilter: 'blur(4px)',
+                                        padding: '8px 12px'
+                                    }}
+                                    content={({ active, payload, label }) => {
+                                        if (active && payload && payload.length) {
+                                            return (
+                                                <div style={{ pointerEvents: 'none' }}>
+                                                    <div style={{ color: token.colorTextSecondary, fontSize: 11, marginBottom: 4 }}>
+                                                        {label} {displayYear}
+                                                    </div>
+                                                    <div style={{ color: token.colorText, fontWeight: 600, fontSize: 14 }}>
+                                                        ${payload[0].value.toLocaleString()}
+                                                    </div>
                                                 </div>
-                                                <div style={{ color: token.colorText, fontWeight: 600, fontSize: 14 }}>
-                                                    ${payload[0].value.toLocaleString()}
-                                                </div>
-                                            </div>
-                                        );
-                                    }
-                                    return null;
-                                }}
-                            />
-                            <Bar
-                                dataKey="value"
-                                radius={[6, 6, 0, 0]}
-                                barSize={24}
-                                animationDuration={1000}
-                            >
-                                {data.map((entry, index) => (
-                                    <Cell
-                                        key={`cell-${index}`}
-                                        fill="url(#barGradient)"
-                                        fillOpacity={index === data.length - 1 ? 1 : 0.7}
-                                    />
-                                ))}
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
+                                            );
+                                        }
+                                        return null;
+                                    }}
+                                />
+                                <Bar
+                                    dataKey="net"
+                                    radius={[6, 6, 0, 0]}
+                                    barSize={24}
+                                    animationDuration={1000}
+                                >
+                                    {salaryTrend.map((entry, index) => (
+                                        <Cell
+                                            key={`cell-${index}`}
+                                            fill="url(#barGradient)"
+                                            fillOpacity={index === salaryTrend.length - 1 ? 1 : 0.7}
+                                        />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    )}
                 </div>
             </motion.div>
         </div>

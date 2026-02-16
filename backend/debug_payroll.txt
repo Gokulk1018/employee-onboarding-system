@@ -1,0 +1,24 @@
+
+--- REQUEST ---
+Params: {"employeeId":"698abc360e1601d3350e3bf2"}
+Query: {"year":"2024"}
+Dashboard Query: {"employeeId":"698abc360e1601d3350e3bf2","year":2024}
+Transactions Found: 12
+
+--- REQUEST ---
+Params: {"employeeId":"698abc360e1601d3350e3bf2"}
+Query: {"year":"2024"}
+Dashboard Query: {"employeeId":"698abc360e1601d3350e3bf2","year":2024}
+Transactions Found: 12
+
+--- REQUEST ---
+Params: {"employeeId":"698abc360e1601d3350e3bf2"}
+Query: {"year":"2024"}
+Dashboard Query: {"employeeId":"698abc360e1601d3350e3bf2","year":2024}
+Transactions Found: 12
+
+--- REQUEST ---
+Params: {"employeeId":"698abc360e1601d3350e3bf2"}
+Query: {"year":"2024"}
+Dashboard Query: {"employeeId":"698abc360e1601d3350e3bf2","year":2024}
+Transactions Found: 12

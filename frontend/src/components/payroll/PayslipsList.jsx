@@ -1,62 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, Tag, Button, theme, Input, Modal, Descriptions, Space, App, Typography } from 'antd';
 import { DownloadOutlined, SearchOutlined, EyeOutlined } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 
 const { Title, Text } = Typography;
 
-const getMockPayslips = (year) => {
-    const months = [
-        'December', 'November', 'October', 'September', 'August', 'July',
-        'June', 'May', 'April', 'March', 'February', 'January'
-    ];
+import axios from 'axios';
 
-    const multipliers = {
-        '2024': 0.9,
-        '2025': 1.0,
-        '2026': 1.1
-    };
-
-    const multiplier = multipliers[year] || 1.0;
-
-    return months.map((month, index) => {
-        const baseSalary = index < 6 ? 5000 : 4800;
-        const netSalary = Math.round(baseSalary * multiplier);
-        const status = index === 0 ? 'Pending' : (index === 5 ? 'Failed' : 'Paid');
-
-        return {
-            key: `${year}-${month}`,
-            month: `${month} ${year}`,
-            salary: `$${netSalary.toLocaleString()}`,
-            status: status,
-            breakdown: {
-                month: `${month} ${year}`,
-                basicPay: `$${Math.round(netSalary * 0.6).toLocaleString()}`,
-                hra: `$${Math.round(netSalary * 0.2).toLocaleString()}`,
-                allowances: `$${Math.round(netSalary * 0.1).toLocaleString()}`,
-                bonus: index === 0 ? '$500' : '$0',
-                tax: `$${Math.round(netSalary * 0.15).toLocaleString()}`,
-                net: `$${netSalary.toLocaleString()}`
-            }
-        };
-    });
-};
-
-const PayslipsList = ({ year }) => {
+const PayslipsList = ({ year, employeeId }) => {
     const { token } = theme.useToken();
     const { message } = App.useApp();
     const [searchText, setSearchText] = useState('');
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedPayslip, setSelectedPayslip] = useState(null);
+    const [history, setHistory] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const allData = getMockPayslips(year);
-    const filteredData = allData.filter(item =>
+    useEffect(() => {
+        const fetchHistory = async () => {
+            try {
+                setLoading(true);
+                // We use the dashboard API which now returns 'history'
+                const res = await axios.get(`http://localhost:5000/api/payroll/dashboard/${employeeId}?year=${year}`);
+                setHistory(res.data.history || []);
+            } catch (err) {
+                console.error('Failed to fetch payslip history', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchHistory();
+    }, [year, employeeId]);
+
+    const filteredData = history.filter(item =>
         item.month.toLowerCase().includes(searchText.toLowerCase())
     );
 
     const handleDownload = (e, record) => {
         e.stopPropagation();
         message.success(`Payslip download started for ${record.month}`);
+        // In a real app, this would trigger a window.open(record.pdfUrl)
     };
 
     const showBreakdown = (record) => {
@@ -70,12 +53,15 @@ const PayslipsList = ({ year }) => {
             dataIndex: 'month',
             key: 'month',
             width: '40%',
-            render: text => (
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontWeight: 600, color: token.colorText, fontSize: 13 }}>{text.split(' ')[0]}</span>
-                    <span style={{ fontSize: 11, color: token.colorTextSecondary, opacity: 0.7 }}>{text.split(' ')[1]}</span>
-                </div>
-            )
+            render: text => {
+                const parts = text.split(' ');
+                return (
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontWeight: 600, color: token.colorText, fontSize: 13 }}>{parts[0]}</span>
+                        <span style={{ fontSize: 11, color: token.colorTextSecondary, opacity: parts[1] ? 0.7 : 0 }}>{parts[1] || ''}</span>
+                    </div>
+                );
+            }
         },
         {
             title: 'Salary',
@@ -160,7 +146,6 @@ const PayslipsList = ({ year }) => {
                 />
             </div>
 
-
             <div style={{ flex: 1, overflow: 'hidden' }}>
                 <Table
                     columns={columns}
@@ -169,6 +154,8 @@ const PayslipsList = ({ year }) => {
                     className="glass-table compact-table"
                     size="small"
                     showHeader={false}
+                    loading={loading}
+                    locale={{ emptyText: <div style={{ padding: 20, color: token.colorTextSecondary }}>No payslips available</div> }}
                     onRow={(record) => ({
                         onClick: () => showBreakdown(record),
                         style: { cursor: 'pointer' }
@@ -195,6 +182,10 @@ const PayslipsList = ({ year }) => {
                 ]}
                 width={500}
                 centered
+                styles={{
+                    mask: { backdropFilter: 'blur(4px)' },
+                    content: { borderRadius: 16 }
+                }}
             >
                 {selectedPayslip && (
                     <Descriptions
@@ -202,7 +193,8 @@ const PayslipsList = ({ year }) => {
                         column={1}
                         size="small"
                         className="glass-descriptions"
-                        labelStyle={{ background: 'rgba(255,255,255,0.02)', fontWeight: 500 }}
+                        labelStyle={{ background: 'rgba(255,255,255,0.02)', fontWeight: 500, color: token.colorTextSecondary }}
+                        contentStyle={{ color: token.colorText }}
                     >
                         <Descriptions.Item label="Month">{selectedPayslip.breakdown.month}</Descriptions.Item>
                         <Descriptions.Item label="Basic Pay">{selectedPayslip.breakdown.basicPay}</Descriptions.Item>
@@ -220,7 +212,7 @@ const PayslipsList = ({ year }) => {
                     </Descriptions>
                 )}
             </Modal>
-        </div >
+        </div>
     );
 };
 

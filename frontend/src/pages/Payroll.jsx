@@ -1,17 +1,43 @@
-import React, { useState } from 'react';
-import { Typography, Row, Col, Button, theme, Select, Space, App } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Typography, Row, Col, Button, theme, Select, Space, App, Skeleton } from 'antd';
 import { DownloadOutlined, FilterOutlined } from '@ant-design/icons';
 import PayrollOverview from '../components/payroll/PayrollOverview';
 import PayslipsList from '../components/payroll/PayslipsList';
+import AddPayrollModal from '../components/payroll/AddPayrollModal';
 import { motion } from 'framer-motion';
 import PageContainer from '../components/layout/PageContainer';
+import axios from 'axios';
 
 const { Title, Text } = Typography;
 
 const Payroll = () => {
     const { token } = theme.useToken();
     const { message } = App.useApp();
-    const [selectedYear, setSelectedYear] = useState('2025');
+    const [selectedYear, setSelectedYear] = useState(2025);
+    const [employee, setEmployee] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+    useEffect(() => {
+        const fetchFirstEmployee = async () => {
+            try {
+                const res = await axios.get('http://localhost:5000/api/employees');
+                if (res.data.success && res.data.data.length > 0) {
+                    setEmployee(res.data.data[0]);
+                }
+            } catch (err) {
+                console.error('Failed to fetch employees', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchFirstEmployee();
+    }, []);
+
+    const handleAddSuccess = () => {
+        setRefreshTrigger(prev => prev + 1);
+    };
 
     const handleDownloadReport = () => {
         message.loading('Generating report...', 1.5).then(() => {
@@ -54,9 +80,9 @@ const Payroll = () => {
                         <Space>
                             <Text type="secondary" style={{ fontSize: 13 }}><FilterOutlined /> Year:</Text>
                             <Select
-                                defaultValue="2025"
+                                value={String(selectedYear)}
                                 style={{ width: 100 }}
-                                onChange={(value) => setSelectedYear(value)}
+                                onChange={(value) => setSelectedYear(Number(value))}
                                 options={[
                                     { value: '2024', label: '2024' },
                                     { value: '2025', label: '2025' },
@@ -64,8 +90,10 @@ const Payroll = () => {
                                 ]}
                             />
                         </Space>
+                        <Button type="primary" onClick={() => setIsAddModalVisible(true)}>
+                            + Add Payroll Entry
+                        </Button>
                         <Button
-                            type="primary"
                             icon={<DownloadOutlined />}
                             onClick={handleDownloadReport}
                         >
@@ -77,16 +105,34 @@ const Payroll = () => {
                 <Row gutter={[16, 16]}>
                     <Col xs={24} lg={16}>
                         <motion.div variants={itemVariants}>
-                            <PayrollOverview year={selectedYear} />
+                            {!loading && employee ? (
+                                <PayrollOverview key={refreshTrigger} year={selectedYear} employeeId={employee._id} />
+                            ) : (
+                                <div style={{ height: 240, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Skeleton active />
+                                </div>
+                            )}
                         </motion.div>
                     </Col>
                     <Col xs={24} lg={8}>
                         <motion.div variants={itemVariants} style={{ height: '100%' }}>
-                            <PayslipsList year={selectedYear} />
+                            {!loading && employee && (
+                                <PayslipsList key={refreshTrigger} year={selectedYear} employeeId={employee._id} />
+                            )}
                         </motion.div>
                     </Col>
                 </Row>
             </motion.div>
+
+            {employee && (
+                <AddPayrollModal
+                    visible={isAddModalVisible}
+                    onClose={() => setIsAddModalVisible(false)}
+                    onSuccess={handleAddSuccess}
+                    employeeId={employee._id}
+                    preSelectedYear={selectedYear}
+                />
+            )}
         </PageContainer>
     );
 };
