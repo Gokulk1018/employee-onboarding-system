@@ -17,7 +17,7 @@ import dayjs from 'dayjs';
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-const mockCandidates = [
+const INITIAL_MOCK_CANDIDATES = [
     { _id: "m1", name: "Alice Johnson", email: "alice@mail.com", experience: "2 yrs", skills: ["React", "JS"], stage: "Applied", status: "In Progress", resumeUrl: "#" },
     { _id: "m2", name: "Bob Smith", email: "bob@mail.com", experience: "4 yrs", skills: ["Node", "MongoDB"], stage: "Screening", status: "In Progress", resumeUrl: "#" },
     { _id: "m3", name: "Charlie Lee", email: "charlie@mail.com", experience: "5 yrs", skills: ["AWS", "Docker"], stage: "Technical Round", status: "In Progress", resumeUrl: "#" },
@@ -35,6 +35,7 @@ const JobDetails = () => {
 
     const [job, setJob] = useState(null);
     const [realCandidates, setRealCandidates] = useState([]);
+    const [mocks, setMocks] = useState(INITIAL_MOCK_CANDIDATES);
     const [loading, setLoading] = useState(true);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [submitting, setSubmitting] = useState(false);
@@ -71,24 +72,38 @@ const JobDetails = () => {
     }, [id, navigate, message]);
 
     // 3. MERGED VIEW
-    const allCandidates = [...mockCandidates, ...realCandidates];
+    const allCandidates = [...mocks, ...realCandidates];
 
-    const handleStageUpdate = (candidateId, newStage) => {
-        // Optimistic update for UI
+    const handleStageUpdate = async (candidateId, newStage) => {
         const isMock = candidateId.startsWith('m');
 
         if (isMock) {
-            message.info("Stage updates for mock candidates are local only.");
-            // For mock candidates, we can't persist to backend, so we'd just update local state if we were tracking them in state.
-            // But mockCandidates is a constant. So we can't update them in this simple hybrid view without making mockCandidates stateful.
-            // Given the requirements, I'll ignore updating mocks or just show success msg.
+            setMocks(prev => prev.map(c => c._id === candidateId ? { ...c, stage: newStage } : c));
+            message.success(`Candidate moved to ${newStage}`);
             return;
         }
 
-        // For real candidates, we would call an API here. 
-        // Example: patch /api/candidates/:candidateId/stage
-        // For now, just a success message as the requirement didn't specify implementing stage update for real candidates fully.
-        message.success(`Candidate moved to ${newStage}`);
+        // For real candidates, call API
+        try {
+            const response = await fetch(`http://localhost:5000/api/candidates/${candidateId}/stage`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ stage: newStage }),
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                setRealCandidates(prev => prev.map(c => c._id === candidateId ? { ...c, stage: newStage } : c));
+                message.success(`Candidate moved to ${newStage}`);
+            } else {
+                message.error(data.message || 'Failed to update stage');
+            }
+        } catch (error) {
+            console.error('Error updating stage:', error);
+            message.error('Failed to update stage');
+        }
     };
 
     const handleAddCandidate = async (values) => {
@@ -140,7 +155,12 @@ const JobDetails = () => {
         { label: 'HR Interview', stage: 'HR Interview', color: '#fadb14' },
         { label: 'Selected', stage: 'Selected', color: '#52c41a' },
         { label: 'Rejected', stage: 'Rejected', color: '#f5222d' }
-    ];
+    ].filter(stat => {
+        if (jobStatus === 'CLOSED') {
+            return ['Selected', 'Rejected', 'ALL'].includes(stat.stage);
+        }
+        return true;
+    });
 
     const activeStats = statsConfig.map(stat => {
         const count = stat.stage === 'ALL'
@@ -272,9 +292,9 @@ const JobDetails = () => {
                         <Form.Item name="resumeUrl" label="Resume URL">
                             <Input placeholder="https://..." />
                         </Form.Item>
-                        <Form.Button type="primary" htmlType="submit" loading={submitting} block>
+                        <Button type="primary" htmlType="submit" loading={submitting} block>
                             Add Candidate
-                        </Form.Button>
+                        </Button>
                     </Form>
                 </Modal>
             </div>
