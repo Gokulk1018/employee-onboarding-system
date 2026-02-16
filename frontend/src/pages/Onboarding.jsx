@@ -184,12 +184,98 @@ const Onboarding = () => {
                 }
             }
         } catch (error) {
-            message.error('Failed to fetch offers');
-            console.error(error);
+            console.warn('Backend not available, using mock data:', error.message);
+
+            // Fallback to mock data when backend is not available
+            const mockOffers = [
+                {
+                    key: 'mock-1',
+                    id: 'mock-1',
+                    name: 'Sarah Johnson',
+                    email: 'sarah.johnson@example.com',
+                    phone: '+1 (555) 123-4567',
+                    role: 'Senior Software Engineer',
+                    status: 'Sent',
+                    rawStatus: 'Sent',
+                    date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+                    joiningDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+                    rawJoiningDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+                    department: 'Engineering',
+                    salary: '$120,000 - $150,000'
+                },
+                {
+                    key: 'mock-2',
+                    id: 'mock-2',
+                    name: 'Michael Chen',
+                    email: 'michael.chen@example.com',
+                    phone: '+1 (555) 234-5678',
+                    role: 'Product Manager',
+                    status: 'Accepted',
+                    rawStatus: 'Accepted',
+                    date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+                    joiningDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+                    rawJoiningDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                    department: 'Product',
+                    salary: '$110,000 - $140,000'
+                },
+                {
+                    key: 'mock-3',
+                    id: 'mock-3',
+                    name: 'Emily Rodriguez',
+                    email: 'emily.rodriguez@example.com',
+                    phone: '+1 (555) 345-6789',
+                    role: 'UX Designer',
+                    status: 'Draft',
+                    rawStatus: 'Draft',
+                    date: new Date().toLocaleDateString(),
+                    joiningDate: 'N/A',
+                    rawJoiningDate: null,
+                    department: 'Design',
+                    salary: '$90,000 - $115,000'
+                },
+                {
+                    key: 'mock-4',
+                    id: 'mock-4',
+                    name: 'David Kim',
+                    email: 'david.kim@example.com',
+                    phone: '+1 (555) 456-7890',
+                    role: 'DevOps Engineer',
+                    status: 'Rejected',
+                    rawStatus: 'Rejected',
+                    date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+                    joiningDate: 'N/A',
+                    rawJoiningDate: null,
+                    department: 'Engineering',
+                    salary: '$105,000 - $130,000'
+                }
+            ];
+
+            // Apply filters to mock data
+            let filteredMockOffers = mockOffers;
+
+            if (statusFilter !== 'All') {
+                filteredMockOffers = mockOffers.filter(offer => offer.rawStatus === statusFilter);
+            }
+
+            if (searchText) {
+                const searchLower = searchText.toLowerCase();
+                filteredMockOffers = filteredMockOffers.filter(offer =>
+                    offer.name.toLowerCase().includes(searchLower) ||
+                    offer.email.toLowerCase().includes(searchLower) ||
+                    offer.role.toLowerCase().includes(searchLower)
+                );
+            }
+
+            setOffersData(filteredMockOffers);
+
+            // Auto-select first offer
+            if (filteredMockOffers.length > 0 && (!selectedOfferId || !filteredMockOffers.find(o => o.id === selectedOfferId))) {
+                setSelectedOfferId(filteredMockOffers[0].id);
+            }
         } finally {
             setLoading(false);
         }
-    }, [statusFilter, searchText]); // Removed selectedOfferId from dependency to avoid loop on auto-select
+    }, [statusFilter, searchText, selectedOfferId]); // Added selectedOfferId back for mock data filtering
 
     useEffect(() => {
         fetchOffers();

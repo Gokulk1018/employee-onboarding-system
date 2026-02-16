@@ -18,7 +18,7 @@ import { ThemeProvider, useTheme } from './context/ThemeContext';
 import enUS from 'antd/locale/en_US';
 import dayjs from 'dayjs';
 import 'dayjs/locale/en';
-import { AnimatePresence } from 'framer-motion';
+
 
 dayjs.locale('en');
 
@@ -62,43 +62,41 @@ const AppContent = () => {
             }}
         >
             <AntApp>
-                <AnimatePresence mode="popLayout" initial={false}>
-                    <Routes location={location} key={location.pathname}>
-                        <Route path="/" element={<RootRedirect />} />
-                        <Route path="/splash" element={<SplashScreen />} />
-                        <Route path="/login" element={<LoginPage />} />
+                <Routes location={location} key={location.pathname}>
+                    <Route path="/" element={<RootRedirect />} />
+                    <Route path="/splash" element={<SplashScreen />} />
+                    <Route path="/login" element={<LoginPage />} />
 
-                        {/* HR Routes */}
-                        <Route path="/" element={<ProtectedRoute allowedRole="hr"><MainLayout /></ProtectedRoute>}>
-                            <Route path="dashboard" element={<Dashboard />} />
-                            <Route path="employees" element={<Employees />} />
-                            <Route path="recruitment" element={<RecruitmentDashboard />} />
-                            <Route path="recruitment/jobs/:id" element={<JobDetails />} />
-                            <Route path="performance" element={<Performance />} />
-                            <Route path="engagement" element={<Engagement />} />
-                            <Route path="onboarding" element={<Onboarding />} />
-                            <Route path="tasks" element={<Tasks />} />
-                            <Route path="payroll" element={<Payroll />} />
-                            <Route path="settings" element={<Settings />} />
-                        </Route>
+                    {/* HR Routes */}
+                    <Route path="/" element={<ProtectedRoute allowedRole="hr"><MainLayout /></ProtectedRoute>}>
+                        <Route path="dashboard" element={<Dashboard />} />
+                        <Route path="employees" element={<Employees />} />
+                        <Route path="recruitment" element={<RecruitmentDashboard />} />
+                        <Route path="recruitment/jobs/:id" element={<JobDetails />} />
+                        <Route path="performance" element={<Performance />} />
+                        <Route path="engagement" element={<Engagement />} />
+                        <Route path="onboarding" element={<Onboarding />} />
+                        <Route path="tasks" element={<Tasks />} />
+                        <Route path="payroll" element={<Payroll />} />
+                        <Route path="settings" element={<Settings />} />
+                    </Route>
 
-                        {/* Onboarding Flow */}
-                        <Route path="/onboarding/form" element={<ProtectedRoute allowedRole="onboarding"><OnboardingForm /></ProtectedRoute>} />
+                    {/* Onboarding Flow */}
+                    <Route path="/onboarding/form" element={<ProtectedRoute allowedRole="onboarding"><OnboardingForm /></ProtectedRoute>} />
 
-                        {/* Employee Portal Routes */}
-                        <Route path="/employee" element={<ProtectedRoute allowedRole="employee"><EmployeePortalLayout /></ProtectedRoute>}>
-                            <Route path="dashboard" element={<EmployeePortal />} />
-                            <Route path="profile" element={<div>My Profile Component</div>} />
-                            <Route path="tasks" element={<div>My Tasks Component</div>} />
-                        </Route>
+                    {/* Employee Portal Routes */}
+                    <Route path="/employee" element={<ProtectedRoute allowedRole="employee"><EmployeePortalLayout /></ProtectedRoute>}>
+                        <Route path="dashboard" element={<EmployeePortal />} />
+                        <Route path="profile" element={<div>My Profile Component</div>} />
+                        <Route path="tasks" element={<div>My Tasks Component</div>} />
+                    </Route>
 
-                        {/* Public Job Application */}
-                        <Route path="/jobs/:id/apply" element={<ApplyJob />} />
+                    {/* Public Job Application */}
+                    <Route path="/jobs/:id/apply" element={<ApplyJob />} />
 
-                        {/* Fallback */}
-                        <Route path="*" element={<Navigate to="/" replace />} />
-                    </Routes>
-                </AnimatePresence>
+                    {/* Fallback */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
             </AntApp>
         </ConfigProvider>
     );

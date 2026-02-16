@@ -27,7 +27,7 @@ const EngagementTrendChart = () => {
             className="glass-card"
         >
             <div style={{ width: '100%', height: 300, minWidth: 0, minHeight: 0 }}>
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <LineChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke={token.colorBorder} />
                         <XAxis

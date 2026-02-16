@@ -116,3 +116,33 @@ exports.getJobCandidates = async (req, res) => {
         });
     }
 };
+// @desc    Update job
+// @route   PUT /api/jobs/:id
+// @access  Private/Admin
+exports.updateJob = async (req, res) => {
+    try {
+        let job = await Job.findById(req.params.id);
+
+        if (!job) {
+            return res.status(404).json({
+                success: false,
+                message: 'Job not found'
+            });
+        }
+
+        job = await Job.findByIdAndUpdate(req.params.id, req.body, {
+            new: true,
+            runValidators: true
+        });
+
+        res.status(200).json({
+            success: true,
+            data: job
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server Error'
+        });
+    }
+};

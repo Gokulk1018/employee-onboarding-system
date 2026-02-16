@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     Typography, Row, Col, Card, Tag, Button, Space, theme,
-    Spin, App, Breadcrumb, Divider, Descriptions, Modal, Form, Input, Select
+    Spin, App, Breadcrumb, Divider, Descriptions, Modal, Form, Input, Select, DatePicker
 } from 'antd';
 import {
     ArrowLeftOutlined, EditOutlined, ShareAltOutlined, PlusOutlined,
@@ -41,36 +41,63 @@ const JobDetails = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
+    // Edit Job Modal State
+    const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+    const [editForm] = Form.useForm();
+    const [editing, setEditing] = useState(false);
+
     // Share Modal State
     const [isShareModalVisible, setIsShareModalVisible] = useState(false);
     const [sharingPlatform, setSharingPlatform] = useState(null);
 
     useEffect(() => {
         const fetchJobAndCandidates = async () => {
-            // 1. Fetch Job (Simulated from mock data as per original code structure, or could be API)
-            // Keeping original logic for job fetching to avoid breaking existing flow unless requested otherwise.
-            const allJobs = getSessionJobs();
-            const foundJob = allJobs.find(j => j._id === id);
+            try {
+                // Fetch job and candidates in parallel for better performance
+                const [jobResult, candidatesResult] = await Promise.allSettled([
+                    fetch(`http://localhost:5000/api/jobs/${id}`).then(res => res.json()),
+                    fetch(`http://localhost:5000/api/jobs/${id}/candidates`).then(res => res.json())
+                ]);
 
-            if (foundJob) {
-                setJob(foundJob);
-                // 2. Fetch Real Candidates from Backend
-                try {
-                    const response = await fetch(`http://localhost:5000/api/jobs/${id}/candidates`);
-                    const data = await response.json();
-                    if (data.success) {
-                        setRealCandidates(data.data);
+                // Handle job data
+                if (jobResult.status === 'fulfilled' && jobResult.value.success) {
+                    setJob(jobResult.value.data);
+                    setLoading(false); // Show UI immediately once job is loaded
+                } else {
+                    // Fallback to mock if API returns error
+                    const allJobs = getSessionJobs();
+                    const foundJob = allJobs.find(j => j._id === id);
+
+                    if (foundJob) {
+                        setJob(foundJob);
+                        setLoading(false); // Show UI immediately
+                    } else {
+                        message.error('Job not found');
+                        navigate('/recruitment');
+                        return;
                     }
-                } catch (error) {
-                    console.error("Failed to fetch real candidates", error);
-                    // message.error("Failed to load real candidates"); 
-                    // Suppress error to avoid annoyance if backend is offline, just show mocks
                 }
-            } else {
-                message.error('Job not found');
-                navigate('/recruitment');
+
+                // Handle candidates data (can load after UI is shown)
+                if (candidatesResult.status === 'fulfilled' && candidatesResult.value.success) {
+                    setRealCandidates(candidatesResult.value.data);
+                } else {
+                    console.error("Failed to fetch real candidates", candidatesResult.reason);
+                }
+            } catch (error) {
+                console.error("Unexpected error:", error);
+                // Try fallback to mock data
+                const allJobs = getSessionJobs();
+                const foundJob = allJobs.find(j => j._id === id);
+
+                if (foundJob) {
+                    setJob(foundJob);
+                } else {
+                    message.error('Job not found');
+                    navigate('/recruitment');
+                }
+                setLoading(false);
             }
-            setLoading(false);
         };
 
         fetchJobAndCandidates();
@@ -78,6 +105,68 @@ const JobDetails = () => {
 
     // 3. MERGED VIEW
     const allCandidates = [...mocks, ...realCandidates];
+
+    // Helper function to check if ID is a valid MongoDB ObjectId
+    const isValidMongoId = (id) => {
+        return id && typeof id === 'string' && id.length === 24 && /^[0-9a-fA-F]{24}$/.test(id);
+    };
+
+    const handleEditJob = async (values) => {
+        setEditing(true);
+        try {
+            // Check if this is a real database job or a fake frontend job
+            if (isValidMongoId(id)) {
+                // Real MongoDB job - call backend API
+                const response = await fetch(`http://localhost:5000/api/jobs/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(values),
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    message.success('Job updated successfully');
+                    setJob(data.data);
+                    setIsEditModalVisible(false);
+                } else {
+                    message.error(data.message || 'Failed to update job');
+                }
+            } else {
+                // Fake frontend job - update local state only
+                const updatedJob = {
+                    ...job,
+                    ...values,
+                    applicationDeadline: values.applicationDeadline ? values.applicationDeadline.toISOString() : job.applicationDeadline
+                };
+                setJob(updatedJob);
+
+                // Also update in session storage if using mock data
+                const allJobs = getSessionJobs();
+                const updatedJobs = allJobs.map(j => j._id === id ? updatedJob : j);
+                sessionStorage.setItem('mockJobs', JSON.stringify(updatedJobs));
+
+                message.success('Job updated successfully (local)');
+                setIsEditModalVisible(false);
+            }
+        } catch (error) {
+            message.error('Error updating job');
+            console.error(error);
+        } finally {
+            setEditing(false);
+        }
+    };
+
+    const openEditModal = () => {
+        if (job) {
+            editForm.setFieldsValue({
+                ...job,
+                applicationDeadline: dayjs(job.applicationDeadline)
+            });
+            setIsEditModalVisible(true);
+        }
+    };
 
     const handleStageUpdate = async (candidateId, newStage) => {
         const isMock = candidateId.startsWith('m');
@@ -270,7 +359,7 @@ const JobDetails = () => {
                     </Space>
                     <Space>
                         <Button icon={<ShareAltOutlined />} size="small" onClick={() => setIsShareModalVisible(true)}>Share</Button>
-                        <Button type="primary" icon={<EditOutlined />} size="small">Edit Job</Button>
+                        <Button type="primary" icon={<EditOutlined />} size="small" onClick={openEditModal}>Edit Job</Button>
                         <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>Add Candidate</Button>
                     </Space>
                 </div>
@@ -402,6 +491,91 @@ const JobDetails = () => {
                             </Col>
                         ))}
                     </Row>
+                </Modal>
+
+                {/* Edit Job Modal */}
+                <Modal
+                    title="Edit Job Details"
+                    open={isEditModalVisible}
+                    onCancel={() => setIsEditModalVisible(false)}
+                    footer={null}
+                    width={700}
+                >
+                    <Form form={editForm} layout="vertical" onFinish={handleEditJob}>
+                        <Row gutter={16}>
+                            <Col span={12}>
+                                <Form.Item name="jobTitle" label="Job Title" rules={[{ required: true }]}>
+                                    <Input />
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item name="department" label="Department" rules={[{ required: true }]}>
+                                    <Select>
+                                        <Option value="Engineering">Engineering</Option>
+                                        <Option value="Design">Design</Option>
+                                        <Option value="Product">Product</Option>
+                                        <Option value="Marketing">Marketing</Option>
+                                        <Option value="HR">HR</Option>
+                                        <Option value="Sales">Sales</Option>
+                                    </Select>
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                        <Row gutter={16}>
+                            <Col span={8}>
+                                <Form.Item name="jobType" label="Type" rules={[{ required: true }]}>
+                                    <Select>
+                                        <Option value="Full-time">Full-time</Option>
+                                        <Option value="Part-time">Part-time</Option>
+                                        <Option value="Contract">Contract</Option>
+                                        <Option value="Internship">Internship</Option>
+                                    </Select>
+                                </Form.Item>
+                            </Col>
+                            <Col span={8}>
+                                <Form.Item name="experienceLevel" label="Level" rules={[{ required: true }]}>
+                                    <Select>
+                                        <Option value="Junior">Junior</Option>
+                                        <Option value="Mid">Mid</Option>
+                                        <Option value="Senior">Senior</Option>
+                                        <Option value="Lead">Lead</Option>
+                                    </Select>
+                                </Form.Item>
+                            </Col>
+                            <Col span={8}>
+                                <Form.Item name="location" label="Location" rules={[{ required: true }]}>
+                                    <Select>
+                                        <Option value="Onsite">Onsite</Option>
+                                        <Option value="Remote">Remote</Option>
+                                        <Option value="Hybrid">Hybrid</Option>
+                                    </Select>
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                        <Row gutter={16}>
+                            <Col span={12}>
+                                <Form.Item name="salaryRange" label="Salary Range" rules={[{ required: true }]}>
+                                    <Input />
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item name="applicationDeadline" label="Deadline" rules={[{ required: true }]}>
+                                    <DatePicker style={{ width: '100%' }} />
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                        <Form.Item name="jobDescription" label="Description" rules={[{ required: true }]}>
+                            <Input.TextArea rows={4} />
+                        </Form.Item>
+                        <div style={{ textAlign: 'right' }}>
+                            <Space>
+                                <Button onClick={() => setIsEditModalVisible(false)}>Cancel</Button>
+                                <Button type="primary" htmlType="submit" loading={editing}>
+                                    Save Changes
+                                </Button>
+                            </Space>
+                        </div>
+                    </Form>
                 </Modal>
             </div>
         </PageContainer>
