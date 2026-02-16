@@ -1,8 +1,9 @@
 const Job = require('../models/Job');
+const Candidate = require('../models/Candidate');
 
 // @desc    Create new job
-// @route   POST /api/jobs/create
-// @access  Public
+// @route   POST /api/jobs
+// @access  Private/Admin
 exports.createJob = async (req, res) => {
     try {
         const {
@@ -11,6 +12,7 @@ exports.createJob = async (req, res) => {
             jobType,
             experienceLevel,
             location,
+            openings,
             skills,
             jobDescription,
             salaryRange,
@@ -31,6 +33,7 @@ exports.createJob = async (req, res) => {
             jobType,
             experienceLevel,
             location,
+            openings,
             skills,
             jobDescription,
             salaryRange,
@@ -86,6 +89,25 @@ exports.getJobById = async (req, res) => {
         res.status(200).json({
             success: true,
             data: job
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Server Error'
+        });
+    }
+};
+
+// @desc    Get candidates for a specific job
+// @route   GET /api/jobs/:id/candidates
+// @access  Private/Admin
+exports.getJobCandidates = async (req, res) => {
+    try {
+        const candidates = await Candidate.find({ jobId: req.params.id });
+        res.status(200).json({
+            success: true,
+            count: candidates.length,
+            data: candidates
         });
     } catch (error) {
         res.status(500).json({

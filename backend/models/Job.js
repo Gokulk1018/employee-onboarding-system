@@ -14,18 +14,25 @@ const jobSchema = new mongoose.Schema({
     jobType: {
         type: String,
         required: [true, 'Job type is required'],
-        enum: ['Full-time', 'Part-time', 'Contract'],
+        enum: ['Full-time', 'Part-time', 'Internship', 'Contract'],
         default: 'Full-time'
     },
     experienceLevel: {
         type: String,
         required: [true, 'Experience level is required'],
-        trim: true
+        enum: ['Fresher', 'Junior', 'Mid', 'Senior'],
+        default: 'Junior'
     },
     location: {
         type: String,
         required: [true, 'Location is required'],
-        trim: true
+        enum: ['Onsite', 'Remote', 'Hybrid'],
+        default: 'Onsite'
+    },
+    openings: {
+        type: Number,
+        required: [true, 'Number of openings is required'],
+        default: 1
     },
     skills: {
         type: [String],

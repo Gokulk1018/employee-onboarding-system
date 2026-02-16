@@ -3,11 +3,15 @@ const router = express.Router();
 const {
     createJob,
     getJobs,
-    getJobById
+    getJobById,
+    getJobCandidates
 } = require('../controllers/jobController');
+const { applyToJob } = require('../controllers/candidateController');
 
-router.post('/create', createJob);
-router.get('/', getJobs);
-router.get('/:id', getJobById);
+router.post('/', createJob); // POST /api/jobs
+router.get('/', getJobs);    // GET /api/jobs
+router.get('/:id', getJobById); // GET /api/jobs/:id
+router.post('/:id/apply', applyToJob); // POST /api/jobs/:id/apply
+router.get('/:id/candidates', getJobCandidates); // GET /api/jobs/:id/candidates
 
 module.exports = router;

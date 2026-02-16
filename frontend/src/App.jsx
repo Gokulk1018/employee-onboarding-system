@@ -5,7 +5,8 @@ import { themeConfig } from './config/theme';
 import MainLayout from './components/layout/MainLayout';
 import Dashboard from './pages/Dashboard';
 import Employees from './pages/Employees';
-import Recruitment from './pages/Recruitment';
+import RecruitmentDashboard from './pages/RecruitmentDashboard';
+import JobDetails from './pages/JobDetails';
 import Performance from './pages/Performance';
 import Engagement from './pages/Engagement';
 import Onboarding from './pages/Onboarding';
@@ -26,6 +27,7 @@ import LoginPage from './pages/Login';
 import EmployeePortal from './pages/EmployeePortal';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import OnboardingForm from './pages/OnboardingForm';
+import ApplyJob from './pages/ApplyJob';
 import EmployeePortalLayout from './components/layout/EmployeePortalLayout';
 
 const RootRedirect = () => {
@@ -70,7 +72,8 @@ const AppContent = () => {
                         <Route path="/" element={<ProtectedRoute allowedRole="hr"><MainLayout /></ProtectedRoute>}>
                             <Route path="dashboard" element={<Dashboard />} />
                             <Route path="employees" element={<Employees />} />
-                            <Route path="recruitment" element={<Recruitment />} />
+                            <Route path="recruitment" element={<RecruitmentDashboard />} />
+                            <Route path="recruitment/jobs/:id" element={<JobDetails />} />
                             <Route path="performance" element={<Performance />} />
                             <Route path="engagement" element={<Engagement />} />
                             <Route path="onboarding" element={<Onboarding />} />
@@ -88,6 +91,9 @@ const AppContent = () => {
                             <Route path="profile" element={<div>My Profile Component</div>} />
                             <Route path="tasks" element={<div>My Tasks Component</div>} />
                         </Route>
+
+                        {/* Public Job Application */}
+                        <Route path="/jobs/:id/apply" element={<ApplyJob />} />
 
                         {/* Fallback */}
                         <Route path="*" element={<Navigate to="/" replace />} />

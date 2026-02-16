@@ -1,17 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const {
-    createCandidate,
     getCandidates,
-    getCandidatesByStage,
-    getOfferCandidates,
-    moveCandidateStage
+    updateCandidateStage,
+    hireCandidate
 } = require('../controllers/candidateController');
 
-router.post('/create', createCandidate);
-router.get('/', getCandidates);
-router.get('/offers', getOfferCandidates);
-router.get('/by-stage/:stage', getCandidatesByStage);
-router.put('/:id/move-stage', moveCandidateStage);
+router.get('/', getCandidates); // GET /api/candidates
+router.patch('/:id/stage', updateCandidateStage); // PATCH /api/candidates/:id/stage
+router.patch('/:id/hire', hireCandidate); // PATCH /api/candidates/:id/hire
 
 module.exports = router;

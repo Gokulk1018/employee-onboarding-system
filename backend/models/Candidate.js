@@ -13,16 +13,39 @@ const candidateSchema = new mongoose.Schema({
         lowercase: true
     },
     phone: {
-        type: String
-    },
-    currentStage: {
         type: String,
-        enum: ['Applied', 'Screening', 'Interview', 'Offer'],
-        default: 'Applied'
+        required: [true, 'Phone number is required']
     },
     resumeUrl: {
         type: String,
-        default: ''
+        required: [true, 'Resume URL is required']
+    },
+    skills: {
+        type: [String],
+        default: []
+    },
+    experience: {
+        type: String,
+        required: [true, 'Experience is required']
+    },
+    stage: {
+        type: String,
+        enum: ['Applied', 'Screening', 'Technical Round', 'HR Interview', 'Selected', 'Rejected'],
+        default: 'Applied'
+    },
+    jobId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Job',
+        required: true
+    },
+    status: {
+        type: String,
+        enum: ['PENDING', 'HIRED', 'REJECTED'],
+        default: 'PENDING'
+    },
+    appliedAt: {
+        type: Date,
+        default: Date.now
     }
 }, {
     timestamps: true

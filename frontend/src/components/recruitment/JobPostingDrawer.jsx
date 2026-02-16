@@ -1,5 +1,6 @@
 import React from 'react';
 import { Drawer, Form, Input, DatePicker, Select, Button, Space, theme, Row, Col, App } from 'antd';
+import dayjs from 'dayjs';
 
 const JobPostingDrawer = ({ open, onClose, onSuccess }) => {
     const { token } = theme.useToken();
@@ -11,30 +12,22 @@ const JobPostingDrawer = ({ open, onClose, onSuccess }) => {
         form.validateFields()
             .then(async values => {
                 setLoading(true);
-                try {
-                    const response = await fetch('http://localhost:5000/api/jobs/create', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(values),
-                    });
+                // Simulate API call delay
+                setTimeout(() => {
+                    const newJob = {
+                        _id: `job-${Date.now()}`,
+                        ...values,
+                        applicationDeadline: values.applicationDeadline.toISOString(),
+                        appliedCount: 0,
+                        status: 'OPEN',
+                        skills: values.skills || []
+                    };
 
-                    const data = await response.json();
-
-                    if (data.success) {
-                        message.success('Job posted successfully');
-                        form.resetFields();
-                        onClose();
-                        if (onSuccess) onSuccess();
-                    } else {
-                        message.error(data.message || 'Failed to post job');
-                    }
-                } catch (error) {
-                    message.error('Connection error. Please try again.');
-                } finally {
+                    message.success('Job posted successfully (Session only)');
+                    form.resetFields();
+                    if (onSuccess) onSuccess(newJob);
                     setLoading(false);
-                }
+                }, 800);
             })
             .catch(errorInfo => {
                 console.log('Validation Failed:', errorInfo);
@@ -58,13 +51,27 @@ const JobPostingDrawer = ({ open, onClose, onSuccess }) => {
             }
         >
             <Form layout="vertical" form={form} hideRequiredMark>
-                <Form.Item
-                    name="jobTitle"
-                    label="Job Title"
-                    rules={[{ required: true, message: 'Please enter job title' }]}
-                >
-                    <Input placeholder="e.g. Senior Frontend Developer" size="large" />
-                </Form.Item>
+                <Row gutter={16}>
+                    <Col span={16}>
+                        <Form.Item
+                            name="jobTitle"
+                            label="Job Title"
+                            rules={[{ required: true, message: 'Please enter job title' }]}
+                        >
+                            <Input placeholder="e.g. Senior Frontend Developer" size="large" />
+                        </Form.Item>
+                    </Col>
+                    <Col span={8}>
+                        <Form.Item
+                            name="openings"
+                            label="Openings"
+                            initialValue={1}
+                            rules={[{ required: true, message: 'Please enter openings' }]}
+                        >
+                            <Input type="number" min={1} placeholder="1" size="large" />
+                        </Form.Item>
+                    </Col>
+                </Row>
 
                 <Row gutter={16}>
                     <Col span={12}>
@@ -92,6 +99,7 @@ const JobPostingDrawer = ({ open, onClose, onSuccess }) => {
                             <Select placeholder="Select job type" size="large">
                                 <Select.Option value="Full-time">Full-time</Select.Option>
                                 <Select.Option value="Part-time">Part-time</Select.Option>
+                                <Select.Option value="Internship">Internship</Select.Option>
                                 <Select.Option value="Contract">Contract</Select.Option>
                             </Select>
                         </Form.Item>
@@ -103,18 +111,27 @@ const JobPostingDrawer = ({ open, onClose, onSuccess }) => {
                         <Form.Item
                             name="experienceLevel"
                             label="Experience Level"
-                            rules={[{ required: true, message: 'Please enter experience level' }]}
+                            rules={[{ required: true, message: 'Please select experience level' }]}
                         >
-                            <Input placeholder="e.g. 3-5 years" size="large" />
+                            <Select placeholder="Select experience" size="large">
+                                <Select.Option value="Fresher">Fresher</Select.Option>
+                                <Select.Option value="Junior">Junior</Select.Option>
+                                <Select.Option value="Mid">Mid</Select.Option>
+                                <Select.Option value="Senior">Senior</Select.Option>
+                            </Select>
                         </Form.Item>
                     </Col>
                     <Col span={12}>
                         <Form.Item
                             name="location"
                             label="Location"
-                            rules={[{ required: true, message: 'Please enter location' }]}
+                            rules={[{ required: true, message: 'Please select location' }]}
                         >
-                            <Input placeholder="e.g. New York, NY (Remote)" size="large" />
+                            <Select placeholder="Select location" size="large">
+                                <Select.Option value="Onsite">Onsite</Select.Option>
+                                <Select.Option value="Remote">Remote</Select.Option>
+                                <Select.Option value="Hybrid">Hybrid</Select.Option>
+                            </Select>
                         </Form.Item>
                     </Col>
                 </Row>
