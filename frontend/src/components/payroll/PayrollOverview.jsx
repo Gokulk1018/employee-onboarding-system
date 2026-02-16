@@ -17,32 +17,60 @@ const PayrollOverview = ({ year, employeeId }) => {
     });
     const [loading, setLoading] = React.useState(true);
     const [displayYear, setDisplayYear] = React.useState(year);
+    const [comparison, setComparison] = React.useState(null);
 
     const fetchDashboardData = React.useCallback(async (targetYear) => {
         try {
             setLoading(true);
+            setComparison(null);
             const res = await axios.get(`http://localhost:5000/api/payroll/dashboard/${employeeId}?year=${targetYear}`);
 
-            // Fallback logic: If empty but targetYear is not null, try scanning backwards
+            let finalData = res.data;
+            let finalYear = targetYear;
+
+            // Fallback logic
             if (res.data.salaryTrend.length === 0 && targetYear > 2023) {
                 let foundYear = null;
                 for (let y = targetYear - 1; y >= 2024; y--) {
                     const checkRes = await axios.get(`http://localhost:5000/api/payroll/dashboard/${employeeId}?year=${y}`);
                     if (checkRes.data.salaryTrend.length > 0) {
-                        setData(checkRes.data);
-                        setDisplayYear(y);
+                        finalData = checkRes.data;
+                        finalYear = y;
                         foundYear = y;
                         break;
                     }
                 }
                 if (!foundYear) {
-                    setData(res.data);
-                    setDisplayYear(targetYear);
+                    finalData = res.data;
+                    finalYear = targetYear;
                 }
             } else {
-                setData(res.data);
-                setDisplayYear(targetYear);
+                finalData = res.data;
+                finalYear = targetYear;
             }
+
+            setData(finalData);
+            setDisplayYear(finalYear);
+
+            // Fetch Comparison if data exists
+            if (finalData.salaryTrend && finalData.salaryTrend.length > 0) {
+                // Get latest month from trend
+                const latestEntry = finalData.salaryTrend[finalData.salaryTrend.length - 1];
+                if (latestEntry) {
+                    try {
+                        const compRes = await axios.get(`http://localhost:5000/api/payroll/compare/${employeeId}/${latestEntry.year}/${latestEntry.month}`);
+                        if (compRes.data.hasPrevious) {
+                            let trendVal = parseFloat(compRes.data.percentChange);
+                            if (compRes.data.direction === 'down') trendVal = -trendVal;
+                            if (compRes.data.direction === 'same') trendVal = 0;
+                            setComparison(trendVal);
+                        }
+                    } catch (err) {
+                        console.error("Failed to fetch comparison", err);
+                    }
+                }
+            }
+
         } catch (err) {
             console.error('Failed to fetch payroll dashboard', err);
         } finally {
@@ -67,6 +95,7 @@ const PayrollOverview = ({ year, employeeId }) => {
                         icon={<DollarOutlined />}
                         color={token.colorSuccess}
                         loading={loading}
+                        trend={comparison}
                     />
                 </Col>
                 <Col xs={24} sm={8}>

@@ -293,3 +293,63 @@ exports.addOrUpdatePayrollEntry = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// G) Get Payroll Comparison (Month-to-Month)
+exports.getPayrollComparison = async (req, res) => {
+    try {
+        const { employeeId, year, month } = req.params;
+        const currentYear = parseInt(year);
+
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const currentIndex = monthNames.indexOf(month);
+
+        if (currentIndex === -1) {
+            return res.status(400).json({ message: 'Invalid month name' });
+        }
+
+        // Determine Previous Month & Year
+        let prevMonth, prevYear;
+        if (currentIndex === 0) { // If Jan
+            prevMonth = "Dec";
+            prevYear = currentYear - 1;
+        } else {
+            prevMonth = monthNames[currentIndex - 1];
+            prevYear = currentYear;
+        }
+
+        // Fetch Records
+        const currentRecord = await PayrollTransaction.findOne({ employeeId, year: currentYear, month });
+        const previousRecord = await PayrollTransaction.findOne({ employeeId, year: prevYear, month: prevMonth });
+
+        if (!currentRecord || !previousRecord) {
+            return res.json({
+                hasPrevious: false,
+                message: !currentRecord ? "Current record missing" : "Previous record missing"
+            });
+        }
+
+        const currentNet = currentRecord.netSalary;
+        const previousNet = previousRecord.netSalary;
+
+        // Calculate Percentage Change
+        let percentChange = 0;
+        if (previousNet !== 0) {
+            percentChange = ((currentNet - previousNet) / previousNet) * 100;
+        }
+
+        let direction = "same";
+        if (percentChange > 0) direction = "up";
+        if (percentChange < 0) direction = "down";
+
+        res.json({
+            hasPrevious: true,
+            currentNet,
+            previousNet,
+            percentChange: Math.abs(percentChange).toFixed(1), // Return absolute value for UI, direction handles sign
+            direction
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};

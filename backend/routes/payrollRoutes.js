@@ -20,4 +20,7 @@ router.post('/add', payrollController.addPayrollEntry);
 // F) Upsert Payroll Entry (Add or Update)
 router.post('/', payrollController.addOrUpdatePayrollEntry);
 
+// G) Get Payroll Comparison
+router.get('/compare/:employeeId/:year/:month', payrollController.getPayrollComparison);
+
 module.exports = router;

@@ -45,7 +45,7 @@ const StatCard = ({ title, value, icon, prefix, suffix, color, trend, loading })
                 </div>
                 {trend !== undefined && (
                     <div style={{
-                        color: trend > 0 ? token.colorSuccess : token.colorError,
+                        color: trend > 0 ? token.colorSuccess : trend < 0 ? token.colorError : token.colorTextSecondary,
                         fontSize: 13,
                         marginTop: 8,
                         fontWeight: 600,
@@ -53,7 +53,7 @@ const StatCard = ({ title, value, icon, prefix, suffix, color, trend, loading })
                         alignItems: 'center',
                         gap: 4
                     }}>
-                        {trend > 0 ? '↑' : '↓'} {Math.abs(trend)}%
+                        {trend > 0 ? '↑' : trend < 0 ? '↓' : '•'} {Math.abs(trend)}%
                         <span style={{ color: token.colorTextSecondary, fontWeight: 400 }}>vs last month</span>
                     </div>
                 )}
