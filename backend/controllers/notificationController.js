@@ -43,3 +43,24 @@ exports.markAllAsRead = async (req, res, next) => {
         next(err);
     }
 };
+// @desc    Create a notification
+// @route   POST /api/notifications
+exports.createNotification = async (req, res, next) => {
+    try {
+        const { title, message, type, status } = req.body;
+
+        const notification = await Notification.create({
+            title,
+            message,
+            type: type || 'general',
+            status: status || 'Info'
+        });
+
+        res.status(201).json({
+            success: true,
+            data: notification
+        });
+    } catch (err) {
+        next(err);
+    }
+};

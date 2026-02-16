@@ -5,7 +5,8 @@ import {
     Spin, App, Breadcrumb, Divider, Descriptions, Modal, Form, Input, Select
 } from 'antd';
 import {
-    ArrowLeftOutlined, EditOutlined, ShareAltOutlined, PlusOutlined
+    ArrowLeftOutlined, EditOutlined, ShareAltOutlined, PlusOutlined,
+    InstagramOutlined, LinkedinOutlined, WhatsAppOutlined, MailOutlined, CopyOutlined, GlobalOutlined, CheckCircleOutlined
 } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import PageContainer from '../components/layout/PageContainer';
@@ -39,6 +40,10 @@ const JobDetails = () => {
     const [loading, setLoading] = useState(true);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+
+    // Share Modal State
+    const [isShareModalVisible, setIsShareModalVisible] = useState(false);
+    const [sharingPlatform, setSharingPlatform] = useState(null);
 
     useEffect(() => {
         const fetchJobAndCandidates = async () => {
@@ -141,6 +146,71 @@ const JobDetails = () => {
         }
     };
 
+    // Share Logic
+    const handlePlatformClick = async (platform) => {
+        setSharingPlatform(platform.name);
+        const url = window.location.href;
+
+        // Simulating loading
+        setTimeout(async () => {
+            // Platform specific actions
+            let shareUrl = '';
+            switch (platform.name) {
+                case 'LinkedIn':
+                    shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+                    window.open(shareUrl, '_blank');
+                    break;
+                case 'WhatsApp':
+                    shareUrl = `https://wa.me/?text=${encodeURIComponent(url)}`;
+                    window.open(shareUrl, '_blank');
+                    break;
+                case 'Email':
+                    shareUrl = `mailto:?subject=Job Opening&body=${encodeURIComponent(url)}`;
+                    window.location.href = shareUrl;
+                    break;
+                case 'Copy Link':
+                    navigator.clipboard.writeText(url);
+                    break;
+                default:
+                    // For Instagram/Others just open generic or show toast
+                    if (platform.url) window.open(platform.url, '_blank');
+                    break;
+            }
+
+            // Backend Notification
+            try {
+                await fetch('http://localhost:5000/api/notifications', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: "Job Shared",
+                        message: `You shared ${job.jobTitle} job on ${platform.name}`,
+                        type: "share"
+                    })
+                });
+            } catch (err) {
+                console.error("Failed to create notification", err);
+            }
+
+            message.success('Job post shared successfully!');
+            setSharingPlatform(null);
+            setIsShareModalVisible(false);
+
+        }, 1000);
+    };
+
+    const sharePlatforms = [
+        { name: 'Instagram', icon: <InstagramOutlined style={{ fontSize: 24, color: '#E1306C' }} /> },
+        { name: 'LinkedIn', icon: <LinkedinOutlined style={{ fontSize: 24, color: '#0077B5' }} /> },
+        { name: 'WhatsApp', icon: <WhatsAppOutlined style={{ fontSize: 24, color: '#25D366' }} /> },
+        { name: 'Email', icon: <MailOutlined style={{ fontSize: 24, color: '#EA4335' }} /> },
+        { name: 'Unstop', icon: <GlobalOutlined style={{ fontSize: 24, color: '#1890ff' }} /> },
+        { name: 'Indeed', icon: <GlobalOutlined style={{ fontSize: 24, color: '#2164f3' }} /> },
+        { name: 'Naukri', icon: <GlobalOutlined style={{ fontSize: 24, color: '#FFD700' }} /> },
+        { name: 'Copy Link', icon: <CopyOutlined style={{ fontSize: 24, color: '#595959' }} /> },
+    ];
+
+
     if (loading) return <div style={{ display: 'flex', justifyContent: 'center', padding: '100px 0' }}><Spin size="large" /></div>;
     if (!job) return null;
 
@@ -199,7 +269,7 @@ const JobDetails = () => {
                         </div>
                     </Space>
                     <Space>
-                        <Button icon={<ShareAltOutlined />} size="small">Share</Button>
+                        <Button icon={<ShareAltOutlined />} size="small" onClick={() => setIsShareModalVisible(true)}>Share</Button>
                         <Button type="primary" icon={<EditOutlined />} size="small">Edit Job</Button>
                         <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>Add Candidate</Button>
                     </Space>
@@ -296,6 +366,42 @@ const JobDetails = () => {
                             Add Candidate
                         </Button>
                     </Form>
+                </Modal>
+
+                {/* Share Modal */}
+                <Modal
+                    title="Share Job Post"
+                    open={isShareModalVisible}
+                    onCancel={() => setIsShareModalVisible(false)}
+                    footer={null}
+                    centered
+                    width={500}
+                >
+                    <Text type="secondary" style={{ display: 'block', marginBottom: 24, textAlign: 'center' }}>
+                        Share this job opening with your network
+                    </Text>
+
+                    <Row gutter={[24, 24]} justify="center">
+                        {sharePlatforms.map(platform => (
+                            <Col key={platform.name} span={6} style={{ textAlign: 'center' }}>
+                                <motion.div
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() => handlePlatformClick(platform)}
+                                >
+                                    <div style={{
+                                        width: 50, height: 50, borderRadius: '50%', background: token.colorFillSecondary,
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px',
+                                        position: 'relative'
+                                    }}>
+                                        {sharingPlatform === platform.name ? <Spin size="small" /> : platform.icon}
+                                    </div>
+                                    <Text style={{ fontSize: 12 }}>{platform.name}</Text>
+                                </motion.div>
+                            </Col>
+                        ))}
+                    </Row>
                 </Modal>
             </div>
         </PageContainer>

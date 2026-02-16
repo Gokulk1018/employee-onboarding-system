@@ -19,6 +19,7 @@ import {
     RobotOutlined,
     SettingOutlined,
     LogoutOutlined,
+    ShareAltOutlined,
     SearchOutlined
 } from '@ant-design/icons';
 import { useLocation, useNavigate, Outlet } from 'react-router-dom';
@@ -89,21 +90,26 @@ const MainLayout = () => {
                             avatar={
                                 <Avatar
                                     size="small"
+                                    icon={item.type === 'share' ? <ShareAltOutlined /> : null}
                                     style={{
                                         backgroundColor:
-                                            item.status === 'Accepted' ? token.colorSuccess :
-                                                item.status === 'Pending' ? token.colorInfo :
-                                                    item.status === 'Info' ? token.colorPrimary :
-                                                        token.colorError,
+                                            item.type === 'share' ? token.colorInfo :
+                                                item.status === 'Accepted' ? token.colorSuccess :
+                                                    item.status === 'Pending' ? token.colorInfo :
+                                                        item.status === 'Info' ? token.colorPrimary :
+                                                            token.colorError,
                                         marginTop: 4
                                     }}
                                 />
                             }
-                            title={<Typography.Text strong={!item.isRead} style={{ fontSize: 13 }}>{item.message}</Typography.Text>}
+                            title={<Typography.Text strong={!item.isRead} style={{ fontSize: 13 }}>{item.title || item.message}</Typography.Text>}
                             description={
-                                <Typography.Text type="secondary" style={{ fontSize: 11 }}>
-                                    {dayjs(item.createdAt).fromNow()}
-                                </Typography.Text>
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                    {item.title && <Typography.Text type="secondary" style={{ fontSize: 12 }}>{item.message}</Typography.Text>}
+                                    <Typography.Text type="secondary" style={{ fontSize: 11 }}>
+                                        {dayjs(item.createdAt).fromNow()}
+                                    </Typography.Text>
+                                </div>
                             }
                         />
                     </List.Item>
