@@ -12,7 +12,7 @@ import { motion } from 'framer-motion';
 import PageContainer from '../components/layout/PageContainer';
 import RecruitmentKanban from '../components/recruitment/RecruitmentKanban';
 import CandidateTable from '../components/recruitment/CandidateTable';
-import { getSessionJobs, updateSessionCandidates } from '../data/mockRecruitmentData';
+import { getSessionJobs, updateSessionCandidates, getSessionCandidates } from '../data/mockRecruitmentData';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
@@ -50,8 +50,31 @@ const JobDetails = () => {
     const [isShareModalVisible, setIsShareModalVisible] = useState(false);
     const [sharingPlatform, setSharingPlatform] = useState(null);
 
+    // Helper function to check if ID is a valid MongoDB ObjectId
+    const isValidMongoId = (id) => {
+        return id && typeof id === 'string' && id.length === 24 && /^[0-9a-fA-F]{24}$/.test(id);
+    };
+
     useEffect(() => {
         const fetchJobAndCandidates = async () => {
+            // Validate ID before fetching
+            if (!isValidMongoId(id)) {
+                console.warn("Invalid MongoDB ID, skipping backend fetch:", id);
+                // Fallback to mock immediately
+                const allJobs = getSessionJobs();
+                const foundJob = allJobs.find(j => j._id === id);
+
+                if (foundJob) {
+                    setJob(foundJob);
+                    setRealCandidates(getSessionCandidates(id) || []); // Load mock candidates for this job
+                } else {
+                    message.error('Job not found');
+                    navigate('/recruitment');
+                }
+                setLoading(false);
+                return;
+            }
+
             try {
                 // Fetch job and candidates in parallel for better performance
                 const [jobResult, candidatesResult] = await Promise.allSettled([
@@ -105,11 +128,6 @@ const JobDetails = () => {
 
     // 3. MERGED VIEW
     const allCandidates = [...mocks, ...realCandidates];
-
-    // Helper function to check if ID is a valid MongoDB ObjectId
-    const isValidMongoId = (id) => {
-        return id && typeof id === 'string' && id.length === 24 && /^[0-9a-fA-F]{24}$/.test(id);
-    };
 
     const handleEditJob = async (values) => {
         setEditing(true);

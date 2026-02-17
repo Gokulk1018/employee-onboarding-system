@@ -26,8 +26,28 @@ const RecruitmentDashboard = () => {
     const { message } = App.useApp();
 
     // Using session-aware state for mock data
-    const [jobs, setJobs] = useState(() => getSessionJobs());
+    const [jobs, setJobs] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchText, setSearchText] = useState('');
+
+    React.useEffect(() => {
+        const fetchJobs = async () => {
+            try {
+                const response = await fetch('http://localhost:5000/api/jobs');
+                const data = await response.json();
+                if (data.success) {
+                    setJobs(data.data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch jobs:", error);
+                // Fallback to mock if needed, or just show empty
+                setJobs(getSessionJobs());
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchJobs();
+    }, []);
     const [filterStatus, setFilterStatus] = useState('ALL');
     const [viewType, setViewType] = useState('grid'); // 'grid' or 'list'
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -187,9 +207,8 @@ const RecruitmentDashboard = () => {
                     onClose={() => setIsDrawerOpen(false)}
                     onSuccess={(newJob) => {
                         setIsDrawerOpen(false);
-                        const updatedJobs = [newJob, ...jobs];
-                        setJobs(updatedJobs);
-                        saveSessionJobs(updatedJobs);
+                        // Prepend the new job to the list
+                        setJobs(prevJobs => [newJob, ...prevJobs]);
                     }}
                 />
             </motion.div>

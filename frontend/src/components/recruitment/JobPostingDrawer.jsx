@@ -12,22 +12,34 @@ const JobPostingDrawer = ({ open, onClose, onSuccess }) => {
         form.validateFields()
             .then(async values => {
                 setLoading(true);
-                // Simulate API call delay
-                setTimeout(() => {
-                    const newJob = {
-                        _id: `job-${Date.now()}`,
-                        ...values,
-                        applicationDeadline: values.applicationDeadline.toISOString(),
-                        appliedCount: 0,
-                        status: 'OPEN',
-                        skills: values.skills || []
-                    };
+                try {
+                    const response = await fetch('http://localhost:5000/api/jobs', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            ...values,
+                            applicationDeadline: values.applicationDeadline.toISOString(),
+                            skills: values.skills || []
+                        }),
+                    });
 
-                    message.success('Job posted successfully (Session only)');
-                    form.resetFields();
-                    if (onSuccess) onSuccess(newJob);
+                    const data = await response.json();
+
+                    if (data.success) {
+                        message.success('Job posted successfully');
+                        form.resetFields();
+                        if (onSuccess) onSuccess(data.data);
+                    } else {
+                        message.error(data.message || 'Failed to post job');
+                    }
+                } catch (error) {
+                    console.error('Error posting job:', error);
+                    message.error('Failed to connect to server');
+                } finally {
                     setLoading(false);
-                }, 800);
+                }
             })
             .catch(errorInfo => {
                 console.log('Validation Failed:', errorInfo);
