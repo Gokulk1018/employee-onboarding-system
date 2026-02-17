@@ -43,6 +43,7 @@ const CandidateLogin = () => {
                 const { data } = response.data;
                 localStorage.setItem('userRole', 'candidate');
                 localStorage.setItem('isAuthenticated', 'true');
+                localStorage.setItem('userId', data.userId); // Added for header consistency
                 localStorage.setItem('username', data.username);
                 localStorage.setItem('candidateName', data.candidateName);
                 localStorage.setItem('offerId', data.offerId);

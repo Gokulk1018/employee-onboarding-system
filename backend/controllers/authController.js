@@ -32,7 +32,7 @@ exports.login = async (req, res, next) => {
                 success: true,
                 role: 'hr',
                 data: {
-                    userId: user ? user._id : 'hardcoded-admin-id',
+                    userId: user ? user._id : '507f1f77bcf86cd799439011',
                     username: user ? user.username : 'gokul',
                     name: user ? user.name : 'Gokul Admin',
                     role: 'hr'

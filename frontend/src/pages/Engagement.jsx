@@ -1,20 +1,22 @@
-import React from 'react';
-import { Typography, Row, Col } from 'antd';
-import EngagementStats from '../components/engagement/EngagementStats';
-import RecognitionFeed from '../components/engagement/RecognitionFeed';
-import PulseSurveys from '../components/engagement/PulseSurveys';
-import AnonymousFeedback from '../components/engagement/AnonymousFeedback';
-import EngagementTrendChart from '../components/engagement/EngagementTrendChart';
-import TopRecognizedEmployees from '../components/engagement/TopRecognizedEmployees';
-import SurveyCreator from '../components/engagement/SurveyCreator';
-import ParticipationRate from '../components/engagement/ParticipationRate';
-import HRActionNotes from '../components/engagement/HRActionNotes';
+import React, { useState } from 'react';
+import { Typography, Row, Col, theme, Empty, Button, Space } from 'antd';
 import { motion } from 'framer-motion';
 import PageContainer from '../components/layout/PageContainer';
+import FormManager from '../components/engagement/FormManager';
+import ActiveForms from '../components/engagement/ActiveForms';
+import EngagementInsights from '../components/engagement/EngagementInsights';
+import EngagementWall from '../components/engagement/EngagementWall';
+import EventCalendar from '../components/engagement/EventCalendar';
+import FormAnalytics from '../components/engagement/FormAnalytics';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 const Engagement = () => {
+    const { token } = theme.useToken();
+    const userRole = localStorage.getItem('userRole');
+    const [selectedForm, setSelectedForm] = useState(null);
+    const [analyticsData, setAnalyticsData] = useState(null);
+
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -33,59 +35,76 @@ const Engagement = () => {
         }
     };
 
+    const handleSelectForm = (form, analytics) => {
+        setSelectedForm(form);
+        setAnalyticsData(analytics);
+    };
+
     return (
         <PageContainer>
             <motion.div
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
-                style={{ maxWidth: 1600, margin: '0 auto' }}
+                style={{ maxWidth: 1700, margin: '0 auto' }}
             >
-                <div style={{ marginBottom: 24 }}>
-                    <Title level={2} style={{ margin: 0 }} className="text-gradient">Employee Engagement</Title>
-                    <div style={{ color: 'var(--text-secondary)' }}>Fostering a positive and productive work culture</div>
+                {/* Header & Insights Bar */}
+                <div style={{ marginBottom: 40 }}>
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.6 }}
+                        style={{ marginBottom: 24 }}
+                    >
+                        <Title level={1} style={{ margin: 0, fontSize: '3.5rem', fontWeight: 800, letterSpacing: '-1.5px' }} className="text-gradient">
+                            Engagement Hub
+                        </Title>
+                    </motion.div>
+
+                    <motion.div variants={itemVariants}>
+                        <EngagementInsights />
+                    </motion.div>
                 </div>
 
-                <motion.div variants={itemVariants}>
-                    <EngagementStats />
-                </motion.div>
-
-                {/* Engagement Trend Chart - Full Width */}
-                <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
-                    <Col xs={24}>
-                        <motion.div variants={itemVariants}>
-                            <EngagementTrendChart />
-                        </motion.div>
-                    </Col>
-                </Row>
-
-                {/* Main Content Row */}
-                <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
-                    <Col xs={24} lg={14}>
-                        <motion.div variants={itemVariants} style={{ marginBottom: 24 }}>
-                            <RecognitionFeed />
-                        </motion.div>
-                        <motion.div variants={itemVariants} style={{ marginBottom: 24 }}>
-                            <AnonymousFeedback />
-                        </motion.div>
-                        <motion.div variants={itemVariants}>
-                            <ParticipationRate />
-                        </motion.div>
+                <Row gutter={[24, 24]}>
+                    {/* Top Section: Form Management and Side Analytics */}
+                    <Col span={24}>
+                        <Row gutter={[24, 24]}>
+                            <Col xs={24} lg={16}>
+                                <motion.div variants={itemVariants}>
+                                    {userRole === 'hr' ? (
+                                        <FormManager onSelectForm={handleSelectForm} />
+                                    ) : (
+                                        <ActiveForms />
+                                    )}
+                                </motion.div>
+                            </Col>
+                            <Col xs={24} lg={8}>
+                                <motion.div variants={itemVariants} style={{ height: '100%' }}>
+                                    <FormAnalytics
+                                        data={analyticsData}
+                                        formType={selectedForm?.formType}
+                                        formTitle={selectedForm?.title}
+                                    />
+                                </motion.div>
+                            </Col>
+                        </Row>
                     </Col>
 
-                    <Col xs={24} lg={10}>
-                        <motion.div variants={itemVariants} style={{ marginBottom: 24 }}>
-                            <PulseSurveys />
-                        </motion.div>
-                        <motion.div variants={itemVariants} style={{ marginBottom: 24 }}>
-                            <TopRecognizedEmployees />
-                        </motion.div>
-                        <motion.div variants={itemVariants} style={{ marginBottom: 24 }}>
-                            <SurveyCreator />
-                        </motion.div>
-                        <motion.div variants={itemVariants}>
-                            <HRActionNotes />
-                        </motion.div>
+                    {/* Bottom Section: Wall and Calendar */}
+                    <Col span={24}>
+                        <Row gutter={[24, 24]}>
+                            <Col xs={24} lg={16}>
+                                <motion.div variants={itemVariants}>
+                                    <EngagementWall />
+                                </motion.div>
+                            </Col>
+                            <Col xs={24} lg={8}>
+                                <motion.div variants={itemVariants}>
+                                    <EventCalendar />
+                                </motion.div>
+                            </Col>
+                        </Row>
                     </Col>
                 </Row>
             </motion.div>

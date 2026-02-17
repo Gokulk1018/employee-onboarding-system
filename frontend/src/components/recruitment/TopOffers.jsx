@@ -58,7 +58,7 @@ const TopOffers = () => {
                                 border: `1px solid ${token.colorBorder}`,
                                 background: token.colorBgContainer
                             }}
-                            bodyStyle={{ padding: 16 }}
+                            styles={{ body: { padding: 16 } }}
                         >
                             <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16 }}>
                                 <Avatar size={48} src={candidate.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${candidate.name}`} />

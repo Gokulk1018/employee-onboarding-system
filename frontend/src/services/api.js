@@ -9,13 +9,28 @@ const api = axios.create({
     }
 });
 
-// Add a request interceptor to include the auth token
+// Add a request interceptor to include the auth token and user ID
 api.interceptors.request.use(
     (config) => {
-        const user = JSON.parse(localStorage.getItem('user'));
-        if (user && user.token) {
-            config.headers.Authorization = `Bearer ${user.token}`;
+        // 1. Get User ID (Used by current backend demo/protect middleware)
+        const userId = localStorage.getItem('userId');
+        if (userId) {
+            config.headers['x-user-id'] = userId;
         }
+
+        // 2. Get JWT Token (For future-proof JWT support)
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                if (user && user.token) {
+                    config.headers.Authorization = `Bearer ${user.token}`;
+                }
+            } catch (e) {
+                // Silently ignore if 'user' key is not JSON
+            }
+        }
+
         return config;
     },
     (error) => {

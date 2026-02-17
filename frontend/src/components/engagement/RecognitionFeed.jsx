@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { List, Avatar, Typography, Tag, Button, theme, Modal, Form, Input, Select, message, Space } from 'antd';
+import { List, Avatar, Typography, Tag, Button, theme, Modal, Form, Input, Select, Space, App } from 'antd';
 import { LikeOutlined, TrophyTwoTone, SendOutlined } from '@ant-design/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getRecognitions, sendRecognition, toggleLike } from '../../services/engagementService';
@@ -14,6 +14,7 @@ const { Option } = Select;
 
 const RecognitionFeed = () => {
     const { token } = theme.useToken();
+    const { message } = App.useApp();
     const [recognitions, setRecognitions] = useState([]);
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -145,7 +146,7 @@ const RecognitionFeed = () => {
                 open={isModalVisible}
                 onCancel={() => setIsModalVisible(false)}
                 footer={null}
-                destroyOnClose
+                destroyOnHidden
             >
                 <Form layout="vertical" form={form} onFinish={handleGiveKudos}>
                     <Form.Item name="receiverId" label="Who are you recognizing?" rules={[{ required: true }]}>

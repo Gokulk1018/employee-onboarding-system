@@ -1,110 +1,84 @@
-const Recognition = require('../models/Recognition');
-const Feedback = require('../models/Feedback');
-const Survey = require('../models/Survey');
-const SurveyResponse = require('../models/SurveyResponse');
-const EngagementScore = require('../models/EngagementScore');
+const EngagementForm = require('../models/EngagementForm');
+const EngagementResponse = require('../models/EngagementResponse');
+const EmployeeRequest = require('../models/EmployeeRequest');
 const Employee = require('../models/Employee');
 
-// @desc    Give kudos (recognition)
-// @route   POST /api/engagement/recognition
-exports.sendRecognition = async (req, res, next) => {
+// @desc    Create a new engagement form (HR)
+// @route   POST /api/engagement/forms
+exports.createForm = async (req, res, next) => {
     try {
-        const { receiverId, message, category } = req.body;
-        const senderId = req.user._id;
-
-        const recognition = await Recognition.create({
-            senderId,
-            receiverId,
-            message,
-            category
-        });
-
-        res.status(201).json({ success: true, data: recognition });
-    } catch (err) {
-        next(err);
-    }
-};
-
-// @desc    Get kudos feed
-// @route   GET /api/engagement/recognition
-exports.getRecognitions = async (req, res, next) => {
-    try {
-        const recognitions = await Recognition.find()
-            .populate('senderId', 'name avatar position')
-            .populate('receiverId', 'name avatar position')
-            .sort({ createdAt: -1 });
-
-        res.status(200).json({ success: true, count: recognitions.length, data: recognitions });
-    } catch (err) {
-        next(err);
-    }
-};
-
-// @desc    Like a recognition
-// @route   POST /api/engagement/recognition/:id/like
-exports.toggleLike = async (req, res, next) => {
-    try {
-        const recognition = await Recognition.findById(req.params.id);
-        const userId = req.user._id;
-
-        if (!recognition) return res.status(404).json({ success: false, message: 'Not found' });
-
-        if (recognition.likes.includes(userId)) {
-            recognition.likes = recognition.likes.filter(id => id.toString() !== userId.toString());
-        } else {
-            recognition.likes.push(userId);
-        }
-
-        await recognition.save();
-        res.status(200).json({ success: true, data: recognition.likes });
-    } catch (err) {
-        next(err);
-    }
-};
-
-// @desc    HR Create pulse survey
-// @route   POST /api/engagement/survey
-exports.createSurvey = async (req, res, next) => {
-    try {
-        const { title, description, questions, deadline } = req.body;
+        const { title, description, category, formType, targetAudience, targetEmployees, targetDepartment } = req.body;
         const createdBy = req.user._id;
 
-        const survey = await Survey.create({
+        const form = await EngagementForm.create({
             title,
             description,
-            questions,
-            deadline,
+            category,
+            formType,
+            targetAudience,
+            targetEmployees,
+            targetDepartment,
             createdBy
         });
 
-        res.status(201).json({ success: true, data: survey });
+        res.status(201).json({ success: true, data: form });
     } catch (err) {
         next(err);
     }
 };
 
-// @desc    Get active surveys
-// @route   GET /api/engagement/survey
-exports.getSurveys = async (req, res, next) => {
+// @desc    Get all engagement forms
+// @route   GET /api/engagement/forms
+exports.getForms = async (req, res, next) => {
     try {
-        const surveys = await Survey.find({ isActive: true }).sort({ createdAt: -1 });
-        res.status(200).json({ success: true, count: surveys.length, data: surveys });
+        let query;
+        // If HR, show all. If Employee, show only assigned/active.
+        if (req.user.role === 'hr') {
+            query = EngagementForm.find().sort({ createdAt: -1 });
+        } else {
+            // Logic for employee: either allEmployees or targeted to their dept/id
+            const employee = await Employee.findById(req.user._id);
+            query = EngagementForm.find({
+                isActive: true,
+                $or: [
+                    { targetAudience: 'allEmployees' },
+                    { targetAudience: 'department', targetDepartment: employee.department },
+                    { targetAudience: 'selectedEmployees', targetEmployees: req.user._id }
+                ]
+            }).sort({ createdAt: -1 });
+        }
+
+        const forms = await query;
+        res.status(200).json({ success: true, count: forms.length, data: forms });
     } catch (err) {
         next(err);
     }
 };
 
-// @desc    Employee Answer pulse survey
-// @route   POST /api/engagement/survey/response
-exports.submitSurveyResponse = async (req, res, next) => {
+// @desc    Get single engagement form
+// @route   GET /api/engagement/forms/:id
+exports.getFormById = async (req, res, next) => {
     try {
-        const { surveyId, answers } = req.body;
+        const form = await EngagementForm.findById(req.params.id);
+        if (!form) return res.status(404).json({ success: false, message: 'Form not found' });
+        res.status(200).json({ success: true, data: form });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @desc    Submit form response (Employee)
+// @route   POST /api/engagement/forms/respond
+exports.submitResponse = async (req, res, next) => {
+    try {
+        const { formId, selectedOption, message } = req.body;
         const employeeId = req.user._id;
 
-        const response = await SurveyResponse.create({
-            surveyId,
+        const response = await EngagementResponse.create({
+            formId,
             employeeId,
-            answers
+            selectedOption,
+            message
         });
 
         res.status(201).json({ success: true, data: response });
@@ -113,70 +87,45 @@ exports.submitSurveyResponse = async (req, res, next) => {
     }
 };
 
-// @desc    Submit anonymous feedback
-// @route   POST /api/engagement/feedback
-exports.submitFeedback = async (req, res, next) => {
+// @desc    Get form analytics (HR)
+// @route   GET /api/engagement/forms/analytics/:id
+exports.getFormAnalytics = async (req, res, next) => {
     try {
-        const { message, isAnonymous } = req.body;
-        const senderId = req.user._id;
+        const formId = req.params.id;
+        const form = await EngagementForm.findById(formId);
+        if (!form) return res.status(404).json({ success: false, message: 'Form not found' });
 
-        const feedback = await Feedback.create({
-            senderId: isAnonymous ? null : senderId,
-            isAnonymous,
-            message
-        });
+        const responses = await EngagementResponse.find({ formId });
 
-        res.status(201).json({ success: true, data: feedback });
-    } catch (err) {
-        next(err);
-    }
-};
-
-// @desc    View recent feedback
-// @route   GET /api/engagement/feedback
-exports.getFeedback = async (req, res, next) => {
-    try {
-        const feedback = await Feedback.find()
-            .populate('senderId', 'name avatar')
-            .sort({ createdAt: -1 });
-        res.status(200).json({ success: true, count: feedback.length, data: feedback });
-    } catch (err) {
-        next(err);
-    }
-};
-
-// @desc    Get survey analytics
-// @route   GET /api/engagement/analytics
-exports.getEngagementAnalytics = async (req, res, next) => {
-    try {
-        const responses = await SurveyResponse.find();
-
-        let positive = 0, neutral = 0, negative = 0, total = 0;
+        // Calculate counts for survey options
+        const analytics = {
+            totalSubmitted: responses.length,
+            optionsCount: {
+                'Good': 0,
+                'Not Bad': 0,
+                'Worst': 0,
+                'Need Improvement': 0
+            }
+        };
 
         responses.forEach(resp => {
-            resp.answers.forEach(ans => {
-                // If the answer is a rating (1-5) or Yes/No (1/0 or true/false)
-                if (typeof ans.answer === 'number') {
-                    total++;
-                    if (ans.answer >= 4) positive++;
-                    else if (ans.answer === 3) neutral++;
-                    else negative++;
-                } else if (typeof ans.answer === 'boolean') {
-                    total++;
-                    if (ans.answer) positive++;
-                    else negative++;
-                }
-            });
+            if (resp.selectedOption) {
+                analytics.optionsCount[resp.selectedOption]++;
+            }
         });
 
-        const analytics = {
-            sentiment: {
-                positive: total ? Math.round((positive / total) * 100) : 0,
-                neutral: total ? Math.round((neutral / total) * 100) : 0,
-                negative: total ? Math.round((negative / total) * 100) : 0
-            },
-            totalResponses: responses.length
-        };
+        // Determine total assigned (rough estimate if department/all)
+        let totalAssigned = 0;
+        if (form.targetAudience === 'allEmployees') {
+            totalAssigned = await Employee.countDocuments();
+        } else if (form.targetAudience === 'department') {
+            totalAssigned = await Employee.countDocuments({ department: form.targetDepartment });
+        } else {
+            totalAssigned = form.targetEmployees.length;
+        }
+
+        analytics.totalAssigned = totalAssigned;
+        analytics.totalNotSubmitted = Math.max(0, totalAssigned - responses.length);
 
         res.status(200).json({ success: true, data: analytics });
     } catch (err) {
@@ -184,30 +133,102 @@ exports.getEngagementAnalytics = async (req, res, next) => {
     }
 };
 
-// @desc    Get leaderboard
-// @route   GET /api/engagement/leaderboard
-exports.getLeaderboard = async (req, res, next) => {
+// @desc    Create a new employee request
+// @route   POST /api/engagement/request
+exports.createRequest = async (req, res, next) => {
     try {
-        const leaderboard = await Recognition.aggregate([
-            { $group: { _id: "$receiverId", count: { $sum: 1 } } },
-            { $sort: { count: -1 } },
-            { $limit: 5 },
-            { $lookup: { from: 'employees', localField: '_id', foreignField: '_id', as: 'employee' } },
-            { $unwind: '$employee' },
-            {
-                $project: {
-                    _id: 1,
-                    count: 1,
-                    name: '$employee.name',
-                    avatar: '$employee.avatar',
-                    department: '$employee.department'
-                }
-            }
-        ]);
+        const { requestType, message } = req.body;
+        const employee = await Employee.findById(req.user._id);
 
-        res.status(200).json({ success: true, data: leaderboard });
+        const request = await EmployeeRequest.create({
+            employeeId: req.user._id,
+            name: employee.name,
+            email: employee.email,
+            department: employee.department,
+            requestType,
+            message
+        });
+
+        res.status(201).json({ success: true, data: request });
     } catch (err) {
         next(err);
     }
 };
 
+// @desc    Get employee requests
+// @route   GET /api/engagement/request
+exports.getRequests = async (req, res, next) => {
+    try {
+        let query;
+        if (req.user.role === 'hr') {
+            query = EmployeeRequest.find().sort({ createdAt: -1 });
+        } else {
+            query = EmployeeRequest.find({ employeeId: req.user._id }).sort({ createdAt: -1 });
+        }
+
+        const requests = await query;
+        res.status(200).json({ success: true, count: requests.length, data: requests });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @desc    Update employee request (Approve/Decline/Reply - HR)
+// @route   PUT /api/engagement/request/:id
+exports.updateRequest = async (req, res, next) => {
+    try {
+        const { status, hrReply } = req.body;
+        const request = await EmployeeRequest.findById(req.params.id);
+
+        if (!request) return res.status(404).json({ success: false, message: 'Request not found' });
+
+        if (status) request.status = status;
+        if (hrReply) request.hrReply = hrReply;
+
+        await request.save();
+        res.status(200).json({ success: true, data: request });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @desc    Update engagement form (HR)
+// @route   PUT /api/engagement/forms/:id
+exports.updateForm = async (req, res, next) => {
+    try {
+        let form = await EngagementForm.findById(req.params.id);
+
+        if (!form) {
+            return res.status(404).json({ success: false, message: 'Form not found' });
+        }
+
+        form = await EngagementForm.findByIdAndUpdate(req.params.id, req.body, {
+            new: true,
+            runValidators: true
+        });
+
+        res.status(200).json({ success: true, data: form });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @desc    Delete engagement form (HR)
+// @route   DELETE /api/engagement/forms/:id
+exports.deleteForm = async (req, res, next) => {
+    try {
+        const form = await EngagementForm.findById(req.params.id);
+
+        if (!form) {
+            return res.status(404).json({ success: false, message: 'Form not found' });
+        }
+
+        // Delete associated responses
+        await EngagementResponse.deleteMany({ formId: req.params.id });
+        await EngagementForm.findByIdAndDelete(req.params.id);
+
+        res.status(200).json({ success: true, data: {} });
+    } catch (err) {
+        next(err);
+    }
+};

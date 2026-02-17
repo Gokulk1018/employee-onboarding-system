@@ -162,11 +162,24 @@ h6 {
 }
 
 .glass-premium {
-    background: rgba(15, 23, 42, 0.7) !important;
+    background: var(--glass-premium-bg) !important;
     backdrop-filter: blur(24px) !important;
     -webkit-backdrop-filter: blur(24px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid var(--glass-premium-border) !important;
+    box-shadow: var(--glass-premium-shadow) !important;
+    transition: background 0.3s ease, border 0.3s ease, box-shadow 0.3s ease;
+}
+
+:root {
+    --glass-premium-bg: rgba(255, 255, 255, 0.8);
+    --glass-premium-border: rgba(0, 0, 0, 0.05);
+    --glass-premium-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.dark {
+    --glass-premium-bg: rgba(15, 23, 42, 0.7);
+    --glass-premium-border: rgba(255, 255, 255, 0.1);
+    --glass-premium-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
 .text-glow {

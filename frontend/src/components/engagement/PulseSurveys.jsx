@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Typography, List, Button, Modal, Form, Radio, Checkbox, Input, message, theme, Spin, Empty } from 'antd';
+import { Card, Typography, List, Button, Modal, Form, Radio, Checkbox, Input, theme, Spin, Empty, App } from 'antd';
 import { SmileOutlined, MehOutlined, FrownOutlined, FormOutlined } from '@ant-design/icons';
 import { getSurveys, submitSurveyResponse } from '../../services/engagementService';
 
@@ -7,6 +7,7 @@ const { Title, Text } = Typography;
 
 const PulseSurveys = () => {
     const { token } = theme.useToken();
+    const { message } = App.useApp();
     const [surveys, setSurveys] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -95,7 +96,7 @@ const PulseSurveys = () => {
                 onCancel={() => setIsModalOpen(false)}
                 footer={null}
                 width={600}
-                destroyOnClose
+                destroyOnHidden
             >
                 <Form layout="vertical" form={form} onFinish={handleSubmitResponse}>
                     {activeSurvey?.questions.map((q) => (

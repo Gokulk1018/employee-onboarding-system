@@ -1,45 +1,41 @@
 const express = require('express');
 const router = express.Router();
 const {
-    sendRecognition,
-    getRecognitions,
-    toggleLike,
-    submitFeedback,
-    getFeedback,
-    createSurvey,
-    getSurveys,
-    submitSurveyResponse,
-    getEngagementAnalytics,
-    getLeaderboard
+    createForm,
+    getForms,
+    getFormById,
+    submitResponse,
+    getFormAnalytics,
+    createRequest,
+    getRequests,
+    updateRequest,
+    updateForm,
+    deleteForm
 } = require('../controllers/engagementController');
-const { protect } = require('../middleware/authMiddleware'); // Assuming this exists
+const { protect } = require('../middleware/authMiddleware');
 
-// Recognition Routes
-router.route('/recognition')
-    .post(protect, sendRecognition)
-    .get(protect, getRecognitions);
+// Form Routes
+router.route('/forms')
+    .post(protect, createForm)
+    .get(protect, getForms);
 
-router.route('/recognition/:id/like')
-    .post(protect, toggleLike);
+router.route('/forms/:id')
+    .get(protect, getFormById)
+    .put(protect, updateForm)
+    .delete(protect, deleteForm);
 
-// Feedback Routes
-router.route('/feedback')
-    .post(protect, submitFeedback)
-    .get(protect, getFeedback); // Likely Admin only
+router.route('/forms/respond')
+    .post(protect, submitResponse);
 
-// Survey Routes
-router.route('/survey')
-    .post(protect, createSurvey) // Likely HR/Admin only
-    .get(protect, getSurveys);
+router.route('/forms/analytics/:id')
+    .get(protect, getFormAnalytics);
 
-router.route('/survey/response')
-    .post(protect, submitSurveyResponse);
+// Request / Ticket Routes
+router.route('/request')
+    .post(protect, createRequest)
+    .get(protect, getRequests);
 
-// Analytics Routes
-router.route('/analytics')
-    .get(protect, getEngagementAnalytics);
-
-router.route('/leaderboard')
-    .get(protect, getLeaderboard);
+router.route('/request/:id')
+    .put(protect, updateRequest);
 
 module.exports = router;
