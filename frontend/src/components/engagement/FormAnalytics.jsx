@@ -45,62 +45,101 @@ const FormAnalytics = ({ data, formType, formTitle }) => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5 }}
             >
-                <div style={{ marginBottom: 24 }}>
-                    <Text strong style={{ display: 'block', marginBottom: 16 }}>Participation Summary</Text>
-                    <Row gutter={[12, 12]}>
+                <div style={{ marginBottom: 32 }}>
+                    <Text strong style={{ display: 'block', marginBottom: 16, fontSize: 13, textTransform: 'uppercase', letterSpacing: 1, color: token.colorTextSecondary }}>Participation Summary</Text>
+                    <Row gutter={[16, 16]}>
                         <Col span={12}>
-                            <div style={{ background: `${token.colorSuccess}10`, padding: '12px', borderRadius: 12, border: `1px solid ${token.colorSuccess}20` }}>
-                                <Text type="secondary" style={{ fontSize: 11 }}>Submitted</Text>
-                                <Title level={4} style={{ margin: 0, color: token.colorSuccess }}>{data.totalSubmitted}</Title>
+                            <div style={{
+                                background: `linear-gradient(135deg, ${token.colorSuccess}15 0%, ${token.colorSuccess}05 100%)`,
+                                padding: '16px',
+                                borderRadius: 16,
+                                border: `1px solid ${token.colorSuccess}30`,
+                                position: 'relative',
+                                overflow: 'hidden'
+                            }}>
+                                <div style={{ position: 'absolute', top: -10, right: -10, color: token.colorSuccess, opacity: 0.1 }}>
+                                    <CheckCircleOutlined style={{ fontSize: 40 }} />
+                                </div>
+                                <Text type="secondary" style={{ fontSize: 11, fontWeight: 600 }}>SUBMITTED</Text>
+                                <Title level={3} style={{ margin: 0, color: token.colorSuccess, fontWeight: 800 }}>{data.totalSubmitted}</Title>
                             </div>
                         </Col>
                         <Col span={12}>
-                            <div style={{ background: `${token.colorInfo}10`, padding: '12px', borderRadius: 12, border: `1px solid ${token.colorInfo}20` }}>
-                                <Text type="secondary" style={{ fontSize: 11 }}>Pending</Text>
-                                <Title level={4} style={{ margin: 0, color: token.colorInfo }}>{data.totalNotSubmitted}</Title>
+                            <div style={{
+                                background: `linear-gradient(135deg, ${token.colorInfo}15 0%, ${token.colorInfo}05 100%)`,
+                                padding: '16px',
+                                borderRadius: 16,
+                                border: `1px solid ${token.colorInfo}30`,
+                                position: 'relative',
+                                overflow: 'hidden'
+                            }}>
+                                <div style={{ position: 'absolute', top: -10, right: -10, color: token.colorInfo, opacity: 0.1 }}>
+                                    <ClockCircleOutlined style={{ fontSize: 40 }} />
+                                </div>
+                                <Text type="secondary" style={{ fontSize: 11, fontWeight: 600 }}>PENDING</Text>
+                                <Title level={3} style={{ margin: 0, color: token.colorInfo, fontWeight: 800 }}>{data.totalNotSubmitted}</Title>
                             </div>
                         </Col>
                     </Row>
                 </div>
 
                 {formType === 'survey' && chartData.length > 0 ? (
-                    <div>
-                        <Text strong style={{ display: 'block', marginBottom: 8 }}>Sentiment Analysis</Text>
-                        <div style={{ width: '100%', height: 260, position: 'relative' }}>
+                    <div style={{ padding: '0 8px' }}>
+                        <Text strong style={{ display: 'block', marginBottom: 16, fontSize: 13, textTransform: 'uppercase', letterSpacing: 1, color: token.colorTextSecondary }}>Sentiment Analysis</Text>
+                        <div style={{ width: '100%', height: 280, position: 'relative' }}>
                             <ResponsiveContainer>
                                 <PieChart>
+                                    <defs>
+                                        {COLORS.map((color, index) => (
+                                            <linearGradient id={`grad-${index}`} key={index} x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor={color} stopOpacity={0.8} />
+                                                <stop offset="95%" stopColor={color} stopOpacity={0.3} />
+                                            </linearGradient>
+                                        ))}
+                                    </defs>
                                     <Pie
                                         data={chartData}
-                                        innerRadius={70}
-                                        outerRadius={95}
-                                        paddingAngle={8}
+                                        innerRadius={75}
+                                        outerRadius={100}
+                                        paddingAngle={10}
                                         dataKey="value"
                                         stroke="none"
+                                        animationBegin={0}
+                                        animationDuration={1500}
                                     >
                                         {chartData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} cornerRadius={4} />
+                                            <Cell key={`cell-${index}`} fill={`url(#grad-${index % COLORS.length})`} cornerRadius={8} />
                                         ))}
                                     </Pie>
                                     <Tooltip
-                                        contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}
+                                        contentStyle={{
+                                            borderRadius: 16,
+                                            border: 'none',
+                                            boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+                                            background: token.colorBgContainer,
+                                            backdropFilter: 'blur(10px)'
+                                        }}
+                                        itemStyle={{ fontWeight: 600 }}
                                     />
                                     <Legend
                                         verticalAlign="bottom"
                                         align="center"
                                         iconType="circle"
-                                        formatter={(value) => <span style={{ fontSize: 12, color: token.colorTextSecondary }}>{value}</span>}
+                                        iconSize={8}
+                                        wrapperStyle={{ paddingTop: 20 }}
+                                        formatter={(value) => <span style={{ fontSize: 12, fontWeight: 500, color: token.colorTextSecondary }}>{value}</span>}
                                     />
                                 </PieChart>
                             </ResponsiveContainer>
                             <div style={{
                                 position: 'absolute',
-                                top: '45%',
+                                top: '42%',
                                 left: '50%',
                                 transform: 'translate(-50%, -50%)',
                                 textAlign: 'center'
                             }}>
-                                <Title level={2} style={{ margin: 0, fontSize: 24 }}>{data.totalSubmitted}</Title>
-                                <Text type="secondary" style={{ fontSize: 10 }}>TOTAL</Text>
+                                <Title level={1} style={{ margin: 0, fontSize: 36, fontWeight: 800, color: token.colorPrimary }}>{data.totalSubmitted}</Title>
+                                <Text type="secondary" style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1 }}>TOTAL</Text>
                             </div>
                         </div>
                     </div>

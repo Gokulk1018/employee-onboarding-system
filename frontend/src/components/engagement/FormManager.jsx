@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Tag, Button, Space, Typography, theme, Badge, App } from 'antd';
+import { Card, Table, Tag, Button, Space, Typography, theme, Badge, App, Tooltip } from 'antd';
 import { PlusOutlined, BarChartOutlined, EyeOutlined, FormOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import { Popconfirm } from 'antd';
@@ -85,6 +85,7 @@ const FormManager = ({ onSelectForm }) => {
             title: 'TYPE',
             dataIndex: 'formType',
             key: 'formType',
+            align: 'center',
             render: (type) => (
                 <Tag
                     color={type === 'survey' ? 'blue' : 'purple'}
@@ -98,6 +99,7 @@ const FormManager = ({ onSelectForm }) => {
             title: 'STATUS',
             dataIndex: 'isActive',
             key: 'isActive',
+            align: 'center',
             render: (active) => (
                 <Tag
                     color={active ? 'success' : 'error'}
@@ -112,17 +114,20 @@ const FormManager = ({ onSelectForm }) => {
             key: 'actions',
             align: 'right',
             render: (_, record) => (
-                <Space>
-                    <Button
-                        type="text"
-                        size="small"
-                        shape="circle"
-                        icon={<EditOutlined style={{ color: token.colorPrimary }} />}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleEdit(record);
-                        }}
-                    />
+                <Space size="middle">
+                    <Tooltip title="Edit Form">
+                        <Button
+                            type="text"
+                            size="small"
+                            shape="circle"
+                            icon={<EditOutlined style={{ color: token.colorPrimary, fontSize: 16 }} />}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleEdit(record);
+                            }}
+                            className="icon-glow"
+                        />
+                    </Tooltip>
                     <Popconfirm
                         title="Delete the form?"
                         description="This will delete the form and all its responses."
@@ -139,7 +144,7 @@ const FormManager = ({ onSelectForm }) => {
                             size="small"
                             shape="circle"
                             danger
-                            icon={<DeleteOutlined />}
+                            icon={<DeleteOutlined style={{ fontSize: 16 }} />}
                             onClick={(e) => e.stopPropagation()}
                         />
                     </Popconfirm>
@@ -152,7 +157,14 @@ const FormManager = ({ onSelectForm }) => {
                             e.stopPropagation();
                             handleRowClick(record);
                         }}
-                        style={{ fontSize: 12 }}
+                        style={{
+                            fontSize: 12,
+                            fontWeight: 600,
+                            padding: '0 16px',
+                            background: token.colorPrimary,
+                            border: 'none',
+                            boxShadow: `0 4px 10px ${token.colorPrimary}40`
+                        }}
                     >
                         View
                     </Button>
@@ -188,9 +200,17 @@ const FormManager = ({ onSelectForm }) => {
                             setEditingForm(null);
                             setIsCreatorVisible(true);
                         }}
-                        style={{ borderRadius: 10, fontWeight: 600 }}
+                        style={{
+                            borderRadius: 12,
+                            fontWeight: 700,
+                            height: 40,
+                            padding: '0 24px',
+                            background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                            border: 'none',
+                            boxShadow: '0 4px 15px rgba(99, 102, 241, 0.4)'
+                        }}
                     >
-                        New
+                        Create New
                     </Button>
                 }
                 style={{ borderRadius: 24, overflow: 'hidden', border: 'none' }}

@@ -42,11 +42,20 @@ const Engagement = () => {
 
     return (
         <PageContainer>
+            <div className="mesh-bg-animated" style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: -1,
+                opacity: 0.4
+            }} />
             <motion.div
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
-                style={{ maxWidth: 1700, margin: '0 auto' }}
+                style={{ maxWidth: 1700, margin: '0 auto', paddingBottom: 60, paddingTop: 40 }}
             >
                 {/* Header & Insights Bar */}
                 <div style={{ marginBottom: 40 }}>
