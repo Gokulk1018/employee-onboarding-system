@@ -1,89 +1,138 @@
-import React from 'react';
-import { Card, Typography, Progress, theme, Tag, Space } from 'antd';
-import { SmileOutlined, MehOutlined, FrownOutlined, RiseOutlined } from '@ant-design/icons';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import CountUp from '../common/CountUp';
+import React, { useState, useEffect } from 'react';
+import { Card, Typography, List, Button, Modal, Form, Radio, Checkbox, Input, message, theme, Spin, Empty } from 'antd';
+import { SmileOutlined, MehOutlined, FrownOutlined, FormOutlined } from '@ant-design/icons';
+import { getSurveys, submitSurveyResponse } from '../../services/engagementService';
 
 const { Title, Text } = Typography;
 
-
-
 const PulseSurveys = () => {
     const { token } = theme.useToken();
+    const [surveys, setSurveys] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [activeSurvey, setActiveSurvey] = useState(null);
+    const [form] = Form.useForm();
 
-    const data = [
-        { name: 'Work-Life', value: 85, color: token.colorSuccess },
-        { name: 'Management', value: 72, color: token.colorInfo },
-        { name: 'Growth', value: 65, color: token.colorWarning },
-        { name: 'Culture', value: 90, color: token.colorPrimary }, // Using primary for purple if close
-    ];
+    const fetchSurveys = async () => {
+        setLoading(true);
+        try {
+            const res = await getSurveys();
+            if (res.success) {
+                setSurveys(res.data);
+            }
+        } catch (error) {
+            console.error('Error fetching surveys:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchSurveys();
+    }, []);
+
+    const handleOpenSurvey = (survey) => {
+        setActiveSurvey(survey);
+        setIsModalOpen(true);
+    };
+
+    const handleSubmitResponse = async (values) => {
+        try {
+            const answers = activeSurvey.questions.map(q => ({
+                questionText: q.questionText,
+                answer: values[q._id]
+            }));
+
+            const res = await submitSurveyResponse({
+                surveyId: activeSurvey._id,
+                answers
+            });
+
+            if (res.success) {
+                message.success('Response submitted. Thank you!');
+                setIsModalOpen(false);
+                form.resetFields();
+            }
+        } catch (error) {
+            message.error(error.response?.data?.message || 'Failed to submit response');
+        }
+    };
 
     return (
-        <div className="glass-card" style={{ padding: 24, height: '100%', borderColor: token.colorBorder }}>
-            <div className="flex-between" style={{ marginBottom: 24 }}>
-                <Title level={4} style={{ margin: 0, color: token.colorText }}>Pulse Survey Analytics</Title>
-                <Tag color="success" icon={<RiseOutlined />}>+5% vs last month</Tag>
-            </div>
+        <div className="glass-card" style={{ padding: 24, borderRadius: 16, border: `1px solid ${token.colorBorder}`, height: '100%' }}>
+            <Title level={4} style={{ marginBottom: 24 }}>Active Pulse Surveys</Title>
 
-            <div style={{ marginBottom: 32, textAlign: 'center' }}>
-                <Text style={{ display: 'block', color: token.colorTextSecondary, marginBottom: 8 }}>Overall Sentiment</Text>
-                <div className="flex-center" style={{ gap: 24 }}>
-                    <div style={{ textAlign: 'center' }}>
-                        <SmileOutlined style={{ fontSize: 32, color: token.colorSuccess, marginBottom: 4 }} />
-                        <div style={{ fontWeight: 600 }}>
-                            <CountUp value={78} suffix="%" />
+            {loading ? (
+                <div style={{ textAlign: 'center', padding: '40px 0' }}><Spin /></div>
+            ) : surveys.length > 0 ? (
+                <List
+                    dataSource={surveys}
+                    renderItem={(item) => (
+                        <div style={{
+                            padding: 16,
+                            background: token.colorBgLayout,
+                            borderRadius: 12,
+                            marginBottom: 16,
+                            border: `1px solid ${token.colorBorderSecondary}`
+                        }}>
+                            <div className="flex-between">
+                                <div>
+                                    <div style={{ fontWeight: 600, fontSize: 16 }}>{item.title}</div>
+                                    <Text type="secondary" style={{ fontSize: 13 }}>{item.description}</Text>
+                                </div>
+                                <Button type="primary" size="small" icon={<FormOutlined />} onClick={() => handleOpenSurvey(item)}>Take Survey</Button>
+                            </div>
                         </div>
-                        <div style={{ fontSize: 12, color: token.colorTextSecondary }}>Positive</div>
-                    </div>
-                    <div style={{ width: 1, height: 40, background: token.colorBorder }} />
-                    <div style={{ textAlign: 'center' }}>
-                        <MehOutlined style={{ fontSize: 32, color: token.colorWarning, marginBottom: 4 }} />
-                        <div style={{ fontWeight: 600 }}>
-                            <CountUp value={15} suffix="%" />
-                        </div>
-                        <div style={{ fontSize: 12, color: token.colorTextSecondary }}>Neutral</div>
-                    </div>
-                    <div style={{ width: 1, height: 40, background: token.colorBorder }} />
-                    <div style={{ textAlign: 'center' }}>
-                        <FrownOutlined style={{ fontSize: 32, color: token.colorError, marginBottom: 4 }} />
-                        <div style={{ fontWeight: 600 }}>
-                            <CountUp value={7} suffix="%" />
-                        </div>
-                        <div style={{ fontSize: 12, color: token.colorTextSecondary }}>Negative</div>
-                    </div>
-                </div>
-            </div>
+                    )}
+                />
+            ) : (
+                <Empty description="No active surveys at the moment" />
+            )}
 
-            <div style={{ width: '100%', height: 250, minWidth: 0, minHeight: 0 }}>
-                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                    <BarChart data={data} layout="vertical" margin={{ left: 20 }}>
-                        <XAxis type="number" hide />
-                        <YAxis
-                            dataKey="name"
-                            type="category"
-                            axisLine={false}
-                            tickLine={false}
-                            tick={{ fontSize: 12, fill: token.colorTextSecondary }}
-                            width={80}
-                        />
-                        <Tooltip
-                            cursor={{ fill: 'rgba(255,255,255,0.05)' }} // Keep transparent fill
-                            contentStyle={{
-                                borderRadius: 12,
-                                border: `1px solid ${token.colorBorder}`,
-                                boxShadow: token.boxShadow,
-                                background: token.colorBgContainer,
-                                color: token.colorText
-                            }}
-                        />
-                        <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
-                            {data.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                        </Bar>
-                    </BarChart>
-                </ResponsiveContainer>
-            </div>
+            <Modal
+                title={activeSurvey?.title}
+                open={isModalOpen}
+                onCancel={() => setIsModalOpen(false)}
+                footer={null}
+                width={600}
+                destroyOnClose
+            >
+                <Form layout="vertical" form={form} onFinish={handleSubmitResponse}>
+                    {activeSurvey?.questions.map((q) => (
+                        <Form.Item
+                            key={q._id}
+                            name={q._id}
+                            label={<Text strong>{q.questionText}</Text>}
+                            rules={[{ required: true, message: 'Please answer this question' }]}
+                        >
+                            {q.type === 'Yes/No' ? (
+                                <Radio.Group optionType="button" buttonStyle="solid">
+                                    <Radio value={true}>Yes</Radio>
+                                    <Radio value={false}>No</Radio>
+                                </Radio.Group>
+                            ) : q.type === 'Multiple Choice' ? (
+                                <Radio.Group>
+                                    {q.options.map(opt => (
+                                        <Radio key={opt} value={opt} style={{ display: 'block', marginBottom: 8 }}>{opt}</Radio>
+                                    ))}
+                                </Radio.Group>
+                            ) : q.type === 'Rating' ? (
+                                <Radio.Group>
+                                    {[1, 2, 3, 4, 5].map(v => (
+                                        <Radio.Button key={v} value={v}>{v}</Radio.Button>
+                                    ))}
+                                </Radio.Group>
+                            ) : (
+                                <Input.TextArea placeholder="Your answer..." />
+                            )}
+                        </Form.Item>
+                    ))}
+                    <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+                        <Button style={{ marginRight: 8 }} onClick={() => setIsModalOpen(false)}>Cancel</Button>
+                        <Button type="primary" htmlType="submit">Submit Response</Button>
+                    </Form.Item>
+                </Form>
+            </Modal>
         </div>
     );
 };

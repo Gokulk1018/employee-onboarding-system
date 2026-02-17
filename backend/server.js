@@ -14,6 +14,8 @@ const candidateRoutes = require('./routes/candidateRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const authRoutes = require('./routes/authRoutes');
 const payrollRoutes = require('./routes/payrollRoutes');
+const performanceRoutes = require('./routes/performanceRoutes');
+const engagementRoutes = require('./routes/engagementRoutes');
 
 console.log('All modules imported');
 
@@ -41,6 +43,8 @@ app.use('/api/candidates', candidateRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/payroll', payrollRoutes);
+app.use('/api/performance', performanceRoutes);
+app.use('/api/engagement', engagementRoutes);
 console.log('Routes mounted');
 
 // Move listen to BEFORE connectDB to avoid hanging the entire process if DB is slow

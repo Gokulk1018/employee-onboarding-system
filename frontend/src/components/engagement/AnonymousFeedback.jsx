@@ -1,36 +1,56 @@
-import React, { useState } from 'react';
-import { Card, Input, Button, Switch, Space, Typography, message, List, Tag, theme } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Card, Input, Button, Switch, Space, Typography, message, List, Tag, theme, Skeleton } from 'antd';
 import { SendOutlined, UserOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
+import { getFeedback, submitFeedback } from '../../services/engagementService';
+import dayjs from 'dayjs';
 
 const { TextArea } = Input;
 const { Text } = Typography;
 
 const AnonymousFeedback = () => {
     const { token } = theme.useToken();
-    const [feedback, setFeedback] = useState('');
+    const [msg, setMsg] = useState('');
     const [isAnonymous, setIsAnonymous] = useState(true);
-    const [submittedFeedback, setSubmittedFeedback] = useState([
-        { id: 1, text: 'Great team collaboration this month!', anonymous: false, author: 'John Doe', date: 'Nov 20' },
-        { id: 2, text: 'Would like more flexible work hours.', anonymous: true, date: 'Nov 18' }
-    ]);
+    const [recentFeedback, setRecentFeedback] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const handleSubmit = () => {
-        if (!feedback.trim()) {
+    const fetchRecentFeedback = async () => {
+        setLoading(true);
+        try {
+            const res = await getFeedback();
+            if (res.success) {
+                setRecentFeedback(res.data);
+            }
+        } catch (error) {
+            console.error('Error fetching feedback:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchRecentFeedback();
+    }, []);
+
+    const handleSubmit = async () => {
+        if (!msg.trim()) {
             message.warning('Please enter your feedback');
             return;
         }
 
-        const newFeedback = {
-            id: Date.now(),
-            text: feedback,
-            anonymous: isAnonymous,
-            author: isAnonymous ? null : 'Current User',
-            date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-        };
-
-        setSubmittedFeedback([newFeedback, ...submittedFeedback]);
-        setFeedback('');
-        message.success('Feedback submitted successfully');
+        try {
+            const res = await submitFeedback({
+                message: msg,
+                isAnonymous
+            });
+            if (res.success) {
+                message.success('Feedback submitted successfully');
+                setMsg('');
+                fetchRecentFeedback();
+            }
+        } catch (error) {
+            message.error('Failed to submit feedback');
+        }
     };
 
     return (
@@ -38,15 +58,15 @@ const AnonymousFeedback = () => {
             title="Anonymous Feedback Box"
             bordered={false}
             className="glass-card"
-            style={{ height: '100%' }}
+            style={{ borderRadius: 16, border: `1px solid ${token.colorBorder}` }}
         >
             <Space direction="vertical" style={{ width: '100%' }} size="middle">
                 <TextArea
                     rows={4}
-                    value={feedback}
-                    onChange={(e) => setFeedback(e.target.value)}
+                    value={msg}
+                    onChange={(e) => setMsg(e.target.value)}
                     placeholder="Share your thoughts, suggestions, or concerns..."
-                    style={{ background: token.colorBgContainer }}
+                    style={{ borderRadius: 8 }}
                 />
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -57,42 +77,47 @@ const AnonymousFeedback = () => {
                             checkedChildren={<EyeInvisibleOutlined />}
                             unCheckedChildren={<UserOutlined />}
                         />
-                        <Text style={{ color: token.colorText }}>
-                            {isAnonymous ? 'Anonymous' : 'Named'}
+                        <Text style={{ fontSize: 13 }}>
+                            {isAnonymous ? 'Truly Anonymous' : 'Named Feedback'}
                         </Text>
                     </Space>
                     <Button
                         type="primary"
                         icon={<SendOutlined />}
                         onClick={handleSubmit}
+                        shape="round"
                     >
-                        Submit Feedback
+                        Submit
                     </Button>
                 </div>
 
-                <div style={{ marginTop: 16 }}>
-                    <Text strong style={{ color: token.colorText }}>Recent Feedback</Text>
-                    <List
-                        style={{ marginTop: 12 }}
-                        dataSource={submittedFeedback.slice(0, 3)}
-                        renderItem={(item) => (
-                            <List.Item style={{ padding: '8px 0' }}>
-                                <div style={{ width: '100%' }}>
-                                    <Text style={{ color: token.colorText }}>{item.text}</Text>
-                                    <div style={{ marginTop: 4 }}>
-                                        {item.anonymous ? (
-                                            <Tag icon={<EyeInvisibleOutlined />} color="default">Anonymous</Tag>
-                                        ) : (
-                                            <Tag icon={<UserOutlined />} color="blue">{item.author}</Tag>
-                                        )}
-                                        <Text style={{ fontSize: 12, color: token.colorTextSecondary, marginLeft: 8 }}>
-                                            {item.date}
-                                        </Text>
+                <div style={{ marginTop: 24 }}>
+                    <Text strong style={{ fontSize: 16 }}>Recent Feedback</Text>
+                    {loading ? (
+                        <Skeleton active style={{ marginTop: 12 }} />
+                    ) : (
+                        <List
+                            style={{ marginTop: 12 }}
+                            dataSource={recentFeedback.slice(0, 5)}
+                            renderItem={(item) => (
+                                <List.Item style={{ padding: '12px 0', borderBottom: `1px solid ${token.colorBorderSecondary}` }}>
+                                    <div style={{ width: '100%' }}>
+                                        <Text style={{ display: 'block', marginBottom: 8 }}>{item.message}</Text>
+                                        <div className="flex-between">
+                                            {item.isAnonymous ? (
+                                                <Tag icon={<EyeInvisibleOutlined />} color="default">Anonymous</Tag>
+                                            ) : (
+                                                <Tag icon={<UserOutlined />} color="blue">{item.senderId?.name || 'User'}</Tag>
+                                            )}
+                                            <Text type="secondary" style={{ fontSize: 12 }}>
+                                                {dayjs(item.createdAt).format('MMM DD')}
+                                            </Text>
+                                        </div>
                                     </div>
-                                </div>
-                            </List.Item>
-                        )}
-                    />
+                                </List.Item>
+                            )}
+                        />
+                    )}
                 </div>
             </Space>
         </Card>

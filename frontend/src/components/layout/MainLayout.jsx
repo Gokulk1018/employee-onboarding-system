@@ -125,7 +125,6 @@ const MainLayout = () => {
         { path: '/payroll', name: 'Payroll', icon: <DollarOutlined /> },
         { path: '/recruitment', name: 'Recruitment', icon: <SolutionOutlined /> },
         { path: '/onboarding', name: 'Onboarding', icon: <UserOutlined /> },
-        { path: '/performance', name: 'Performance', icon: <FallOutlined /> },
         { path: '/engagement', name: 'Engagement', icon: <HeartOutlined /> },
         { path: '/tasks', name: 'Tasks', icon: <CalendarOutlined /> },
         { path: '/settings', name: 'Settings', icon: <SettingOutlined /> },

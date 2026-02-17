@@ -1,4 +1,5 @@
 const HRUser = require('../models/HRUser');
+const Employee = require('../models/Employee');
 
 // Basic protection middleware
 // Note: In a production app, this would use JWT. 
@@ -14,24 +15,24 @@ const protect = async (req, res, next) => {
     }
 
     try {
-        if (userId === 'hardcoded-admin-id') {
-            req.user = {
-                _id: 'hardcoded-admin-id',
-                name: 'Gokul Admin',
-                username: 'gokul',
-                role: 'hr'
-            };
-            return next();
+        let user = await HRUser.findById(userId);
+        let role = 'hr';
+
+        if (!user) {
+            user = await Employee.findById(userId);
+            role = 'employee';
         }
 
-        const user = await HRUser.findById(userId);
         if (!user) {
+            // Check OnboardingUser too if needed? Usually not for performance/engagement
             return res.status(401).json({
                 success: false,
                 message: 'Not authorized, user not found'
             });
         }
 
+        // Add role to user object for reference
+        user.role = role;
         req.user = user;
         next();
     } catch (error) {
