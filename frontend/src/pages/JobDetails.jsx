@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-    Typography, Row, Col, Card, Tag, Button, Space, theme,
-    Spin, App, Breadcrumb, Divider, Descriptions, Modal, Form, Input, Select, DatePicker
-} from 'antd';
+import { Card, Tag, Button, Typography, Space, Divider, List, Avatar, message as antdMessage, Spin, Modal, Form, Input, InputNumber, DatePicker, Select, App, Breadcrumb, Descriptions } from 'antd';
 import {
     ArrowLeftOutlined, EditOutlined, ShareAltOutlined, PlusOutlined,
     InstagramOutlined, LinkedinOutlined, WhatsAppOutlined, MailOutlined, CopyOutlined, GlobalOutlined, CheckCircleOutlined
@@ -28,10 +25,10 @@ const INITIAL_MOCK_CANDIDATES = [
 ];
 
 const JobDetails = () => {
+    const { message } = App.useApp();
     const { id } = useParams();
     const navigate = useNavigate();
     const { token } = theme.useToken();
-    const { message } = App.useApp();
     const [form] = Form.useForm();
 
     const [job, setJob] = useState(null);

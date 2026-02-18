@@ -24,6 +24,11 @@ const hrUserSchema = new mongoose.Schema({
     role: {
         type: String,
         default: 'hr'
+    },
+    status: {
+        type: String,
+        enum: ['active', 'blocked'],
+        default: 'active'
     }
 }, {
     timestamps: true

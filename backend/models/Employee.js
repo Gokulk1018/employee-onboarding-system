@@ -44,8 +44,8 @@ const employeeSchema = new mongoose.Schema({
     },
     accountStatus: {
         type: String,
-        enum: ['active', 'inactive'],
-        default: 'inactive'
+        enum: ['active', 'blocked'],
+        default: 'active'
     }
 }, {
     timestamps: true

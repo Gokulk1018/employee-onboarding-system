@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { Typography } from 'antd';
 import { motion } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
+import { useSettings } from '../../context/SettingsContext';
 
 const { Title, Text } = Typography;
 
 const SplashScreen = () => {
     const navigate = useNavigate();
     const { isDarkMode } = useTheme();
+    const { branding } = useSettings();
 
     React.useEffect(() => {
         const timer = setTimeout(() => {
@@ -89,15 +91,15 @@ const SplashScreen = () => {
                         style={{ borderRadius: '50%', padding: 12 }}
                     >
                         <img
-                            src="https://gw.alipayobjects.com/zos/antfincdn/upvrAjAPQX/Logo_Tech%252520UI.svg"
-                            alt="HRFlow"
+                            src={branding.logo || "https://gw.alipayobjects.com/zos/antfincdn/upvrAjAPQX/Logo_Tech%252520UI.svg"}
+                            alt={branding.name}
                             style={{ width: 100, height: 100 }}
                         />
                     </motion.div>
                 </div>
 
                 <Title level={1} className="gradient-text-hero" style={{ margin: 0, fontSize: '4rem', fontWeight: 800, letterSpacing: '-2px' }}>
-                    HRFlow
+                    {branding.name}
                 </Title>
 
                 <motion.div

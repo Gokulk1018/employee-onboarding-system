@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
     Form, Input, Button, Card, Steps, Upload,
-    message, Typography, Layout, Result
+    message as antdMessage, Typography, Layout, Result, theme, Spin, Divider, App
 } from 'antd';
 import {
     UserOutlined, MailOutlined, PhoneOutlined,
@@ -15,6 +15,8 @@ const { Title, Text } = Typography;
 const { Content } = Layout;
 
 const OnboardingForm = () => {
+    const { message } = App.useApp();
+    const { token } = theme.useToken();
     const [currentStep, setCurrentStep] = useState(0);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -92,7 +94,7 @@ const OnboardingForm = () => {
     if (isSubmitted) {
         return (
             <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f2f5' }}>
-                <Card style={{ maxWidth: 600, borderRadius: 20, textAlign: 'center' }}>
+                <Card variant="borderless" style={{ maxWidth: 600, borderRadius: 20, textAlign: 'center' }}>
                     <Result
                         status="success"
                         title="Submission Successful!"
@@ -119,7 +121,7 @@ const OnboardingForm = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     style={{ width: '100%', maxWidth: 800 }}
                 >
-                    <Card style={{ borderRadius: 24, padding: 24, boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
+                    <Card variant="borderless" style={{ borderRadius: 24, padding: 24, boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
                         <div style={{ textAlign: 'center', marginBottom: 40 }}>
                             <Title level={2}>Onboarding Profile</Title>
                             <Text type="secondary">Please complete your details to join the team</Text>

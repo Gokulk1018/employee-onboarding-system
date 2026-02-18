@@ -1,19 +1,30 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 
-const ProtectedRoute = ({ children, allowedRole }) => {
+import { useSettings } from '../../context/SettingsContext';
+
+const ProtectedRoute = ({ children, allowedRole, module }) => {
     const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-    const userRole = localStorage.getItem('userRole');
+    const userRole = localStorage.getItem('userRole'); // hr, manager, employee
+    const { settings } = useSettings();
 
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;
     }
 
-    if (allowedRole && userRole !== allowedRole) {
-        if (userRole === 'hr') return <Navigate to="/dashboard" replace />;
-        if (userRole === 'onboarding') return <Navigate to="/onboarding/form" replace />;
-        if (userRole === 'employee') return <Navigate to="/employee/dashboard" replace />;
-        return <Navigate to="/login" replace />;
+    // Role check (base level)
+    if (allowedRole && userRole !== allowedRole && userRole !== 'hr') {
+        return <Navigate to="/" replace />;
+    }
+
+    // Module permission check for non-HR users
+    if (module && userRole !== 'hr' && settings) {
+        const roleName = userRole.charAt(0).toUpperCase() + userRole.slice(1);
+        const currentRole = (settings.roles || []).find(r => r.name === roleName);
+
+        if (currentRole && !currentRole.permissions[module]) {
+            return <Navigate to="/" replace />;
+        }
     }
 
     return children;

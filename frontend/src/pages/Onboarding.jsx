@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Typography, Row, Col, Button, Table, Tag, theme, Input, Select, Space, Dropdown, message, Modal, Tabs } from 'antd';
+import { Typography, Row, Col, Button, Table, Tag, theme, Input, Select, Space, Dropdown, Modal, Tabs, Card, Spin, Badge, App } from 'antd';
 import {
     PlusOutlined,
     FileTextOutlined,
@@ -11,22 +11,30 @@ import {
     EditOutlined,
     ExclamationCircleOutlined,
     KeyOutlined,
-    CheckCircleOutlined
+    CheckCircleOutlined,
+    DeleteOutlined,
+    FilterOutlined,
+    ClockCircleOutlined,
+    SyncOutlined,
+    UserOutlined,
+    EyeOutlined,
+    SendOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
 import OnboardingStepper from '../components/onboarding/OnboardingStepper';
 import OnboardingDocuments from '../components/onboarding/OnboardingDocuments';
 import OfferDrawer from '../components/onboarding/OfferDrawer';
-import MentorshipProgram from '../components/onboarding/MentorshipProgram';
 import HRNotes from '../components/onboarding/HRNotes';
+import MentorshipProgram from '../components/onboarding/MentorshipProgram';
 
 import { motion } from 'framer-motion';
 import PageContainer from '../components/layout/PageContainer';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 const { confirm } = Modal;
 
 const Onboarding = () => {
+    const { message } = App.useApp();
     const { token } = theme.useToken();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [searchText, setSearchText] = useState('');

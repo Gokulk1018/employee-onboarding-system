@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ProLayout } from '@ant-design/pro-components';
-import { Input, Badge, Dropdown, theme, Avatar, Space, Typography, List, message, Skeleton } from 'antd';
+import { Input, Badge, Dropdown, theme, Avatar, Space, Typography, List, message as antdMessage, Skeleton, App } from 'antd';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -27,7 +27,11 @@ import ThemeToggle from '../common/ThemeToggle';
 import AIAssistant from '../common/AIAssistant';
 import { motion } from 'framer-motion';
 
+import { useSettings } from '../../context/SettingsContext';
+
 const MainLayout = () => {
+    const { message } = App.useApp();
+    const { branding } = useSettings();
     const navigate = useNavigate();
     const location = useLocation();
     const { token } = theme.useToken();
@@ -167,10 +171,10 @@ const MainLayout = () => {
                         className="text-gradient"
                         style={{ fontSize: 24, fontWeight: 700 }}
                     >
-                        HRFlow
+                        {branding.name}
                     </motion.div>
                 }
-                logo="https://gw.alipayobjects.com/zos/antfincdn/upvrAjAPQX/Logo_Tech%252520UI.svg"
+                logo={branding.logo || "https://gw.alipayobjects.com/zos/antfincdn/upvrAjAPQX/Logo_Tech%252520UI.svg"}
                 location={{ pathname: location.pathname }}
                 route={{ routes: menuItems }}
                 menuItemRender={(item, dom) => (

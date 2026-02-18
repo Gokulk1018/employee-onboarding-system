@@ -1,6 +1,9 @@
 const HRUser = require('../models/HRUser');
 const OnboardingUser = require('../models/OnboardingUser');
 const Employee = require('../models/Employee');
+const SystemSettings = require('../models/SystemSettings');
+const jwt = require('jsonwebtoken');
+const sendEmail = require('../utils/emailHelper');
 
 // @desc    Unified Login (HR Admin | Employee)
 // @route   POST /api/auth/login
@@ -13,6 +16,7 @@ exports.login = async (req, res, next) => {
         }
 
         const normalizedUsername = username.toLowerCase().trim();
+        const settings = await SystemSettings.findOne();
 
         if (roleToggle === 'hr') {
             const user = await HRUser.findOne({ username: normalizedUsername });
@@ -28,9 +32,37 @@ exports.login = async (req, res, next) => {
                 return res.status(401).json({ success: false, message: 'Invalid HR credentials' });
             }
 
+            // Check status if user account exists
+            if (user && user.status === 'blocked') {
+                return res.status(401).json({ success: false, message: 'Account blocked. Contact Admin.' });
+            }
+
+            // Login Alert logic
+            if (settings?.security?.loginAlert) {
+                const hrEmail = settings.companyInfo?.hrEmail || 'hr@hrflow.com';
+                await sendEmail({
+                    email: hrEmail,
+                    subject: 'New HR Login Detected',
+                    html: `<p>A new login attempt was successful for HR Admin: <b>${normalizedUsername}</b></p>
+                           <p>Time: ${new Date().toLocaleString()}</p>`
+                }).catch(err => console.error('Login alert failed:', err));
+            }
+
+            // Generate token for HR user
+            console.log('Attempting to sign JWT with secret length:', process.env.JWT_SECRET ? process.env.JWT_SECRET.length : 'MISSING');
+
+            if (!process.env.JWT_SECRET) {
+                throw new Error('JWT_SECRET is missing in environment variables');
+            }
+
+            const token = jwt.sign({ id: user ? user._id : '507f1f77bcf86cd799439011', role: 'hr' }, process.env.JWT_SECRET, {
+                expiresIn: process.env.JWT_EXPIRE || '24h'
+            });
+
             return res.status(200).json({
                 success: true,
                 role: 'hr',
+                token,
                 data: {
                     userId: user ? user._id : '507f1f77bcf86cd799439011',
                     username: user ? user.username : 'gokul',
@@ -47,33 +79,42 @@ exports.login = async (req, res, next) => {
                     return res.status(401).json({ success: false, message: 'Invalid credentials' });
                 }
 
-                if (onboardingUser.status === 'approved') {
-                    // If approved, they should be in Employee collection, but let's handle the logout/sync later
-                    // For now, redirect to employee portal if approved
-                } else {
-                    return res.status(200).json({
-                        success: true,
-                        role: 'onboarding',
-                        data: {
-                            userId: onboardingUser._id,
-                            username: onboardingUser.username,
-                            name: onboardingUser.candidateName,
-                            offerId: onboardingUser.offerId,
-                            status: onboardingUser.status,
-                            role: 'onboarding'
-                        }
-                    });
-                }
+                return res.status(200).json({
+                    success: true,
+                    role: 'onboarding',
+                    data: {
+                        userId: onboardingUser._id,
+                        username: onboardingUser.username,
+                        name: onboardingUser.candidateName,
+                        offerId: onboardingUser.offerId,
+                        status: onboardingUser.status,
+                        role: 'onboarding'
+                    }
+                });
             }
 
             // Check Employee collection
             const employee = await Employee.findOne({ username: normalizedUsername }).select('+password');
             if (employee) {
-                // If password exists in employee doc, check it. (Assuming '123' or managed password)
-                // Note: Existing employees might not have passwords yet if just created via HR
+                // Check if account is blocked
+                if (employee.accountStatus === 'blocked') {
+                    return res.status(401).json({ success: false, message: 'Account blocked. Contact HR.' });
+                }
+
                 const isValid = employee.password ? employee.password === password : password === '123';
 
                 if (isValid) {
+                    // Login Alert logic
+                    if (settings?.security?.loginAlert) {
+                        const hrEmail = settings.companyInfo?.hrEmail || 'hr@hrflow.com';
+                        await sendEmail({
+                            email: hrEmail,
+                            subject: 'Employee Login Notification',
+                            html: `<p>Employee <b>${employee.name}</b> (${normalizedUsername}) has logged in.</p>
+                                   <p>Time: ${new Date().toLocaleString()}</p>`
+                        }).catch(err => console.error('Login alert failed:', err));
+                    }
+
                     return res.status(200).json({
                         success: true,
                         role: 'employee',

@@ -98,7 +98,7 @@ const RecruitmentDashboard = () => {
 
                 <Row gutter={[20, 20]} style={{ marginBottom: 32 }}>
                     <Col xs={24} sm={12} md={6}>
-                        <Card className="glass-card" style={{ borderRadius: 16 }}>
+                        <Card variant="borderless" className="glass-card" style={{ borderRadius: 16 }}>
                             <Statistic
                                 title="Total Openings"
                                 value={jobs.length}
@@ -107,7 +107,7 @@ const RecruitmentDashboard = () => {
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} md={6}>
-                        <Card className="glass-card" style={{ borderRadius: 16 }}>
+                        <Card variant="borderless" className="glass-card" style={{ borderRadius: 16 }}>
                             <Statistic
                                 title="Active Jobs"
                                 value={activeJobsCount}
@@ -116,7 +116,7 @@ const RecruitmentDashboard = () => {
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} md={6}>
-                        <Card className="glass-card" style={{ borderRadius: 16 }}>
+                        <Card variant="borderless" className="glass-card" style={{ borderRadius: 16 }}>
                             <Statistic
                                 title="Total Applied"
                                 value={totalApplicants}
@@ -125,7 +125,7 @@ const RecruitmentDashboard = () => {
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} md={6}>
-                        <Card className="glass-card" style={{ borderRadius: 16 }}>
+                        <Card variant="borderless" className="glass-card" style={{ borderRadius: 16 }}>
                             <Statistic
                                 title="Deadline Soon"
                                 value={jobs.filter(j => {

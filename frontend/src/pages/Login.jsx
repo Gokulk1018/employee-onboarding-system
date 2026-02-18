@@ -1,35 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-    Card,
     Form,
     Input,
     Button,
-    Checkbox,
+    Card,
     Typography,
     Space,
     theme,
-    message,
-    ConfigProvider
+    ConfigProvider,
+    App,
+    Checkbox
 } from 'antd';
 import {
     UserOutlined,
     LockOutlined,
-    EyeInvisibleOutlined,
     EyeTwoTone,
+    EyeInvisibleOutlined,
     ArrowRightOutlined
 } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
+import { useSettings } from '../context/SettingsContext';
 import axios from 'axios';
 
 const { Title, Text, Link } = Typography;
 
 const LoginPage = () => {
+    const { message } = App.useApp();
     const [form] = Form.useForm();
     const { token } = theme.useToken();
     const navigate = useNavigate();
     const { isDarkMode } = useTheme();
+    const { branding } = useSettings();
     const [activeRole, setActiveRole] = useState('hr'); // 'hr' or 'employee'
     const [loading, setLoading] = useState(false);
 
@@ -151,9 +154,9 @@ const LoginPage = () => {
                     >
                         <Space align="center" size="middle" style={{ marginBottom: 40 }}>
                             <div style={{ background: 'rgba(255,255,255,0.1)', padding: 12, borderRadius: 16, backdropFilter: 'blur(10px)' }}>
-                                <img src="https://gw.alipayobjects.com/zos/antfincdn/upvrAjAPQX/Logo_Tech%252520UI.svg" alt="Logo" style={{ width: 40 }} />
+                                <img src={branding.logo || "https://gw.alipayobjects.com/zos/antfincdn/upvrAjAPQX/Logo_Tech%252520UI.svg"} alt="Logo" style={{ width: 40 }} />
                             </div>
-                            <span style={{ fontSize: 28, fontWeight: 800, letterSpacing: -1, color: isDarkMode ? '#fff' : '#0f172a' }}>HRFlow</span>
+                            <span style={{ fontSize: 28, fontWeight: 800, letterSpacing: -1, color: isDarkMode ? '#fff' : '#0f172a' }}>{branding.name}</span>
                         </Space>
 
                         <Title level={1} className={isDarkMode ? "gradient-text-hero" : ""} style={{ fontSize: '4.5rem', margin: 0, fontWeight: 800, lineHeight: 1.1, letterSpacing: -3, color: isDarkMode ? undefined : '#0f172a' }}>
@@ -188,7 +191,7 @@ const LoginPage = () => {
                         style={{ width: '100%', maxWidth: 480 }}
                     >
                         <Card
-                            bordered={false}
+                            variant="borderless"
                             className={isDarkMode ? "glass-premium neon-glow-purple" : "glass-card"}
                             style={{
                                 borderRadius: 24,

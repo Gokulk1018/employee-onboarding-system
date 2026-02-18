@@ -16,6 +16,7 @@ const authRoutes = require('./routes/authRoutes');
 const payrollRoutes = require('./routes/payrollRoutes');
 const performanceRoutes = require('./routes/performanceRoutes');
 const engagementRoutes = require('./routes/engagementRoutes');
+const settingsRoutes = require('./routes/settingsRoutes');
 
 console.log('All modules imported');
 
@@ -29,6 +30,7 @@ console.log('Starting server...');
 // Middleware
 app.use(express.json());
 app.use(cors());
+app.use('/uploads', express.static('public/uploads'));
 console.log('Middleware initialized');
 
 // Mount Routes
@@ -45,6 +47,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/payroll', payrollRoutes);
 app.use('/api/performance', performanceRoutes);
 app.use('/api/engagement', engagementRoutes);
+app.use('/api/settings', settingsRoutes);
 console.log('Routes mounted');
 
 // Move listen to BEFORE connectDB to avoid hanging the entire process if DB is slow

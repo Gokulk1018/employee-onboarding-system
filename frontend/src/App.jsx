@@ -48,6 +48,8 @@ const RootRedirect = () => {
     return <Navigate to="/login" replace />;
 };
 
+import SessionTimeout from './components/auth/SessionTimeout';
+
 const AppContent = () => {
     const { isDarkMode } = useTheme();
     const location = useLocation();
@@ -62,6 +64,7 @@ const AppContent = () => {
             }}
         >
             <AntApp>
+                <SessionTimeout />
                 <Routes location={location} key={location.pathname}>
                     <Route path="/" element={<RootRedirect />} />
                     <Route path="/splash" element={<SplashScreen />} />
@@ -102,12 +105,16 @@ const AppContent = () => {
     );
 };
 
+import { SettingsProvider } from './context/SettingsContext';
+
 function App() {
     return (
         <ThemeProvider>
-            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <AppContent />
-            </BrowserRouter>
+            <SettingsProvider>
+                <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                    <AppContent />
+                </BrowserRouter>
+            </SettingsProvider>
         </ThemeProvider>
     );
 }
