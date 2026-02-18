@@ -2,16 +2,10 @@ import React from 'react';
 import { Typography, Tabs, theme } from 'antd';
 import {
     BankOutlined,
-    TeamOutlined,
-    UserAddOutlined,
-    MailOutlined,
     SafetyOutlined,
     LockOutlined
 } from '@ant-design/icons';
 import CompanySettings from '../components/settings/CompanySettings';
-import RecruitmentSettings from '../components/settings/RecruitmentSettings';
-import OnboardingSettings from '../components/settings/OnboardingSettings';
-import EmailNotificationSettings from '../components/settings/EmailNotificationSettings';
 import RolesPermissionsSettings from '../components/settings/RolesPermissionsSettings';
 import SecuritySettings from '../components/settings/SecuritySettings';
 import { motion } from 'framer-motion';
@@ -40,26 +34,11 @@ const Settings = () => {
         },
         {
             key: '2',
-            label: <span><TeamOutlined /> Recruitment Settings</span>,
-            children: <RecruitmentSettings />,
-        },
-        {
-            key: '3',
-            label: <span><UserAddOutlined /> Onboarding Settings</span>,
-            children: <OnboardingSettings />,
-        },
-        {
-            key: '4',
-            label: <span><MailOutlined /> Email & Notifications</span>,
-            children: <EmailNotificationSettings />,
-        },
-        {
-            key: '5',
             label: <span><SafetyOutlined /> Roles & Permissions</span>,
             children: <RolesPermissionsSettings />,
         },
         {
-            key: '6',
+            key: '3',
             label: <span><LockOutlined /> Security</span>,
             children: <SecuritySettings />,
         },
