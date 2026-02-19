@@ -155,7 +155,7 @@ const Dashboard = () => {
                 <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
                     <Col xs={24} lg={16}>
                         <motion.div variants={itemVariants} style={{ height: '100%' }}>
-                            <HiringChart data={data?.hiringTrends} />
+                            <HiringChart data={data?.hiringTrends} loading={loading} />
                         </motion.div>
                     </Col>
                     <Col xs={24} lg={8}>
@@ -171,7 +171,7 @@ const Dashboard = () => {
                         <Row gutter={[24, 24]}>
                             <Col span={24}>
                                 <motion.div variants={itemVariants} style={{ height: '100%' }}>
-                                    <DepartmentChart data={data?.departmentDistribution} />
+                                    <DepartmentChart data={data?.departmentDistribution} loading={loading} />
                                 </motion.div>
                             </Col>
                             <Col span={24}>

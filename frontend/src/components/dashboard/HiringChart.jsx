@@ -1,6 +1,6 @@
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Card, Typography, theme } from 'antd';
+import { Card, Typography, theme, Skeleton } from 'antd';
 
 const data = [
     { name: 'Jan', hired: 4 },
@@ -12,8 +12,20 @@ const data = [
     { name: 'Jul', hired: 15 },
 ];
 
-const HiringChart = ({ data = [] }) => {
+const HiringChart = ({ data = [], loading }) => {
     const { token } = theme.useToken();
+
+    if (loading) {
+        return (
+            <Card
+                title={<Typography.Title level={4} style={{ margin: 0 }}>Hiring Trends</Typography.Title>}
+                variant="borderless"
+                style={{ borderRadius: 20, height: '100%' }}
+            >
+                <Skeleton active paragraph={{ rows: 6 }} />
+            </Card>
+        );
+    }
 
     // Generate last 6 months labels
     const getChartData = () => {

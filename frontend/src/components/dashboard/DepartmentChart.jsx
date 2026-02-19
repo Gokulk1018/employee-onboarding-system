@@ -1,9 +1,20 @@
 import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Typography, theme } from 'antd';
+import { Typography, theme, Skeleton } from 'antd';
 
-const DepartmentChart = ({ data = [] }) => {
+const DepartmentChart = ({ data = [], loading }) => {
     const { token } = theme.useToken();
+
+    if (loading) {
+        return (
+            <div className="glass-card" style={{ padding: 24, height: '100%', borderColor: token.colorBorder }}>
+                <Typography.Title level={4} style={{ margin: '0 0 24px 0', color: token.colorText }}>Department Distribution</Typography.Title>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 260 }}>
+                    <Skeleton.Avatar active size={200} shape="circle" />
+                </div>
+            </div>
+        );
+    }
 
     const COLORS = ['#4f46e5', '#3b82f6', '#10b981', '#f59e0b', '#7c3aed', '#ef4444'];
 

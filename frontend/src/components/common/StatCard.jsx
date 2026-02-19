@@ -8,7 +8,14 @@ const StatCard = ({ title, value, icon, prefix, suffix, color, trend, loading })
     const { token } = theme.useToken();
 
     if (loading) {
-        return <Skeleton active paragraph={{ rows: 2 }} className="glass-card p-6" />;
+        return (
+            <div className="glass-card p-6" style={{ height: '100%' }}>
+                <Skeleton active paragraph={{ rows: 1 }} title={{ width: '60%' }} />
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: -20 }}>
+                    <Skeleton.Avatar active size="large" shape="square" />
+                </div>
+            </div>
+        );
     }
 
     const isNumeric = typeof value === 'number';

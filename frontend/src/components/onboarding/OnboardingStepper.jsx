@@ -7,23 +7,55 @@ import {
     TeamOutlined,
     SmileOutlined,
     CheckCircleOutlined,
-    ArrowRightOutlined
+    ArrowRightOutlined,
+    CloseCircleOutlined
 } from '@ant-design/icons';
 
 const OnboardingStepper = ({ candidateData }) => {
     const { token } = theme.useToken();
-    const [currentStep, setCurrentStep] = useState(2); // IT Setup in progress
+
+    // Calculate current step based on candidate status
+    const getOnboardingState = () => {
+        const offerStatus = candidateData?.rawStatus || candidateData?.status;
+
+        // Handle Offer Stage
+        if (offerStatus === 'DECLINED' || offerStatus === 'Rejected') {
+            return { step: 0, status: 'error', desc: 'Offer declined by candidate' };
+        }
+        if (offerStatus === 'Sent') {
+            return { step: 0, status: 'process', desc: 'Offer sent, awaiting response' };
+        }
+        if (offerStatus === 'Draft') {
+            return { step: 0, status: 'wait', desc: 'Offer letter in preparation' };
+        }
+
+        // Handle Documentation Stage
+        // Note: In a real app, we'd check against OnboardingUser status here too
+        // For now, if accepted, we move to documentation
+        if (offerStatus === 'Accepted' || offerStatus === 'OFFER_ACCEPTED') {
+            // Check if there's any onboarding record info passed or if we should mock it for now
+            // If the user is in review, they are at step 1 or 2
+            return { step: 1, status: 'process', desc: 'Documents being verified' };
+        }
+
+        return { step: 0, status: 'wait', desc: 'Awaiting offer' };
+    };
+
+    const state = getOnboardingState();
+    const [currentStep, setCurrentStep] = useState(state.step);
 
     const steps = [
         {
             title: 'Offer Accepted',
-            icon: <CheckCircleOutlined />,
-            description: 'Nov 20, 2023'
+            icon: state.step === 0 && state.status === 'error' ? <CloseCircleOutlined /> : <CheckCircleOutlined />,
+            description: (candidateData?.status === 'DECLINED' || candidateData?.status === 'Rejected')
+                ? 'Offer Rejected'
+                : (candidateData?.date || 'Awaiting response')
         },
         {
             title: 'Documentation',
             icon: <SolutionOutlined />,
-            description: 'Documents verified'
+            description: state.step > 1 ? 'Documents verified' : 'Pending verification'
         },
         {
             title: 'IT Setup',
@@ -33,7 +65,7 @@ const OnboardingStepper = ({ candidateData }) => {
         {
             title: 'Orientation',
             icon: <TeamOutlined />,
-            description: 'Scheduled for Dec 1'
+            description: candidateData?.joiningDate ? `Scheduled for ${candidateData.joiningDate}` : 'TBD'
         },
         {
             title: 'Ready (Day 1)',
@@ -41,20 +73,6 @@ const OnboardingStepper = ({ candidateData }) => {
             description: 'First day'
         }
     ];
-
-    const handleMarkCompleted = () => {
-        if (currentStep < steps.length - 1) {
-            setCurrentStep(currentStep + 1);
-            message.success(`${steps[currentStep].title} marked as completed`);
-        }
-    };
-
-    const handleMoveNext = () => {
-        if (currentStep < steps.length - 1) {
-            setCurrentStep(currentStep + 1);
-            message.success(`Moved to ${steps[currentStep + 1].title}`);
-        }
-    };
 
     return (
         <div className="glass-card" style={{ padding: 24, height: '100%', borderColor: token.colorBorder }}>
@@ -103,32 +121,15 @@ const OnboardingStepper = ({ candidateData }) => {
             <Steps
                 direction="vertical"
                 current={currentStep}
+                status={state.status}
                 items={steps.map((step, index) => ({
                     ...step,
-                    status: index < currentStep ? 'finish' : index === currentStep ? 'process' : 'wait',
+                    status: (index === currentStep) ? state.status : (index < currentStep ? 'finish' : 'wait'),
                     description: <span style={{ color: token.colorTextSecondary }}>{step.description}</span>
                 }))}
             />
 
-            <Space direction="vertical" style={{ width: '100%', marginTop: 24 }}>
-                <Button
-                    type="primary"
-                    block
-                    onClick={handleMarkCompleted}
-                    disabled={currentStep >= steps.length - 1}
-                    icon={<CheckCircleOutlined />}
-                >
-                    Mark Step Completed
-                </Button>
-                <Button
-                    block
-                    onClick={handleMoveNext}
-                    disabled={currentStep >= steps.length - 1}
-                    icon={<ArrowRightOutlined />}
-                >
-                    Move to Next Step
-                </Button>
-            </Space>
+
         </div>
     );
 };

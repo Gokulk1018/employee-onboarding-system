@@ -28,7 +28,7 @@ const onboardingUserSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['pending', 'submitted', 'approved', 'rejected'],
+        enum: ['pending', 'submitted', 'approved', 'rejected', 'reupload_required'],
         default: 'pending'
     },
     onboardingData: {
@@ -38,6 +38,12 @@ const onboardingUserSchema = new mongoose.Schema({
     documents: [{
         name: String,
         url: String,
+        status: {
+            type: String,
+            enum: ['pending', 'reviewed', 'verified', 'rejected'],
+            default: 'pending'
+        },
+        remarks: String,
         uploadedAt: {
             type: Date,
             default: Date.now
