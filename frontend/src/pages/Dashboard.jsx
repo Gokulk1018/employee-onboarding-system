@@ -13,6 +13,7 @@ import QuickActions from '../components/dashboard/QuickActions';
 import PendingApprovals from '../components/dashboard/PendingApprovals';
 import TaskOverview from '../components/dashboard/TaskOverview';
 import TodayFocus from '../components/dashboard/TodayFocus';
+import MeetingModal from '../components/dashboard/MeetingModal';
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -38,6 +39,9 @@ const Dashboard = () => {
     const { token } = theme.useToken();
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
+    const [employees, setEmployees] = useState([]);
+    const [loadingEmployees, setLoadingEmployees] = useState(false);
 
     const fetchStats = async () => {
         try {
@@ -54,8 +58,35 @@ const Dashboard = () => {
         }
     };
 
+    const fetchEmployees = async () => {
+        try {
+            setLoadingEmployees(true);
+            const response = await axios.get('http://localhost:5000/api/employees');
+            if (response.data.success) {
+                setEmployees(response.data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching employees:', error);
+        } finally {
+            setLoadingEmployees(false);
+        }
+    };
+
+    const handleMeetingSubmit = async (meetingData) => {
+        try {
+            await axios.post('http://localhost:5000/api/tasks/create', meetingData);
+            message.success('Team meeting scheduled successfully');
+            setIsMeetingModalOpen(false);
+            fetchStats(); // Refresh to show new task in overview
+        } catch (error) {
+            console.error('Error scheduling meeting:', error);
+            message.error('Failed to schedule meeting');
+        }
+    };
+
     useEffect(() => {
         fetchStats();
+        fetchEmployees();
     }, []);
 
     return (
@@ -129,7 +160,7 @@ const Dashboard = () => {
                     </Col>
                     <Col xs={24} lg={8}>
                         <motion.div variants={itemVariants} style={{ height: '100%' }}>
-                            <QuickActions onAdd={() => window.location.href = '/employees?action=add'} />
+                            <QuickActions onMeeting={() => setIsMeetingModalOpen(true)} />
                         </motion.div>
                     </Col>
                 </Row>
@@ -170,6 +201,14 @@ const Dashboard = () => {
                         </motion.div>
                     </Col>
                 </Row>
+
+                <MeetingModal
+                    open={isMeetingModalOpen}
+                    onClose={() => setIsMeetingModalOpen(false)}
+                    onSubmit={handleMeetingSubmit}
+                    employees={employees}
+                    loadingEmployees={loadingEmployees}
+                />
             </motion.div>
         </PageContainer>
     );

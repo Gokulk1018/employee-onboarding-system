@@ -35,8 +35,10 @@ const TaskOverview = ({ data, loading }) => {
                     strokeWidth={10}
                     gapDegree={30}
                 />
-                <div style={{ marginTop: -20 }}>
-                    <Text strong style={{ fontSize: 16, color: token.colorText }}>Completion Rate</Text>
+                <div style={{ marginTop: 12 }}>
+                    <Text strong style={{ fontSize: 14, color: token.colorTextSecondary, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Completion Rate
+                    </Text>
                 </div>
             </div>
 

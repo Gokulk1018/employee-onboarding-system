@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Typography, Button, Segmented, Input, Row, Col, Card, Statistic, Space, Badge, theme, App } from 'antd';
 import {
     PlusOutlined,
@@ -19,6 +19,7 @@ import TaskDetailDrawer from '../components/tasks/TaskDetailDrawer';
 import { motion } from 'framer-motion';
 import PageContainer from '../components/layout/PageContainer';
 import axios from 'axios';
+import { useLocation } from 'react-router-dom';
 
 const { Title } = Typography;
 
@@ -27,6 +28,7 @@ const { Title } = Typography;
 const Tasks = () => {
     const { message } = App.useApp();
     const { token } = theme.useToken();
+    const location = useLocation();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const [viewingTask, setViewingTask] = useState(null);
@@ -74,10 +76,15 @@ const Tasks = () => {
         }
     };
 
-    React.useEffect(() => {
+    useEffect(() => {
         fetchTasks();
         fetchEmployees();
-    }, []);
+
+        const queryParams = new URLSearchParams(location.search);
+        if (queryParams.get('action') === 'add') {
+            setIsModalOpen(true);
+        }
+    }, [location]);
 
     // Calculate statistics
     const allTasks = [...tasks.todo, ...tasks.inProgress, ...tasks.done];

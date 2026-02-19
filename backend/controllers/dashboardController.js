@@ -65,9 +65,28 @@ exports.getDashboardStats = async (req, res) => {
             { $match: { status: 'done' } },
             { $unwind: "$assignees" },
             {
+                $addFields: {
+                    effectivePoints: {
+                        $ifNull: [
+                            "$points",
+                            {
+                                $switch: {
+                                    branches: [
+                                        { case: { $eq: ["$priority", "High"] }, then: 10 },
+                                        { case: { $eq: ["$priority", "Medium"] }, then: 7 },
+                                        { case: { $eq: ["$priority", "Low"] }, then: 5 }
+                                    ],
+                                    default: 7
+                                }
+                            }
+                        ]
+                    }
+                }
+            },
+            {
                 $group: {
                     _id: "$assignees",
-                    totalPoints: { $sum: "$points" }
+                    totalPoints: { $sum: "$effectivePoints" }
                 }
             },
             { $sort: { totalPoints: -1 } },
@@ -118,7 +137,10 @@ exports.getDashboardStats = async (req, res) => {
             joiningDate: { $gte: today, $lt: tomorrow },
             status: 'Accepted'
         });
-        const activeJobs = await Job.countDocuments({ status: 'OPEN' });
+        const activeJobs = await Job.countDocuments({
+            status: 'OPEN',
+            applicationDeadline: { $gte: today }
+        });
         const payrollDue = await PayrollTransaction.countDocuments({ status: 'Pending' });
 
         res.status(200).json({

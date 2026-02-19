@@ -17,7 +17,7 @@ const DepartmentChart = ({ data = [] }) => {
         <div className="glass-card" style={{ padding: 24, height: '100%', borderColor: token.colorBorder }}>
             <Typography.Title level={4} style={{ margin: '0 0 24px 0', color: token.colorText }}>Department Distribution</Typography.Title>
             <div style={{ width: '100%', height: 300, minWidth: 0, minHeight: 0 }}>
-                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                <ResponsiveContainer width="100%" height="100%" debounce={50} minWidth={0} minHeight={100}>
                     <PieChart>
                         <Pie
                             data={chartData}

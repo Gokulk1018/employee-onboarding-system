@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Typography, Row, Col, Input, Button, Space, Badge, theme, App, Statistic, Card, Select } from 'antd';
 import {
     PlusOutlined,
@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import PageContainer from '../components/layout/PageContainer';
 import JobPostingDrawer from '../components/recruitment/JobPostingDrawer';
 import JobList from '../components/recruitment/JobList';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { getSessionJobs, saveSessionJobs } from '../data/mockRecruitmentData';
 import dayjs from 'dayjs';
 
@@ -23,6 +23,7 @@ const { Title, Text } = Typography;
 const RecruitmentDashboard = () => {
     const { token } = theme.useToken();
     const navigate = useNavigate();
+    const location = useLocation();
     const { message } = App.useApp();
 
     // Using session-aware state for mock data
@@ -48,6 +49,13 @@ const RecruitmentDashboard = () => {
         };
         fetchJobs();
     }, []);
+
+    useEffect(() => {
+        const queryParams = new URLSearchParams(location.search);
+        if (queryParams.get('action') === 'add') {
+            setIsDrawerOpen(true);
+        }
+    }, [location]);
     const [filterStatus, setFilterStatus] = useState('ALL');
     const [viewType, setViewType] = useState('grid'); // 'grid' or 'list'
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
