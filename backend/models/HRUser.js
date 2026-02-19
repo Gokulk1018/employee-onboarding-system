@@ -29,6 +29,13 @@ const hrUserSchema = new mongoose.Schema({
         type: String,
         enum: ['active', 'blocked'],
         default: 'active'
+    },
+    failedLoginAttempts: {
+        type: Number,
+        default: 0
+    },
+    lastFailedLogin: {
+        type: Date
     }
 }, {
     timestamps: true

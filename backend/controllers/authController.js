@@ -4,6 +4,7 @@ const Employee = require('../models/Employee');
 const SystemSettings = require('../models/SystemSettings');
 const jwt = require('jsonwebtoken');
 const sendEmail = require('../utils/emailHelper');
+const bcrypt = require('bcryptjs');
 
 // @desc    Unified Login (HR Admin | Employee)
 // @route   POST /api/auth/login
@@ -19,44 +20,86 @@ exports.login = async (req, res, next) => {
         const settings = await SystemSettings.findOne();
 
         if (roleToggle === 'hr') {
-            const user = await HRUser.findOne({ username: normalizedUsername });
+            let user = await HRUser.findOne({ username: normalizedUsername });
 
-            // Hardcoded fallback for Gokul
+            // Hardcoded fallback ONLY if user not in DB
             const isHardcodedGokul = normalizedUsername === 'gokul' && password === '1018';
 
-            if (!user && !isHardcodedGokul) {
+            let isMatch = false;
+            if (user) {
+                // Check if password is hashed (starts with $2a$ or $2b$)
+                if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
+                    isMatch = await bcrypt.compare(password, user.password);
+                } else {
+                    isMatch = user.password === password;
+                }
+            } else if (isHardcodedGokul) {
+                isMatch = true;
+            }
+
+            if (!isMatch) {
+                // Handle failed attempt for existing user
+                if (user) {
+                    user.failedLoginAttempts += 1;
+                    user.lastFailedLogin = new Date();
+                    await user.save();
+
+                    if (user.failedLoginAttempts >= 2 && settings?.security?.loginAlert) {
+                        const hrEmail = settings.companyInfo?.hrEmail || 'hr@hrflow.com';
+                        await sendEmail({
+                            email: hrEmail,
+                            subject: 'Security Alert: Multiple Failed Login Attempts',
+                            html: `<p>Warning: <b>${user.failedLoginAttempts}</b> failed login attempts detected for HR Admin: <b>${normalizedUsername}</b></p>
+                                    <p>Time: ${new Date().toLocaleString()}</p>
+                                    <p>Please ensure your account is secure.</p>`
+                        }).catch(err => console.error('Security alert failed:', err));
+                    }
+                }
                 return res.status(401).json({ success: false, message: 'Invalid HR credentials' });
             }
 
-            if (user && user.password !== password && !isHardcodedGokul) {
-                return res.status(401).json({ success: false, message: 'Invalid HR credentials' });
+            // SUCCESSFUL LOGIN
+            if (user) {
+                user.failedLoginAttempts = 0;
+                user.lastFailedLogin = undefined;
+                await user.save();
+
+                // Check status
+                if (user.status === 'blocked') {
+                    return res.status(401).json({ success: false, message: 'Account blocked. Contact Admin.' });
+                }
             }
 
-            // Check status if user account exists
-            if (user && user.status === 'blocked') {
-                return res.status(401).json({ success: false, message: 'Account blocked. Contact Admin.' });
-            }
-
-            // Login Alert logic
+            // Success alert if configured
             if (settings?.security?.loginAlert) {
                 const hrEmail = settings.companyInfo?.hrEmail || 'hr@hrflow.com';
                 await sendEmail({
                     email: hrEmail,
                     subject: 'New HR Login Detected',
                     html: `<p>A new login attempt was successful for HR Admin: <b>${normalizedUsername}</b></p>
-                           <p>Time: ${new Date().toLocaleString()}</p>`
+                            <p>Time: ${new Date().toLocaleString()}</p>`
                 }).catch(err => console.error('Login alert failed:', err));
             }
 
             // Generate token for HR user
-            console.log('Attempting to sign JWT with secret length:', process.env.JWT_SECRET ? process.env.JWT_SECRET.length : 'MISSING');
+            const sessionTimeout = settings?.security?.sessionTimeout ? `${settings.security.sessionTimeout}m` : '24h';
 
-            if (!process.env.JWT_SECRET) {
-                throw new Error('JWT_SECRET is missing in environment variables');
-            }
+            const token = jwt.sign(
+                { id: user ? user._id : '507f1f77bcf86cd799439011', role: 'hr' },
+                process.env.JWT_SECRET,
+                { expiresIn: sessionTimeout }
+            );
 
-            const token = jwt.sign({ id: user ? user._id : '507f1f77bcf86cd799439011', role: 'hr' }, process.env.JWT_SECRET, {
-                expiresIn: process.env.JWT_EXPIRE || '24h'
+            return res.status(200).json({
+                success: true,
+                role: 'hr',
+                token,
+                data: {
+                    userId: user ? user._id : '507f1f77bcf86cd799439011',
+                    username: user ? user.username : 'gokul',
+                    name: user ? user.name : 'Gokul Admin',
+                    role: 'hr'
+                }
             });
 
             return res.status(200).json({
@@ -101,9 +144,19 @@ exports.login = async (req, res, next) => {
                     return res.status(401).json({ success: false, message: 'Account blocked. Contact HR.' });
                 }
 
-                const isValid = employee.password ? employee.password === password : password === '123';
+                let isMatch = false;
+                if (employee.password) {
+                    // Check if password is hashed (starts with $2a$ or $2b$)
+                    if (employee.password.startsWith('$2a$') || employee.password.startsWith('$2b$')) {
+                        isMatch = await bcrypt.compare(password, employee.password);
+                    } else {
+                        isMatch = employee.password === password;
+                    }
+                } else {
+                    isMatch = password === '123'; // Default password fallback
+                }
 
-                if (isValid) {
+                if (isMatch) {
                     // Login Alert logic
                     if (settings?.security?.loginAlert) {
                         const hrEmail = settings.companyInfo?.hrEmail || 'hr@hrflow.com';

@@ -34,10 +34,17 @@ const SecuritySettings = () => {
         try {
             const res = await changePassword({ ...values, userId, userRole });
             if (res.success) {
-                message.success('Password changed successfully');
-                form.resetFields(['currentPassword', 'newPassword', 'confirmPassword']);
+                message.success(res.message);
+                form.resetFields(['currentPassword', 'newPassword', 'confirmPassword', 'newUsername']);
+
+                // If username was changed, update local storage or context if necessary
+                if (res.data && res.data.username) {
+                    localStorage.setItem('username', res.data.username);
+                    // Force reload or update context to reflect change if needed
+                    // window.location.reload(); 
+                }
             } else {
-                message.error(res.message || 'Failed to change password');
+                message.error(res.message || 'Failed to update credentials');
             }
         } catch (error) {
             message.error('An error occurred');
@@ -69,6 +76,14 @@ const SecuritySettings = () => {
                     style={{ marginBottom: 40 }}
                 >
                     <Form.Item
+                        name="newUsername"
+                        label="New Username"
+                        tooltip="Leave blank to keep current username"
+                    >
+                        <Input size="large" placeholder="Enter new username" />
+                    </Form.Item>
+
+                    <Form.Item
                         name="currentPassword"
                         label="Current Password"
                         rules={[{ required: true, message: 'Please enter current password' }]}
@@ -79,12 +94,8 @@ const SecuritySettings = () => {
                     <Form.Item
                         name="newPassword"
                         label="New Password"
-                        rules={[
-                            { required: true, message: 'Please enter new password' },
-                            { min: 8, message: 'Password must be at least 8 characters' }
-                        ]}
                     >
-                        <Input.Password size="large" placeholder="Enter new password" />
+                        <Input.Password size="large" placeholder="Enter new password (optional)" />
                     </Form.Item>
 
                     <Form.Item
@@ -92,7 +103,6 @@ const SecuritySettings = () => {
                         label="Confirm New Password"
                         dependencies={['newPassword']}
                         rules={[
-                            { required: true, message: 'Please confirm new password' },
                             ({ getFieldValue }) => ({
                                 validator(_, value) {
                                     if (!value || getFieldValue('newPassword') === value) {
@@ -108,7 +118,7 @@ const SecuritySettings = () => {
 
                     <Form.Item>
                         <Button type="primary" htmlType="submit" icon={<SaveOutlined />} size="large">
-                            Change Password
+                            Update Credentials
                         </Button>
                     </Form.Item>
                 </Form>

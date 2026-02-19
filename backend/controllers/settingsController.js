@@ -176,10 +176,10 @@ exports.toggleUserStatus = async (req, res, next) => {
 // @route   POST /api/settings/change-password
 exports.changePassword = async (req, res, next) => {
     try {
-        const { currentPassword, newPassword, userId, userRole } = req.body;
+        const { currentPassword, newPassword, newUsername, userId, userRole } = req.body;
 
-        if (!currentPassword || !newPassword || !userId) {
-            return res.status(400).json({ success: false, message: 'Please provide all required fields' });
+        if (!currentPassword || !userId) {
+            return res.status(400).json({ success: false, message: 'Please provide current password' });
         }
 
         let user;
@@ -189,25 +189,72 @@ exports.changePassword = async (req, res, next) => {
             user = await Employee.findById(userId).select('+password');
         }
 
-        if (!user) {
-            return res.status(404).json({ success: false, message: 'User not found' });
-        }
-
-        // Validate current password
-        const isMatch = await bcrypt.compare(currentPassword, user.password);
-        if (!isMatch) {
-            // Fallback for non-hashed legacy passwords (if any)
-            if (user.password !== currentPassword) {
+        // Handle hardcoded admin fallback (if user doesn't exist in DB yet)
+        if (!user && userRole === 'hr' && userId === '507f1f77bcf86cd799439011') {
+            if (currentPassword === '1018') {
+                // Initialize the HR user since they are logged in with hardcoded credentials
+                user = new HRUser({
+                    username: 'gokul',
+                    password: '1018',
+                    name: 'Gokul Admin',
+                    email: 'gokulk.1018@gmail.com'
+                });
+            } else {
                 return res.status(401).json({ success: false, message: 'Incorrect current password' });
             }
         }
 
-        // Hash new password
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(newPassword, salt);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // Validate current password (if not just created)
+        if (user.isNew === false) {
+            let isMatch = false;
+            if (user.password && (user.password.startsWith('$2a$') || user.password.startsWith('$2b$'))) {
+                isMatch = await bcrypt.compare(currentPassword, user.password);
+            } else {
+                isMatch = user.password === currentPassword;
+            }
+
+            if (!isMatch) {
+                return res.status(401).json({ success: false, message: 'Incorrect current password' });
+            }
+        }
+
+        // Update Username (if provided and different)
+        if (newUsername && newUsername !== user.username) {
+            const normalizedNewUsername = newUsername.toLowerCase().trim();
+            if (normalizedNewUsername !== user.username) {
+                // Check uniqueness
+                if (userRole === 'hr') {
+                    const existingUser = await HRUser.findOne({ username: normalizedNewUsername });
+                    if (existingUser) {
+                        return res.status(400).json({ success: false, message: 'Username already taken' });
+                    }
+                } else {
+                    const existingEmployee = await Employee.findOne({ username: normalizedNewUsername });
+                    if (existingEmployee) {
+                        return res.status(400).json({ success: false, message: 'Username already taken' });
+                    }
+                }
+                user.username = normalizedNewUsername;
+            }
+        }
+
+        // Update password (if provided) - No length restrictions as per request
+        if (newPassword) {
+            const salt = await bcrypt.genSalt(10);
+            user.password = await bcrypt.hash(newPassword, salt);
+        }
+
         await user.save();
 
-        res.status(200).json({ success: true, message: 'Password updated successfully' });
+        res.status(200).json({
+            success: true,
+            message: 'Credentials updated successfully',
+            data: { username: user.username }
+        });
     } catch (err) {
         next(err);
     }

@@ -55,12 +55,16 @@ const LoginPage = () => {
             });
 
             if (response.data.success) {
-                const { role, data } = response.data;
+                const { role, data, token: authToken } = response.data;
                 localStorage.setItem('userRole', role);
                 localStorage.setItem('isAuthenticated', 'true');
                 localStorage.setItem('userId', data.userId);
                 localStorage.setItem('username', data.username);
                 localStorage.setItem('name', data.name);
+                localStorage.setItem('token', authToken);
+
+                // Save user object for api.js consistency
+                localStorage.setItem('user', JSON.stringify({ ...data, token: authToken, role }));
 
                 if (role === 'onboarding') {
                     localStorage.setItem('offerId', data.offerId);

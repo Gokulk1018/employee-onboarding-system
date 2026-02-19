@@ -1,60 +1,43 @@
-const API_URL = 'http://localhost:5000/api/settings';
+import api from './api';
 
 export const getSettings = async () => {
-    const res = await fetch(`${API_URL}`);
-    return await res.json();
+    const response = await api.get('/settings');
+    return response.data;
 };
 
 export const updateSettings = async (settings) => {
-    const res = await fetch(`${API_URL}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings)
-    });
-    return await res.json();
+    const response = await api.put('/settings', settings);
+    return response.data;
 };
 
 export const getRoles = async () => {
-    const res = await fetch(`${API_URL}/roles`);
-    return await res.json();
+    const response = await api.get('/settings/roles');
+    return response.data;
 };
 
 export const updateRolePermissions = async (id, permissions) => {
-    const res = await fetch(`${API_URL}/roles/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ permissions })
-    });
-    return await res.json();
+    const response = await api.put(`/settings/roles/${id}`, { permissions });
+    return response.data;
 };
 
 export const changePassword = async (data) => {
-    const res = await fetch(`${API_URL}/change-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-    return await res.json();
+    const response = await api.post('/settings/change-password', data);
+    return response.data;
 };
 
 export const getUsers = async () => {
-    const res = await fetch(`${API_URL}/users`);
-    return await res.json();
+    const response = await api.get('/settings/users');
+    return response.data;
 };
 
 export const toggleUserStatus = async (id, type) => {
-    const res = await fetch(`${API_URL}/users/${id}/toggle-status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type })
-    });
-    return await res.json();
+    const response = await api.put(`/settings/users/${id}/toggle-status`, { type });
+    return response.data;
 };
 
 export const uploadLogo = async (formData) => {
-    const res = await fetch(`${API_URL}/upload-logo`, {
-        method: 'POST',
-        body: formData
+    const response = await api.post('/settings/upload-logo', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
     });
-    return await res.json();
+    return response.data;
 };
