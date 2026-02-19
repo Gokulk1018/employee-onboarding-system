@@ -14,7 +14,7 @@ const actions = [
     { icon: <SettingOutlined />, label: 'Settings', color: '#64748b' },
 ];
 
-const QuickActions = () => {
+const QuickActions = ({ onAdd }) => {
     const { token } = theme.useToken();
     return (
         <div className="glass-card" style={{ padding: 24, height: '100%', borderColor: token.colorBorder }}>
@@ -25,6 +25,7 @@ const QuickActions = () => {
                         <motion.div
                             whileHover={{ y: -5, scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
+                            onClick={() => action.label === 'Add Employee' && onAdd && onAdd()}
                             style={{
                                 display: 'flex',
                                 flexDirection: 'column',

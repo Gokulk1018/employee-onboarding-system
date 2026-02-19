@@ -9,12 +9,15 @@ import DepartmentPieChart from '../components/employees/DepartmentPieChart';
 import AddEmployeeModal from '../components/employees/AddEmployeeModal';
 import { motion } from 'framer-motion';
 import PageContainer from '../components/layout/PageContainer';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
 const { Title } = Typography;
 
 const Employees = () => {
     const { token } = theme.useToken();
+    const navigate = useNavigate();
+    const location = useLocation();
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
     const [viewType, setViewType] = useState('table');
@@ -38,7 +41,22 @@ const Employees = () => {
 
     useEffect(() => {
         fetchEmployees();
-    }, []);
+
+        // Check for ?action=add
+        const queryParams = new URLSearchParams(location.search);
+        if (queryParams.get('action') === 'add') {
+            setIsModalOpen(true);
+        }
+    }, [location]);
+
+    const handleAddSuccess = () => {
+        fetchEmployees();
+        const queryParams = new URLSearchParams(location.search);
+        if (queryParams.get('action') === 'add') {
+            // If we came from dashboard, go back to dashboard
+            navigate('/');
+        }
+    };
 
     const handleDelete = async (id) => {
         try {
@@ -181,7 +199,7 @@ const Employees = () => {
                 <AddEmployeeModal
                     open={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
-                    onSuccess={fetchEmployees}
+                    onSuccess={handleAddSuccess}
                 />
             </motion.div>
         </PageContainer>

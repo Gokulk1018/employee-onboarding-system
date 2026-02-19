@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
 
-const GreetingBanner = () => {
+const GreetingBanner = ({ metrics }) => {
     const { token } = theme.useToken();
     const time = dayjs().hour();
     const greeting = time < 12 ? 'Good Morning' : time < 18 ? 'Good Afternoon' : 'Good Evening';
@@ -44,11 +44,15 @@ const GreetingBanner = () => {
                     <Col>
                         <Space size="large" split={<div style={{ width: 1, height: 40, background: token.colorSplit }} />}>
                             <div style={{ textAlign: 'center' }}>
-                                <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>1,234</div>
+                                <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>
+                                    {metrics?.totalEmployees?.toLocaleString() || 0}
+                                </div>
                                 <Text style={{ color: 'var(--text-secondary)' }}>Total Employees</Text>
                             </div>
                             <div style={{ textAlign: 'center' }}>
-                                <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>24</div>
+                                <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>
+                                    {metrics?.activeEmployees || 0}
+                                </div>
                                 <Text style={{ color: 'var(--text-secondary)' }}>Active Today</Text>
                             </div>
                         </Space>

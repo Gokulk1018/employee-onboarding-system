@@ -23,6 +23,15 @@ const taskSchema = new mongoose.Schema({
     dueDate: {
         type: Date
     },
+    difficulty: {
+        type: String,
+        enum: ['easy', 'medium', 'hard'],
+        default: 'medium'
+    },
+    points: {
+        type: Number,
+        default: 7 // Default for medium
+    },
     estimatedHours: {
         type: Number,
         default: 0

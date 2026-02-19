@@ -1,16 +1,18 @@
-import React from 'react';
-import { Row, Col, theme } from 'antd';
-import { TeamOutlined, ScheduleOutlined, DollarOutlined, HeartOutlined } from '@ant-design/icons';
+import React, { useState, useEffect } from 'react';
+import { Row, Col, theme, message } from 'antd';
+import { TeamOutlined, ScheduleOutlined, DollarOutlined, HeartOutlined, PlusOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import { motion } from 'framer-motion';
+import axios from 'axios';
 import PageContainer from '../components/layout/PageContainer';
 import GreetingBanner from '../components/dashboard/GreetingBanner';
 import StatCard from '../components/common/StatCard';
-import RecentActivities from '../components/dashboard/RecentActivities';
 import TopPerformers from '../components/dashboard/TopPerformers';
 import HiringChart from '../components/dashboard/HiringChart';
 import DepartmentChart from '../components/dashboard/DepartmentChart';
 import QuickActions from '../components/dashboard/QuickActions';
-import TeamMood from '../components/dashboard/TeamMood';
+import PendingApprovals from '../components/dashboard/PendingApprovals';
+import TaskOverview from '../components/dashboard/TaskOverview';
+import TodayFocus from '../components/dashboard/TodayFocus';
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -34,6 +36,27 @@ const itemVariants = {
 
 const Dashboard = () => {
     const { token } = theme.useToken();
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    const fetchStats = async () => {
+        try {
+            setLoading(true);
+            const response = await axios.get('http://localhost:5000/api/dashboard/stats');
+            if (response.data.success) {
+                setData(response.data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching dashboard stats:', error);
+            message.error('Failed to load dashboard metrics');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchStats();
+    }, []);
 
     return (
         <PageContainer>
@@ -45,7 +68,7 @@ const Dashboard = () => {
             >
                 {/* Greeting Section */}
                 <motion.div variants={itemVariants}>
-                    <GreetingBanner />
+                    <GreetingBanner metrics={data?.metrics} />
                 </motion.div>
 
                 {/* Stats Grid */}
@@ -54,10 +77,10 @@ const Dashboard = () => {
                         <motion.div variants={itemVariants} style={{ height: '100%' }}>
                             <StatCard
                                 title="Total Employees"
-                                value={1234}
+                                value={data?.metrics?.totalEmployees || 0}
                                 icon={<TeamOutlined />}
-                                trend={12}
                                 color={token.colorInfo}
+                                loading={loading}
                             />
                         </motion.div>
                     </Col>
@@ -65,35 +88,33 @@ const Dashboard = () => {
                         <motion.div variants={itemVariants} style={{ height: '100%' }}>
                             <StatCard
                                 title="Attendance Rate"
-                                value={95}
+                                value={Math.round(data?.metrics?.attendancePercentage || 0)}
                                 suffix="%"
                                 icon={<ScheduleOutlined />}
-                                trend={2.5}
                                 color={token.colorSuccess}
+                                loading={loading}
                             />
                         </motion.div>
                     </Col>
                     <Col xs={24} sm={12} lg={6}>
                         <motion.div variants={itemVariants} style={{ height: '100%' }}>
                             <StatCard
-                                title="Monthly Payroll"
-                                value={450}
-                                prefix="$"
-                                suffix="k"
-                                icon={<DollarOutlined />}
-                                trend={-0.4}
+                                title="Pending Tasks"
+                                value={data?.metrics?.totalPendingTasks || 0}
+                                icon={<ClockCircleOutlined />}
                                 color={token.colorWarning}
+                                loading={loading}
                             />
                         </motion.div>
                     </Col>
                     <Col xs={24} sm={12} lg={6}>
                         <motion.div variants={itemVariants} style={{ height: '100%' }}>
                             <StatCard
-                                title="Engagement Score"
-                                value={8.4}
-                                icon={<HeartOutlined />}
-                                trend={5.1}
+                                title="Active Jobs"
+                                value={data?.todayFocus?.activeJobs || 0}
+                                icon={<ScheduleOutlined />}
                                 color={token.colorPrimary}
+                                loading={loading}
                             />
                         </motion.div>
                     </Col>
@@ -103,12 +124,12 @@ const Dashboard = () => {
                 <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
                     <Col xs={24} lg={16}>
                         <motion.div variants={itemVariants} style={{ height: '100%' }}>
-                            <HiringChart />
+                            <HiringChart data={data?.hiringTrends} />
                         </motion.div>
                     </Col>
                     <Col xs={24} lg={8}>
                         <motion.div variants={itemVariants} style={{ height: '100%' }}>
-                            <QuickActions />
+                            <QuickActions onAdd={() => window.location.href = '/employees?action=add'} />
                         </motion.div>
                     </Col>
                 </Row>
@@ -119,24 +140,33 @@ const Dashboard = () => {
                         <Row gutter={[24, 24]}>
                             <Col span={24}>
                                 <motion.div variants={itemVariants} style={{ height: '100%' }}>
-                                    <DepartmentChart />
+                                    <DepartmentChart data={data?.departmentDistribution} />
                                 </motion.div>
                             </Col>
                             <Col span={24}>
                                 <motion.div variants={itemVariants} style={{ height: '100%' }}>
-                                    <TeamMood />
+                                    <TaskOverview data={data?.taskOverview} loading={loading} />
                                 </motion.div>
                             </Col>
                         </Row>
                     </Col>
                     <Col xs={24} lg={10}>
-                        <motion.div variants={itemVariants} style={{ height: '100%' }}>
-                            <RecentActivities />
-                        </motion.div>
+                        <Row gutter={[24, 24]}>
+                            <Col span={24}>
+                                <motion.div variants={itemVariants} style={{ height: '100%' }}>
+                                    <PendingApprovals data={data?.pendingApprovals} loading={loading} />
+                                </motion.div>
+                            </Col>
+                            <Col span={24}>
+                                <motion.div variants={itemVariants} style={{ height: '100%' }}>
+                                    <TodayFocus data={data?.todayFocus} loading={loading} />
+                                </motion.div>
+                            </Col>
+                        </Row>
                     </Col>
                     <Col xs={24} lg={6}>
                         <motion.div variants={itemVariants} style={{ height: '100%' }}>
-                            <TopPerformers />
+                            <TopPerformers data={data?.topPerformers} loading={loading} />
                         </motion.div>
                     </Col>
                 </Row>

@@ -21,7 +21,7 @@ const EmployeeRequestSchema = new mongoose.Schema({
     requestType: {
         type: String,
         required: [true, 'Please specify a request type'],
-        enum: ['Network Issue', 'System Access', 'Salary Issue', 'Personal Query', 'Other']
+        enum: ['Network Issue', 'System Access', 'Salary Issue', 'Personal Query', 'Leave Request', 'Other']
     },
     message: {
         type: String,

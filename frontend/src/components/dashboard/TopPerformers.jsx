@@ -27,7 +27,7 @@ const data = [
     },
 ];
 
-const TopPerformers = () => {
+const TopPerformers = ({ data = [], loading }) => {
     const { token } = theme.useToken();
     return (
         <div className="glass-card" style={{ height: '100%', padding: 24, borderColor: token.colorBorder }}>
@@ -36,6 +36,7 @@ const TopPerformers = () => {
                 <Button type="text" style={{ color: token.colorPrimary }}>View All <ArrowRightOutlined /></Button>
             </div>
             <List
+                loading={loading}
                 itemLayout="horizontal"
                 dataSource={data}
                 renderItem={(item, index) => (
@@ -50,7 +51,7 @@ const TopPerformers = () => {
                             <List.Item.Meta
                                 avatar={
                                     <div style={{ position: 'relative' }}>
-                                        <Avatar src={item.avatar} size={48} style={{ border: `2px solid ${token.colorBgLayout}` }} />
+                                        <Avatar src={item.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${item.name}`} size={48} style={{ border: `2px solid ${token.colorBgLayout}` }} />
                                         {index === 0 && (
                                             <div style={{
                                                 position: 'absolute',
@@ -76,7 +77,7 @@ const TopPerformers = () => {
                                     <div className="flex-between">
                                         <Text strong style={{ color: token.colorText }}>{item.name}</Text>
                                         <Text strong style={{ color: token.colorPrimary }}>
-                                            <CountUp value={item.score} duration={1.5} />
+                                            <CountUp value={item.totalPoints} duration={1.5} />
                                         </Text>
                                     </div>
                                 }
@@ -84,7 +85,7 @@ const TopPerformers = () => {
                                     <div>
                                         <div style={{ color: token.colorTextSecondary, fontSize: 13, marginBottom: 4 }}>{item.role}</div>
                                         <Progress
-                                            percent={item.score}
+                                            percent={(item.totalPoints / (data[0]?.totalPoints || 100)) * 100}
                                             size="small"
                                             strokeColor={index === 0 ? '#f59e0b' : token.colorPrimary}
                                             showInfo={false}

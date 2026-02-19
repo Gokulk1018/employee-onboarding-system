@@ -12,8 +12,31 @@ const data = [
     { name: 'Jul', hired: 15 },
 ];
 
-const HiringChart = () => {
+const HiringChart = ({ data = [] }) => {
     const { token } = theme.useToken();
+
+    // Generate last 6 months labels
+    const getChartData = () => {
+        const months = [];
+        const now = new Date();
+        for (let i = 5; i >= 0; i--) {
+            const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const monthName = date.toLocaleString('default', { month: 'short' });
+            const monthValue = date.getMonth() + 1; // 1-indexed for MongoDB $month
+            const yearValue = date.getFullYear();
+
+            // Find match in backend data
+            const match = data.find(item => item._id.month === monthValue && item._id.year === yearValue);
+            months.push({
+                name: monthName,
+                hired: match ? match.count : 0
+            });
+        }
+        return months;
+    };
+
+    const chartData = getChartData();
+
     return (
         <Card
             title={<Typography.Title level={4} style={{ margin: 0 }}>Hiring Trends</Typography.Title>}
@@ -22,7 +45,7 @@ const HiringChart = () => {
         >
             <div style={{ width: '100%', height: 250, minWidth: 0, minHeight: 0 }}>
                 <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                    <AreaChart data={data}>
+                    <AreaChart data={chartData}>
                         <defs>
                             <linearGradient id="colorHired" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor={token.colorPrimary} stopOpacity={0.3} />

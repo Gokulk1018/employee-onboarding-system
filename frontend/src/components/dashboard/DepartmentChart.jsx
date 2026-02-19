@@ -2,15 +2,16 @@ import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Typography, theme } from 'antd';
 
-const DepartmentChart = () => {
+const DepartmentChart = ({ data = [] }) => {
     const { token } = theme.useToken();
 
-    const data = [
-        { name: 'Engineering', value: 45, color: '#4f46e5' },
-        { name: 'Product', value: 25, color: '#3b82f6' },
-        { name: 'Sales', value: 20, color: '#10b981' },
-        { name: 'HR', value: 10, color: '#f59e0b' },
-    ];
+    const COLORS = ['#4f46e5', '#3b82f6', '#10b981', '#f59e0b', '#7c3aed', '#ef4444'];
+
+    const chartData = data.map((item, index) => ({
+        name: item._id || 'Unassigned',
+        value: item.count,
+        color: COLORS[index % COLORS.length]
+    }));
 
     return (
         <div className="glass-card" style={{ padding: 24, height: '100%', borderColor: token.colorBorder }}>
@@ -19,7 +20,7 @@ const DepartmentChart = () => {
                 <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <PieChart>
                         <Pie
-                            data={data}
+                            data={chartData}
                             cx="50%"
                             cy="50%"
                             innerRadius={60}
@@ -28,7 +29,7 @@ const DepartmentChart = () => {
                             dataKey="value"
                             stroke="none"
                         >
-                            {data.map((entry, index) => (
+                            {chartData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.color} />
                             ))}
                         </Pie>
