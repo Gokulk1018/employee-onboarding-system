@@ -2,7 +2,7 @@ import React from 'react';
 import { Table, Avatar, Tag, Space, Button, theme, Tooltip, Popconfirm } from 'antd';
 import { EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 
-const EmployeeTable = ({ data, loading, onDelete }) => {
+const EmployeeTable = ({ data, loading, onDelete, onEdit, onView }) => {
     const { token } = theme.useToken();
 
     const columns = [
@@ -90,10 +90,19 @@ const EmployeeTable = ({ data, loading, onDelete }) => {
             render: (_, record) => (
                 <Space size="small">
                     <Tooltip title="View Details">
-                        <Button type="text" icon={<EyeOutlined />} style={{ color: token.colorInfo }} />
+                        <Button
+                            type="text"
+                            icon={<EyeOutlined />}
+                            style={{ color: token.colorInfo }}
+                            onClick={() => onView(record)}
+                        />
                     </Tooltip>
                     <Tooltip title="Edit">
-                        <Button type="text" icon={<EditOutlined />} />
+                        <Button
+                            type="text"
+                            icon={<EditOutlined />}
+                            onClick={() => onEdit(record)}
+                        />
                     </Tooltip>
                     <Popconfirm
                         title="Delete employee"

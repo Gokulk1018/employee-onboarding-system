@@ -7,6 +7,7 @@ import EmployeeTable from '../components/employees/EmployeeTable';
 import EmployeeCardList from '../components/employees/EmployeeCardList';
 import DepartmentPieChart from '../components/employees/DepartmentPieChart';
 import AddEmployeeModal from '../components/employees/AddEmployeeModal';
+import EmployeeDetailsModal from '../components/employees/EmployeeDetailsModal';
 import { motion } from 'framer-motion';
 import PageContainer from '../components/layout/PageContainer';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -22,6 +23,9 @@ const Employees = () => {
     const [loading, setLoading] = useState(true);
     const [viewType, setViewType] = useState('table');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+    const [editingEmployee, setEditingEmployee] = useState(null);
+    const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
 
     const fetchEmployees = async () => {
@@ -42,20 +46,30 @@ const Employees = () => {
     useEffect(() => {
         fetchEmployees();
 
-        // Check for ?action=add
         const queryParams = new URLSearchParams(location.search);
         if (queryParams.get('action') === 'add') {
+            setEditingEmployee(null);
             setIsModalOpen(true);
         }
     }, [location]);
 
     const handleAddSuccess = () => {
         fetchEmployees();
+        setEditingEmployee(null);
         const queryParams = new URLSearchParams(location.search);
         if (queryParams.get('action') === 'add') {
-            // If we came from dashboard, go back to dashboard
             navigate('/');
         }
+    };
+
+    const handleEdit = (employee) => {
+        setEditingEmployee(employee);
+        setIsModalOpen(true);
+    };
+
+    const handleView = (employee) => {
+        setSelectedEmployee(employee);
+        setIsViewModalOpen(true);
     };
 
     const handleDelete = async (id) => {
@@ -182,7 +196,13 @@ const Employees = () => {
 
                             <div style={{ marginTop: 24 }}>
                                 {viewType === 'table' ? (
-                                    <EmployeeTable data={filteredData} loading={loading} onDelete={handleDelete} />
+                                    <EmployeeTable
+                                        data={filteredData}
+                                        loading={loading}
+                                        onDelete={handleDelete}
+                                        onEdit={handleEdit}
+                                        onView={handleView}
+                                    />
                                 ) : (
                                     <EmployeeCardList data={filteredData} />
                                 )}
@@ -198,8 +218,21 @@ const Employees = () => {
 
                 <AddEmployeeModal
                     open={isModalOpen}
-                    onClose={() => setIsModalOpen(false)}
+                    initialData={editingEmployee}
+                    onClose={() => {
+                        setIsModalOpen(false);
+                        setEditingEmployee(null);
+                    }}
                     onSuccess={handleAddSuccess}
+                />
+
+                <EmployeeDetailsModal
+                    open={isViewModalOpen}
+                    employee={selectedEmployee}
+                    onClose={() => {
+                        setIsViewModalOpen(false);
+                        setSelectedEmployee(null);
+                    }}
                 />
             </motion.div>
         </PageContainer>

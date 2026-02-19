@@ -1,11 +1,26 @@
 import React, { useState } from 'react';
 import { Modal, Form, Input, DatePicker, Select, message, theme, Button, Row, Col } from 'antd';
 import axios from 'axios';
+import dayjs from 'dayjs';
 
-const AddEmployeeModal = ({ open, onClose, onSuccess }) => {
+const AddEmployeeModal = ({ open, onClose, onSuccess, initialData }) => {
     const [form] = Form.useForm();
     const [submitting, setSubmitting] = useState(false);
     const { token } = theme.useToken();
+    const isEditing = !!initialData;
+
+    React.useEffect(() => {
+        if (open) {
+            if (initialData) {
+                form.setFieldsValue({
+                    ...initialData,
+                    joinDate: initialData.joinDate ? dayjs(initialData.joinDate) : undefined
+                });
+            } else {
+                form.resetFields();
+            }
+        }
+    }, [open, initialData, form]);
 
     const handleSubmit = async (values) => {
         try {
@@ -17,17 +32,23 @@ const AddEmployeeModal = ({ open, onClose, onSuccess }) => {
                 avatar: values.avatar || `https://ui-avatars.com/api/?name=${values.name}&background=random`
             };
 
-            const response = await axios.post('http://localhost:5000/api/employees', payload);
+            const url = isEditing
+                ? `http://localhost:5000/api/employees/${initialData._id}`
+                : 'http://localhost:5000/api/employees';
+
+            const method = isEditing ? 'put' : 'post';
+
+            const response = await axios[method](url, payload);
 
             if (response.data.success) {
-                message.success('Employee added successfully');
+                message.success(`Employee ${isEditing ? 'updated' : 'added'} successfully`);
                 form.resetFields();
                 if (onSuccess) onSuccess();
                 onClose();
             }
         } catch (error) {
-            console.error('Error adding employee:', error);
-            const errorMsg = error.response?.data?.error || error.response?.data?.message || 'Failed to add employee';
+            console.error('Error saving employee:', error);
+            const errorMsg = error.response?.data?.error || error.response?.data?.message || 'Failed to save employee';
             message.error(Array.isArray(errorMsg) ? errorMsg.join(', ') : errorMsg);
         } finally {
             setSubmitting(false);
@@ -36,7 +57,7 @@ const AddEmployeeModal = ({ open, onClose, onSuccess }) => {
 
     return (
         <Modal
-            title={<div style={{ textAlign: 'center', width: '100%', fontSize: '1.5rem' }}>Add New Employee</div>}
+            title={<div style={{ textAlign: 'center', width: '100%', fontSize: '1.5rem' }}>{isEditing ? 'Edit Employee' : 'Add New Employee'}</div>}
             open={open}
             onCancel={onClose}
             footer={[
@@ -49,13 +70,13 @@ const AddEmployeeModal = ({ open, onClose, onSuccess }) => {
                     loading={submitting}
                     onClick={() => form.submit()}
                 >
-                    Save Employee
+                    {isEditing ? 'Update Employee' : 'Save Employee'}
                 </Button>
             ]}
             centered
             width={600}
             className="glass-modal"
-            destroyOnHidden
+            destroyOnClose
             styles={{ mask: { backdropFilter: 'blur(8px)' } }}
         >
             <Form

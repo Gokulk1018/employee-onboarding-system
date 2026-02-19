@@ -38,6 +38,55 @@ exports.createEmployee = async (req, res) => {
     }
 };
 
+// @desc    Get single employee
+// @route   GET /api/employees/:id
+exports.getEmployeeById = async (req, res) => {
+    try {
+        const employee = await Employee.findById(req.params.id);
+        if (!employee) {
+            return res.status(404).json({ success: false, message: 'Employee not found' });
+        }
+        res.status(200).json({ success: true, data: employee });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server Error' });
+    }
+};
+
+// @desc    Update employee
+// @route   PUT /api/employees/:id
+exports.updateEmployee = async (req, res) => {
+    try {
+        const employee = await Employee.findByIdAndUpdate(req.params.id, req.body, {
+            new: true,
+            runValidators: true
+        });
+
+        if (!employee) {
+            return res.status(404).json({ success: false, message: 'Employee not found' });
+        }
+
+        res.status(200).json({ success: true, data: employee });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Delete employee
+// @route   DELETE /api/employees/:id
+exports.deleteEmployee = async (req, res) => {
+    try {
+        const employee = await Employee.findByIdAndDelete(req.params.id);
+
+        if (!employee) {
+            return res.status(404).json({ success: false, message: 'Employee not found' });
+        }
+
+        res.status(200).json({ success: true, data: {} });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server Error' });
+    }
+};
+
 // @desc    Generate and send credentials to candidate for onboarding
 // @route   POST /api/employees/generate-credentials/:id
 exports.generateCredentials = async (req, res, next) => {
