@@ -7,17 +7,16 @@ const {
     acceptOffer,
     rejectOffer,
     updateOffer,
-    resendOffer
+    resendOffer,
+    advanceOnboardingStep
 } = require('../controllers/offerController');
 
-router.post('/create', createOffer);
-router.get('/', getOffers);
-router.delete('/:id', deleteOffer);
-router.put('/:id', updateOffer);
-router.post('/resend/:id', resendOffer);
-
-// Token-based endpoints for email links
-router.get('/accept/:token', acceptOffer);
-router.get('/reject/:token', rejectOffer);
+router.route('/').get(getOffers);
+router.route('/create').post(createOffer);
+router.route('/accept/:token').get(acceptOffer);
+router.route('/reject/:token').get(rejectOffer);
+router.route('/resend/:id').post(resendOffer);
+router.route('/:id/advance').post(advanceOnboardingStep);
+router.route('/:id').put(updateOffer).delete(deleteOffer);
 
 module.exports = router;

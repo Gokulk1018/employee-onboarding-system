@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Typography, Row, Col, Button, Table, Tag, theme, Input, Select, Space, Dropdown, Modal, Tabs, Card, Spin, Badge, App, Divider, DatePicker, List } from 'antd';
+import { Typography, Row, Col, Button, Table, Tag, theme, Input, Select, Space, Dropdown, Modal, Card, Spin, Badge, App, Divider, DatePicker, List } from 'antd';
 import {
     PlusOutlined,
     FileTextOutlined,
@@ -22,10 +22,7 @@ import {
 } from '@ant-design/icons';
 import axios from 'axios';
 import OnboardingStepper from '../components/onboarding/OnboardingStepper';
-import OnboardingDocuments from '../components/onboarding/OnboardingDocuments';
 import OfferDrawer from '../components/onboarding/OfferDrawer';
-import HRNotes from '../components/onboarding/HRNotes';
-import MentorshipProgram from '../components/onboarding/MentorshipProgram';
 
 import { motion } from 'framer-motion';
 import PageContainer from '../components/layout/PageContainer';
@@ -42,8 +39,8 @@ const Onboarding = () => {
     const [offersData, setOffersData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [selectedOfferId, setSelectedOfferId] = useState(null);
+    const [reviewSearchText, setReviewSearchText] = useState('');
     const [editingOffer, setEditingOffer] = useState(null);
-    const [activeTab, setActiveTab] = useState('offers');
     const [reviewData, setReviewData] = useState([]);
     const [reviewLoading, setReviewLoading] = useState(false);
     const [selectedReview, setSelectedReview] = useState(null);
@@ -84,6 +81,11 @@ const Onboarding = () => {
         const [joiningDate, setJoiningDate] = useState(null);
         const [verificationLoading, setVerificationLoading] = useState(false);
 
+        const filteredReviewData = reviewData.filter(record =>
+            record.candidateName.toLowerCase().includes(reviewSearchText.toLowerCase()) ||
+            record.candidateEmail.toLowerCase().includes(reviewSearchText.toLowerCase())
+        );
+
         const reviewColumns = [
             { title: 'Candidate', dataIndex: 'candidateName', key: 'name' },
             { title: 'Email', dataIndex: 'candidateEmail', key: 'email' },
@@ -91,6 +93,7 @@ const Onboarding = () => {
                 title: 'Status',
                 dataIndex: 'status',
                 key: 'status',
+                width: 150,
                 render: status => (
                     <Tag color={status === 'submitted' ? 'blue' : (status === 'approved' ? 'success' : 'error')}>
                         {status.toUpperCase()}
@@ -100,13 +103,14 @@ const Onboarding = () => {
             {
                 title: 'Actions',
                 key: 'actions',
+                width: 300,
                 render: (_, record) => (
-                    <Space>
-                        <Button type="link" icon={<EyeOutlined />} onClick={() => { setSelectedReview(record); setIsReviewModalOpen(true); }}>Review Details</Button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap' }}>
+                        <Button type="link" icon={<EyeOutlined />} onClick={() => { setSelectedReview(record); setIsReviewModalOpen(true); }} style={{ padding: 0 }}>Review Details</Button>
                         {record.status === 'reupload_required' && (
-                            <Tag color="warning">WAITING FOR RE-UPLOAD</Tag>
+                            <Tag color="warning" style={{ margin: 0, fontSize: 10 }}>WAITING FOR RE-UPLOAD</Tag>
                         )}
-                    </Space>
+                    </div>
                 )
             }
         ];
@@ -152,12 +156,24 @@ const Onboarding = () => {
 
         return (
             <>
+                <div style={{ marginBottom: 16 }}>
+                    <Input
+                        placeholder="Search onboarding candidates"
+                        prefix={<SearchOutlined />}
+                        value={reviewSearchText}
+                        onChange={(e) => setReviewSearchText(e.target.value)}
+                        style={{ width: 280 }}
+                        allowClear
+                    />
+                </div>
                 <Table
-                    dataSource={reviewData}
+                    dataSource={filteredReviewData}
                     columns={reviewColumns}
                     loading={reviewLoading}
                     rowKey="_id"
                     className="glass-table"
+                    pagination={{ pageSize: 5 }}
+                    scroll={{ x: 'max-content' }}
                 />
                 <Modal
                     title={
@@ -337,7 +353,8 @@ const Onboarding = () => {
                     joiningDate: offer.joiningDate ? new Date(offer.joiningDate).toLocaleDateString() : 'N/A',
                     rawJoiningDate: offer.joiningDate,
                     department: offer.department,
-                    salary: offer.salary
+                    salary: offer.salary,
+                    onboardingStep: offer.onboardingStep
                 }));
                 console.log('[DEBUG] Fetched Offers:', formattedData);
                 setOffersData(formattedData);
@@ -443,6 +460,7 @@ const Onboarding = () => {
 
     useEffect(() => {
         fetchOffers();
+        fetchReviews();
     }, [fetchOffers]);
 
     const handleOfferAction = async (action, record) => {
@@ -502,6 +520,36 @@ const Onboarding = () => {
                 break;
             default:
                 break;
+        }
+    };
+
+    const handleAdvanceStage = async () => {
+        if (!selectedOfferId) return;
+
+        const offer = offersData.find(o => o.id === selectedOfferId);
+        if (!offer) return;
+
+        // Don't advance if already ready or if it's a mock offer
+        if (offer.onboardingStep === 'Ready') {
+            message.info('Candidate is already at the final stage');
+            return;
+        }
+
+        if (offer.id.toString().startsWith('mock-')) {
+            message.info('Cannot advance mock candidates. Please create a real offer.');
+            return;
+        }
+
+        try {
+            message.loading({ content: 'Moving to next stage...', key: 'advanceStage' });
+            const response = await axios.post(`http://localhost:5000/api/offers/${selectedOfferId}/advance`);
+
+            if (response.data.success) {
+                message.success({ content: `Moved to ${response.data.data.onboardingStep}`, key: 'advanceStage' });
+                fetchOffers(); // Refresh data
+            }
+        } catch (error) {
+            message.error({ content: error.response?.data?.message || 'Failed to advance stage', key: 'advanceStage' });
         }
     };
 
@@ -646,7 +694,7 @@ const Onboarding = () => {
                             Onboarding & Offers
                         </Title>
                         <div style={{ color: token.colorTextSecondary }}>
-                            Manage offers and employee onboarding process
+                            Manage recruitment offers and monitor onboarding progress in real-time.
                         </div>
                     </div>
                     <Button type="primary" icon={<PlusOutlined />} onClick={() => { setEditingOffer(null); setIsDrawerOpen(true); }} size="large">
@@ -655,87 +703,81 @@ const Onboarding = () => {
                 </div>
 
                 <Row gutter={[24, 24]}>
-                    <Col xs={24}>
-                        <div className="glass-card" style={{ padding: 24, marginBottom: 24 }}>
-                            <Tabs
-                                defaultActiveKey="offers"
-                                onChange={(key) => {
-                                    setActiveTab(key);
-                                    if (key === 'review') fetchReviews();
-                                }}
-                                items={[
-                                    {
-                                        key: 'offers',
-                                        label: <span style={{ fontSize: 16 }}><FileTextOutlined /> Recruitment Offers</span>,
-                                        children: (
-                                            <>
-                                                <div className="flex-between" style={{ marginBottom: 16 }}>
-                                                    <Space size="middle">
-                                                        <Input
-                                                            placeholder="Search candidates"
-                                                            prefix={<SearchOutlined />}
-                                                            value={searchText}
-                                                            onChange={(e) => setSearchText(e.target.value)}
-                                                            style={{ width: 280 }}
-                                                            allowClear
-                                                        />
-                                                        <Select
-                                                            value={statusFilter}
-                                                            onChange={setStatusFilter}
-                                                            style={{ width: 150 }}
-                                                        >
-                                                            <Select.Option value="All">All Status</Select.Option>
-                                                            <Select.Option value="Draft">Draft</Select.Option>
-                                                            <Select.Option value="Sent">Sent</Select.Option>
-                                                            <Select.Option value="OFFER_ACCEPTED">Accepted</Select.Option>
-                                                            <Select.Option value="DECLINED">Rejected</Select.Option>
-                                                        </Select>
-                                                    </Space>
-                                                </div>
-                                                <Table
-                                                    dataSource={offersData}
-                                                    columns={columns}
-                                                    pagination={{ pageSize: 5 }}
-                                                    className="glass-table"
-                                                    loading={loading}
-                                                    onRow={(record) => ({
-                                                        onClick: () => setSelectedOfferId(record.id),
-                                                    })}
-                                                    rowClassName={(record) => record.id === selectedOfferId ? 'selected-row' : ''}
-                                                />
-                                            </>
-                                        )
-                                    },
-                                    {
-                                        key: 'review',
-                                        label: <span style={{ fontSize: 16 }}><CheckCircleOutlined /> Onboarding Reviews</span>,
-                                        children: <OnboardingReviewList />
-                                    }
-                                ]} />
-                        </div>
+                    {/* Top Section: Recruitment Offers */}
+                    <Col span={24}>
+                        <Card bordered={false} className="glass-card" style={{ marginBottom: 24 }}>
+                            <div className="flex-between" style={{ marginBottom: 20 }}>
+                                <Title level={4} style={{ margin: 0 }}><FileTextOutlined /> Recruitment Offers</Title>
+                                <Space size="middle">
+                                    <Input
+                                        placeholder="Search candidates"
+                                        prefix={<SearchOutlined />}
+                                        value={searchText}
+                                        onChange={(e) => setSearchText(e.target.value)}
+                                        style={{ width: 280 }}
+                                        allowClear
+                                    />
+                                    <Select
+                                        value={statusFilter}
+                                        onChange={setStatusFilter}
+                                        style={{ width: 150 }}
+                                    >
+                                        <Select.Option value="All">All Status</Select.Option>
+                                        <Select.Option value="Draft">Draft</Select.Option>
+                                        <Select.Option value="Sent">Sent</Select.Option>
+                                        <Select.Option value="OFFER_ACCEPTED">Accepted</Select.Option>
+                                        <Select.Option value="DECLINED">Rejected</Select.Option>
+                                    </Select>
+                                </Space>
+                            </div>
+                            <Table
+                                dataSource={offersData}
+                                columns={columns}
+                                pagination={{ pageSize: 5 }}
+                                className="glass-table"
+                                loading={loading}
+                                onRow={(record) => ({
+                                    onClick: () => setSelectedOfferId(record.id),
+                                })}
+                                rowClassName={(record) => record.id === selectedOfferId ? 'selected-row' : ''}
+                                scroll={{ x: true }}
+                            />
+                        </Card>
                     </Col>
-                </Row>
 
-                {activeTab === 'offers' && (
-                    <Row gutter={[24, 24]}>
-                        <Col xs={24} lg={16}>
-                            <motion.div variants={itemVariants} style={{ marginBottom: 24 }}>
-                                <OnboardingDocuments employeeId={selectedOffer?.id} />
-                            </motion.div>
+                    {/* Left Column: Onboarding Reviews */}
+                    <Col xs={24} xl={16}>
+                        <Card bordered={false} className="glass-card" style={{ height: '100%' }}>
+                            <div style={{ marginBottom: 24 }}>
+                                <Title level={4} style={{ margin: 0 }}><CheckCircleOutlined /> Onboarding Reviews</Title>
+                                <Text type="secondary">Review and verify documents submitted by candidates</Text>
+                            </div>
+                            <OnboardingReviewList />
+                        </Card>
+                    </Col>
+
+                    {/* Right Column: Progress */}
+                    <Col xs={24} xl={8}>
+                        <Space direction="vertical" size={24} style={{ width: '100%' }}>
                             <motion.div variants={itemVariants}>
-                                <HRNotes />
-                            </motion.div>
-                        </Col>
-                        <Col xs={24} lg={8}>
-                            <motion.div variants={itemVariants} style={{ marginBottom: 24 }}>
                                 <OnboardingStepper candidateData={selectedOffer} fetchStatus={true} />
                             </motion.div>
                             <motion.div variants={itemVariants}>
-                                <MentorshipProgram />
+                                <Button
+                                    type="primary"
+                                    block
+                                    size="large"
+                                    icon={<CheckCircleOutlined />}
+                                    style={{ height: 50, borderRadius: 12, fontWeight: 600, boxShadow: `0 4px 14px ${token.colorPrimary}40` }}
+                                    onClick={handleAdvanceStage}
+                                    disabled={!selectedOffer || selectedOffer.onboardingStep === 'Ready'}
+                                >
+                                    Move to Next Stage
+                                </Button>
                             </motion.div>
-                        </Col>
-                    </Row>
-                )}
+                        </Space>
+                    </Col>
+                </Row>
 
                 <OfferDrawer
                     open={isDrawerOpen}

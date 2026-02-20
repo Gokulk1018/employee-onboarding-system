@@ -3,6 +3,9 @@ const Notification = require('../models/Notification');
 const sendEmail = require('../utils/emailHelper');
 const crypto = require('crypto');
 
+// Define onboarding steps in order
+const ONBOARDING_STEPS = ['Offer Accepted', 'Documentation', 'IT Setup', 'Orientation', 'Ready'];
+
 // @desc    Create new offer & Send Email
 // @route   POST /api/offers/create
 exports.createOffer = async (req, res, next) => {
@@ -343,6 +346,45 @@ exports.resendOffer = async (req, res, next) => {
         res.status(200).json({
             success: true,
             message: 'Offer email resent successfully'
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @desc    Advance onboarding step
+// @route   POST /api/offers/:id/advance
+exports.advanceOnboardingStep = async (req, res, next) => {
+    try {
+        const offer = await Offer.findById(req.params.id);
+        if (!offer) {
+            return res.status(404).json({
+                success: false,
+                message: 'Offer not found'
+            });
+        }
+
+        const currentStepIndex = ONBOARDING_STEPS.indexOf(offer.onboardingStep || 'Offer Accepted');
+
+        if (currentStepIndex === -1) {
+            // If for some reason the step is invalid, reset to start
+            offer.onboardingStep = 'Offer Accepted';
+        } else if (currentStepIndex < ONBOARDING_STEPS.length - 1) {
+            // Move to next step
+            offer.onboardingStep = ONBOARDING_STEPS[currentStepIndex + 1];
+        } else {
+            return res.status(400).json({
+                success: false,
+                message: 'Onboarding is already at the final stage'
+            });
+        }
+
+        await offer.save();
+
+        res.status(200).json({
+            success: true,
+            data: offer,
+            message: `Moved to ${offer.onboardingStep}`
         });
     } catch (err) {
         next(err);

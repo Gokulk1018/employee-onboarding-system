@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Steps, Typography, Button, Space, Card, Descriptions, theme, message } from 'antd';
 import {
     UserOutlined,
@@ -17,6 +17,7 @@ const OnboardingStepper = ({ candidateData }) => {
     // Calculate current step based on candidate status
     const getOnboardingState = () => {
         const offerStatus = candidateData?.rawStatus || candidateData?.status;
+        const onboardingStep = candidateData?.onboardingStep;
 
         // Handle Offer Stage
         if (offerStatus === 'DECLINED' || offerStatus === 'Rejected') {
@@ -29,20 +30,33 @@ const OnboardingStepper = ({ candidateData }) => {
             return { step: 0, status: 'wait', desc: 'Offer letter in preparation' };
         }
 
-        // Handle Documentation Stage
-        // Note: In a real app, we'd check against OnboardingUser status here too
-        // For now, if accepted, we move to documentation
+        // Handle active onboarding steps
+        if (onboardingStep) {
+            const stepMap = {
+                'Offer Accepted': 0,
+                'Documentation': 1,
+                'IT Setup': 2,
+                'Orientation': 3,
+                'Ready': 4
+            };
+            const stepIndex = stepMap[onboardingStep] !== undefined ? stepMap[onboardingStep] : 0;
+            return {
+                step: stepIndex,
+                status: 'process',
+                desc: onboardingStep
+            };
+        }
+
+        // Fallback for transition period or missing data
         if (offerStatus === 'Accepted' || offerStatus === 'OFFER_ACCEPTED') {
-            // Check if there's any onboarding record info passed or if we should mock it for now
-            // If the user is in review, they are at step 1 or 2
-            return { step: 1, status: 'process', desc: 'Documents being verified' };
+            return { step: 0, status: 'process', desc: 'Offer Accepted' };
         }
 
         return { step: 0, status: 'wait', desc: 'Awaiting offer' };
     };
 
     const state = getOnboardingState();
-    const [currentStep, setCurrentStep] = useState(state.step);
+    // Removed local state to ensure updates from props are reflected immediately
 
     const steps = [
         {
@@ -120,11 +134,11 @@ const OnboardingStepper = ({ candidateData }) => {
 
             <Steps
                 direction="vertical"
-                current={currentStep}
+                current={state.step}
                 status={state.status}
                 items={steps.map((step, index) => ({
                     ...step,
-                    status: (index === currentStep) ? state.status : (index < currentStep ? 'finish' : 'wait'),
+                    status: (index === state.step) ? state.status : (index < state.step ? 'finish' : 'wait'),
                     description: <span style={{ color: token.colorTextSecondary }}>{step.description}</span>
                 }))}
             />
