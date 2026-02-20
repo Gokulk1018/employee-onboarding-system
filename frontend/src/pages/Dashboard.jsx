@@ -185,7 +185,7 @@ const Dashboard = () => {
                         <Row gutter={[24, 24]}>
                             <Col span={24}>
                                 <motion.div variants={itemVariants} style={{ height: '100%' }}>
-                                    <PendingApprovals data={data?.pendingApprovals} loading={loading} />
+                                    <PendingApprovals data={data?.pendingApprovals} loading={loading} onRefresh={fetchStats} />
                                 </motion.div>
                             </Col>
                             <Col span={24}>

@@ -41,6 +41,10 @@ const offerSchema = new mongoose.Schema({
         type: String,
         unique: true
     },
+    credentialsSent: {
+        type: Boolean,
+        default: false
+    },
     onboardingStep: {
         type: String,
         enum: ['Offer Accepted', 'Documentation', 'IT Setup', 'Orientation', 'Ready'],

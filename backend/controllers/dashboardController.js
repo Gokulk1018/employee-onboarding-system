@@ -4,10 +4,12 @@ const Task = require('../models/Task');
 const EmployeeRequest = require('../models/EmployeeRequest');
 const Offer = require('../models/Offer');
 const Document = require('../models/Document');
+const OnboardingUser = require('../models/OnboardingUser'); // Added OnboardingUser
 const PayrollTransaction = require('../models/PayrollTransaction');
 const Candidate = require('../models/Candidate');
 const Job = require('../models/Job');
 const mongoose = require('mongoose');
+const sendEmail = require('../utils/emailHelper');
 
 // @desc    Get dashboard statistics
 // @route   GET /api/dashboard/stats
@@ -117,8 +119,8 @@ exports.getDashboardStats = async (req, res) => {
 
             // 6. Pending Approvals
             EmployeeRequest.countDocuments({ status: 'Pending', requestType: 'Leave Request' }).lean(),
-            Offer.countDocuments({ status: 'Sent' }).lean(),
-            Document.countDocuments({ status: 'PENDING' }).lean(),
+            Offer.countDocuments({ status: { $in: ['Accepted', 'OFFER_ACCEPTED'] }, credentialsSent: { $ne: true } }).lean(),
+            OnboardingUser.countDocuments({ 'documents.status': 'pending' }).lean(),
 
             // 7. Task Stats
             Task.aggregate([
@@ -171,5 +173,109 @@ exports.getDashboardStats = async (req, res) => {
             message: 'Server Error',
             error: error.message
         });
+    }
+};
+
+// @desc    Get pending offers (Accepted but credentials not sent)
+// @route   GET /api/dashboard/pending-offers
+exports.getPendingOffers = async (req, res) => {
+    try {
+        const offers = await Offer.find({
+            status: { $in: ['Accepted', 'OFFER_ACCEPTED'] },
+            credentialsSent: { $ne: true }
+        }).select('candidateName candidateEmail role joiningDate');
+
+        res.status(200).json({ success: true, data: offers });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Send credentials to candidate
+// @route   POST /api/dashboard/send-credentials/:id
+exports.sendCredentials = async (req, res) => {
+    try {
+        const offer = await Offer.findById(req.params.id);
+        if (!offer) return res.status(404).json({ success: false, message: 'Offer not found' });
+
+        // Check if OnboardingUser already exists
+        let user = await OnboardingUser.findOne({ offerId: offer._id });
+
+        // Standardize credentials as per request:
+        // Username: Candidate Name (lowercase, trimmed)
+        // Password: '123'
+        const password = '123';
+        const username = offer.candidateName; // OnboardingUser model handles lowercase/trim
+
+        if (!user) {
+            // Create new OnboardingUser
+            user = await OnboardingUser.create({
+                username: username,
+                password: password, // In production, hash this!
+                candidateName: offer.candidateName,
+                candidateEmail: offer.candidateEmail,
+                offerId: offer._id,
+                status: 'pending'
+            });
+        } else {
+            // Update existing user credentials
+            user.username = username;
+            user.password = password;
+            await user.save();
+        }
+
+        // Send Email
+        const loginUrl = `${process.env.BASE_URL || 'http://localhost:3000'}/login`;
+
+        await sendEmail({
+            email: offer.candidateEmail,
+            subject: 'Your Onboarding Credentials',
+            html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                    <h2 style="color: #4f46e5;">Welcome to the Team, ${offer.candidateName}!</h2>
+                    <p>We are excited to have you on board. Please log in to the employee portal to complete your onboarding process.</p>
+                    
+                    <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <p style="margin: 5px 0;"><strong>Portal URL:</strong> <a href="${loginUrl}">${loginUrl}</a></p>
+                        <p style="margin: 5px 0;"><strong>Username:</strong> ${offer.candidateName}</p>
+                        <p style="margin: 5px 0;"><strong>Password:</strong> ${password}</p>
+                    </div>
+
+                    <p>Please change your password after your first login.</p>
+                    <p>Best regards,<br>The HR Team</p>
+                </div>
+            `
+        });
+
+        offer.credentialsSent = true;
+        offer.onboardingStep = 'Documentation';
+        await offer.save();
+
+        res.status(200).json({ success: true, message: 'Credentials sent successfully' });
+    } catch (error) {
+        console.error('Send Credentials Error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Get users with pending documents
+// @route   GET /api/dashboard/pending-documents
+exports.getPendingDocuments = async (req, res) => {
+    try {
+        const users = await OnboardingUser.find({
+            'documents.status': 'pending'
+        }).select('candidateName candidateEmail documents');
+
+        // Filter to only include users who actually have pending docs (double check)
+        const formattedUsers = users.map(user => ({
+            _id: user._id,
+            name: user.candidateName,
+            email: user.candidateEmail,
+            pendingCount: user.documents.filter(d => d.status === 'pending').length
+        })).filter(u => u.pendingCount > 0);
+
+        res.status(200).json({ success: true, data: formattedUsers });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
 };

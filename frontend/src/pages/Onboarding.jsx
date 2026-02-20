@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Typography, Row, Col, Button, Table, Tag, theme, Input, Select, Space, Dropdown, Modal, Card, Spin, Badge, App, Divider, DatePicker, List } from 'antd';
 import {
     PlusOutlined,
@@ -33,13 +34,15 @@ const { confirm } = Modal;
 const Onboarding = () => {
     const { message } = App.useApp();
     const { token } = theme.useToken();
+    const location = useLocation(); // Hook for navigation state
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [searchText, setSearchText] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
+    // Initialize reviewSearchText from navigation state if present
+    const [reviewSearchText, setReviewSearchText] = useState(location.state?.searchCandidate || '');
     const [offersData, setOffersData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [selectedOfferId, setSelectedOfferId] = useState(null);
-    const [reviewSearchText, setReviewSearchText] = useState('');
     const [editingOffer, setEditingOffer] = useState(null);
     const [reviewData, setReviewData] = useState([]);
     const [reviewLoading, setReviewLoading] = useState(false);
