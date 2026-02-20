@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 
 import { useSettings } from '../../context/SettingsContext';
 
-const ProtectedRoute = ({ children, allowedRole, module }) => {
+const ProtectedRoute = ({ children, allowedRole, allowedRoles, module }) => {
     const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
     const userRole = localStorage.getItem('userRole'); // hr, manager, employee
     const { settings } = useSettings();
@@ -13,7 +13,8 @@ const ProtectedRoute = ({ children, allowedRole, module }) => {
     }
 
     // Role check (base level)
-    if (allowedRole && userRole !== allowedRole && userRole !== 'hr') {
+    const roles = allowedRoles || (allowedRole ? [allowedRole] : null);
+    if (roles && !roles.includes(userRole) && userRole !== 'hr') {
         return <Navigate to="/" replace />;
     }
 

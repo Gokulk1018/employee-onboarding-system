@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Tag, Button, Typography, Space, Divider, List, Avatar, message as antdMessage, Spin, Modal, Form, Input, InputNumber, DatePicker, Select, App, Breadcrumb, Descriptions } from 'antd';
+import { Card, Tag, Button, Typography, Space, Divider, List, Avatar, Spin, Modal, Form, Input, InputNumber, DatePicker, Select, App, Breadcrumb, Descriptions } from 'antd';
 import {
     ArrowLeftOutlined, EditOutlined, ShareAltOutlined, PlusOutlined,
     InstagramOutlined, LinkedinOutlined, WhatsAppOutlined, MailOutlined, CopyOutlined, GlobalOutlined, CheckCircleOutlined
@@ -11,6 +11,7 @@ import RecruitmentKanban from '../components/recruitment/RecruitmentKanban';
 import CandidateTable from '../components/recruitment/CandidateTable';
 import { getSessionJobs, updateSessionCandidates, getSessionCandidates } from '../data/mockRecruitmentData';
 import dayjs from 'dayjs';
+import { theme } from 'antd';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -25,7 +26,7 @@ const INITIAL_MOCK_CANDIDATES = [
 ];
 
 const JobDetails = () => {
-    const { message } = App.useApp();
+    const { message: msg } = App.useApp();
     const { id } = useParams();
     const navigate = useNavigate();
     const { token } = theme.useToken();
@@ -65,7 +66,7 @@ const JobDetails = () => {
                     setJob(foundJob);
                     setRealCandidates(getSessionCandidates(id) || []); // Load mock candidates for this job
                 } else {
-                    message.error('Job not found');
+                    msg.error('Job not found');
                     navigate('/recruitment');
                 }
                 setLoading(false);
@@ -92,7 +93,7 @@ const JobDetails = () => {
                         setJob(foundJob);
                         setLoading(false); // Show UI immediately
                     } else {
-                        message.error('Job not found');
+                        msg.error('Job not found');
                         navigate('/recruitment');
                         return;
                     }
@@ -113,7 +114,7 @@ const JobDetails = () => {
                 if (foundJob) {
                     setJob(foundJob);
                 } else {
-                    message.error('Job not found');
+                    msg.error('Job not found');
                     navigate('/recruitment');
                 }
                 setLoading(false);
@@ -142,11 +143,11 @@ const JobDetails = () => {
                 const data = await response.json();
 
                 if (data.success) {
-                    message.success('Job updated successfully');
+                    msg.success('Job updated successfully');
                     setJob(data.data);
                     setIsEditModalVisible(false);
                 } else {
-                    message.error(data.message || 'Failed to update job');
+                    msg.error(data.message || 'Failed to update job');
                 }
             } else {
                 // Fake frontend job - update local state only

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Typography, theme, message } from 'antd';
+import { Row, Col, Typography, Input, Divider, theme, Checkbox, App } from 'antd';
 import { UserOutlined, TeamOutlined, UserAddOutlined } from '@ant-design/icons';
 import StatCard from '../components/common/StatCard';
 import EmployeesHeader from '../components/employees/EmployeesHeader';
@@ -17,6 +17,7 @@ const { Title } = Typography;
 
 const Employees = () => {
     const { token } = theme.useToken();
+    const { message: msg } = App.useApp();
     const navigate = useNavigate();
     const location = useLocation();
     const [employees, setEmployees] = useState([]);
@@ -37,7 +38,7 @@ const Employees = () => {
             }
         } catch (error) {
             console.error('Error fetching employees:', error);
-            message.error('Failed to load employees');
+            msg.error('Failed to load employees');
         } finally {
             setLoading(false);
         }
@@ -76,12 +77,12 @@ const Employees = () => {
         try {
             const response = await axios.delete(`http://localhost:5000/api/employees/${id}`);
             if (response.data.success) {
-                message.success('Employee deleted successfully');
+                msg.success('Employee deleted successfully');
                 fetchEmployees();
             }
         } catch (error) {
             console.error('Error deleting employee:', error);
-            message.error('Failed to delete employee');
+            msg.error('Failed to delete employee');
         }
     };
 

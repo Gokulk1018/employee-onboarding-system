@@ -1,10 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { message } from 'antd';
+import { App } from 'antd';
 import { useSettings } from '../../context/SettingsContext';
 
 const SessionTimeout = () => {
     const navigate = useNavigate();
+    const { message: msg } = App.useApp();
     const { security } = useSettings();
     const timerRef = useRef(null);
 
@@ -12,7 +13,7 @@ const SessionTimeout = () => {
         const authKeys = ['isAuthenticated', 'token', 'userRole', 'username', 'candidateName', 'offerId'];
         authKeys.forEach(key => localStorage.removeItem(key));
         sessionStorage.clear();
-        message.warning('Session expired due to inactivity');
+        msg.warning('Session expired due to inactivity');
         navigate('/login', { replace: true });
     };
 

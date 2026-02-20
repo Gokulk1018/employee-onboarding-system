@@ -1,6 +1,12 @@
 const Employee = require('../models/Employee');
 const Offer = require('../models/Offer');
 const OnboardingUser = require('../models/OnboardingUser');
+const Task = require('../models/Task');
+const Goal = require('../models/Goal');
+const PerformanceReview = require('../models/PerformanceReview');
+const Notification = require('../models/Notification');
+const Job = require('../models/Job');
+const mongoose = require('mongoose');
 const crypto = require('crypto');
 const sendEmail = require('../utils/emailHelper');
 
@@ -141,6 +147,104 @@ exports.generateCredentials = async (req, res, next) => {
         });
 
         res.status(200).json({ success: true, message: 'Onboarding credentials generated and sent' });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @desc    Get dashboard stats for the logged-in employee
+// @route   GET /api/employees/me/dashboard
+exports.getDashboardStats = async (req, res, next) => {
+    try {
+        const employeeId = req.params.id;
+
+        // Validate ID format
+        if (!mongoose.Types.ObjectId.isValid(employeeId)) {
+            return res.status(400).json({ success: false, message: 'Invalid employee ID' });
+        }
+
+        const objId = new mongoose.Types.ObjectId(employeeId);
+
+        // Check if employee exists
+        const employeeSnippet = await Employee.findById(employeeId).select('name');
+        if (!employeeSnippet) {
+            return res.status(404).json({ success: false, message: 'Employee profile not found' });
+        }
+
+        // 1. Fetch Tasks
+        const tasks = await Task.find({ assignees: employeeId });
+        const completedTasks = tasks.filter(t => t.status === 'done').length;
+        const taskCompletion = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0;
+
+        // 2. Fetch Goals
+        const goals = await Goal.find({ employeeId });
+        const avgGoalProgress = goals.length > 0
+            ? Math.round(goals.reduce((acc, g) => acc + (g.progress || 0), 0) / goals.length)
+            : 0;
+
+        // 3. Fetch Latest Performance Review
+        const latestReview = await PerformanceReview.findOne({ employeeId }).sort({ createdAt: -1 });
+
+        // 4. Fetch Recent Notifications
+        const notifications = await Notification.find({
+            $or: [{ userId: employeeId }, { isGlobal: true }]
+        }).sort({ createdAt: -1 }).limit(5);
+
+        // 5. Fetch Internal Jobs (Openings)
+        const internalJobs = await Job.find({ status: 'OPEN' }).sort({ createdAt: -1 }).limit(3);
+
+        // 6. Calculate Performance Points & Ranking
+        const allEmployeesTasks = await Task.aggregate([
+            { $match: { status: 'done', assignees: { $exists: true, $ne: [] } } },
+            { $unwind: "$assignees" },
+            {
+                $group: {
+                    _id: "$assignees",
+                    points: {
+                        $sum: {
+                            $switch: {
+                                branches: [
+                                    { case: { $eq: ["$priority", "High"] }, then: 10 },
+                                    { case: { $eq: ["$priority", "Medium"] }, then: 7 },
+                                    { case: { $eq: ["$priority", "Low"] }, then: 5 }
+                                ],
+                                default: 7
+                            }
+                        }
+                    }
+                }
+            },
+            { $sort: { points: -1 } }
+        ]);
+
+        const myPerformance = allEmployeesTasks.find(p => p._id && p._id.toString() === employeeId);
+        const myPoints = myPerformance ? myPerformance.points : 0;
+        const myRank = allEmployeesTasks.findIndex(p => p._id && p._id.toString() === employeeId) + 1;
+
+        res.status(200).json({
+            success: true,
+            data: {
+                tasks: {
+                    total: tasks.length,
+                    completed: completedTasks,
+                    completionRate: taskCompletion,
+                    list: tasks.slice(0, 5)
+                },
+                goals: {
+                    total: goals.length,
+                    averageProgress: avgGoalProgress,
+                    list: goals.slice(0, 5)
+                },
+                performance: {
+                    rating: latestReview ? latestReview.averageRating : 0,
+                    status: latestReview ? latestReview.status : 'No Review Yet',
+                    points: myPoints,
+                    rank: myRank || 'N/A'
+                },
+                notifications,
+                internalJobs
+            }
+        });
     } catch (err) {
         next(err);
     }

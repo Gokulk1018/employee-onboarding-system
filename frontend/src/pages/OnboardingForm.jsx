@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     Form, Input, Button, Card, Steps, Upload,
-    message as antdMessage, Typography, Layout, Result, theme, Spin, Divider, App, Alert
+    Typography, Layout, Result, theme, Spin, Divider, App, Alert
 } from 'antd';
 import {
     UserOutlined, MailOutlined, PhoneOutlined,
@@ -15,7 +15,7 @@ const { Title, Text } = Typography;
 const { Content } = Layout;
 
 const OnboardingForm = () => {
-    const { message } = App.useApp();
+    const { message: msg } = App.useApp();
     const { token } = theme.useToken();
     const [currentStep, setCurrentStep] = useState(0);
     const [isSubmitted, setIsSubmitted] = useState(false);
@@ -68,14 +68,14 @@ const OnboardingForm = () => {
                 }
             } catch (error) {
                 console.error("Failed to fetch user data", error);
-                message.error("Failed to load your profile.");
+                msg.error("Failed to load your profile.");
             } finally {
                 setFetching(false);
             }
         };
 
         fetchUserData();
-    }, [navigate, form]);
+    }, [navigate, form, msg]);
 
     const onFinish = async (values) => {
         setLoading(true);
@@ -100,10 +100,10 @@ const OnboardingForm = () => {
                 // Update local status immediately to trigger UI change
                 setUserData(prev => ({ ...prev, status: 'submitted' }));
                 setIsSubmitted(true);
-                message.success('Onboarding data submitted successfully!');
+                msg.success('Onboarding data submitted successfully!');
             }
         } catch (error) {
-            message.error(error.response?.data?.message || 'Submission failed');
+            msg.error(error.response?.data?.message || 'Submission failed');
         } finally {
             setLoading(false);
         }
@@ -132,7 +132,6 @@ const OnboardingForm = () => {
                     <Form.Item name="email" rules={[{ required: true, type: 'email', message: 'Valid Email is required' }]} label="Email">
                         <Input prefix={<MailOutlined />} disabled />
                     </Form.Item>
-                    {/* Pre-filled email usually shouldn't be changed, but for now we allow if it wasn't pre-filled properly or force disabled if it matches login */}
                     <Form.Item name="phone" rules={[{ required: true, message: 'Phone Number is required' }]} label="Phone Number">
                         <Input prefix={<PhoneOutlined />} />
                     </Form.Item>
@@ -155,7 +154,6 @@ const OnboardingForm = () => {
                 <div style={{ marginTop: 24, textAlign: 'center' }}>
                     <div style={{ marginBottom: 16, textAlign: 'left' }}>
                         <Text strong>Upload required documents (ID Proof, Certificates, etc.)</Text>
-                        {/* Removed "Optional" text as requested */}
                     </div>
                     <Upload
                         customRequest={dummyRequest}
@@ -234,7 +232,6 @@ const OnboardingForm = () => {
     if (userData?.status === 'submitted' || userData?.status === 'pending') {
         return (
             <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f2f5', position: 'relative' }}>
-                {/* Top Logout Button in Blocked Screen */}
                 <div style={{ position: 'absolute', top: 20, right: 20 }}>
                     <Button type="default" danger onClick={() => {
                         localStorage.clear();
@@ -264,7 +261,6 @@ const OnboardingForm = () => {
 
     return (
         <Layout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
-            {/* Top Header with Logout */}
             <div style={{ position: 'absolute', top: 20, right: 20, zIndex: 1000 }}>
                 <Button type="default" danger onClick={() => {
                     localStorage.clear();
@@ -305,7 +301,7 @@ const OnboardingForm = () => {
                             preserve={true}
                             style={{ minHeight: 300 }}
                             initialValues={{
-                                email: userData?.candidateEmail // Ensure email is pre-filled
+                                email: userData?.candidateEmail
                             }}
                         >
                             {steps[currentStep].content}
@@ -321,15 +317,12 @@ const OnboardingForm = () => {
                             {currentStep < steps.length - 1 ? (
                                 <Button type="primary" onClick={() => {
                                     form.validateFields(['fullName', 'email', 'phone', 'address'].filter(field => {
-                                        // Only validate fields present in current step
                                         if (currentStep === 0) return ['fullName', 'email', 'phone'].includes(field);
                                         if (currentStep === 1) return ['address'].includes(field);
                                         return false;
                                     })).then(() => {
                                         setCurrentStep(prev => prev + 1);
-                                    }).catch(() => {
-                                        // Validation failed
-                                    });
+                                    }).catch(() => { });
                                 }}>
                                     Next
                                 </Button>

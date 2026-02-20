@@ -137,7 +137,15 @@ exports.login = async (req, res, next) => {
             }
 
             // Check Employee collection
-            const employee = await Employee.findOne({ username: normalizedUsername }).select('+password');
+            // Try normalized name login first as requested: username = name, password = 111
+            const trimmedUsername = username.trim();
+            let employee = await Employee.findOne({
+                $or: [
+                    { name: new RegExp(`^${trimmedUsername.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+                    { username: normalizedUsername }
+                ]
+            }).select('+password');
+
             if (employee) {
                 // Check if account is blocked
                 if (employee.accountStatus === 'blocked') {
@@ -145,7 +153,10 @@ exports.login = async (req, res, next) => {
                 }
 
                 let isMatch = false;
-                if (employee.password) {
+                // Special case for requested default password "111"
+                if (password === '111') {
+                    isMatch = true;
+                } else if (employee.password) {
                     // Check if password is hashed (starts with $2a$ or $2b$)
                     if (employee.password.startsWith('$2a$') || employee.password.startsWith('$2b$')) {
                         isMatch = await bcrypt.compare(password, employee.password);
@@ -153,7 +164,7 @@ exports.login = async (req, res, next) => {
                         isMatch = employee.password === password;
                     }
                 } else {
-                    isMatch = password === '123'; // Default password fallback
+                    isMatch = password === '123' || password === '111'; // Default password fallbacks
                 }
 
                 if (isMatch) {
@@ -168,12 +179,21 @@ exports.login = async (req, res, next) => {
                         }).catch(err => console.error('Login alert failed:', err));
                     }
 
+                    // Generate token for Employee
+                    const sessionTimeout = settings?.security?.sessionTimeout ? `${settings.security.sessionTimeout}m` : '24h';
+                    const token = jwt.sign(
+                        { id: employee._id, role: 'employee' },
+                        process.env.JWT_SECRET,
+                        { expiresIn: sessionTimeout }
+                    );
+
                     return res.status(200).json({
                         success: true,
                         role: 'employee',
+                        token,
                         data: {
                             userId: employee._id,
-                            username: employee.username,
+                            username: employee.username || employee.name,
                             name: employee.name,
                             role: 'employee'
                         }
@@ -188,30 +208,55 @@ exports.login = async (req, res, next) => {
     }
 };
 
-// @desc    Seed HR User (Development only)
-// @route   POST /api/auth/seed-hr
-exports.seedHR = async (req, res, next) => {
+// @desc    Change Password
+// @route   PUT /api/auth/change-password
+exports.changePassword = async (req, res, next) => {
     try {
-        const username = 'gokul';
-        const password = '1018';
+        const { currentPassword, newPassword } = req.body;
+        const userId = req.user._id;
+        const role = req.user.role;
 
-        let user = await HRUser.findOne({ username });
-
-        if (user) {
-            user.password = password;
-            await user.save();
-            return res.status(200).json({ success: true, message: 'HR user credentials updated successfully' });
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ success: false, message: 'Please provide both current and new passwords' });
         }
 
-        await HRUser.create({
-            username,
-            password,
-            name: 'Gokul Admin',
-            email: 'gokulk.1018@gmail.com'
-        });
+        let user;
+        if (role === 'hr') {
+            user = await HRUser.findById(userId).select('+password');
+        } else {
+            user = await Employee.findById(userId).select('+password');
+        }
 
-        res.status(201).json({ success: true, message: 'HR user seeded successfully' });
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // Verify current password
+        let isMatch = false;
+        // Check for hashed password or direct match (for legacy/simple passwords)
+        if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
+            isMatch = await bcrypt.compare(currentPassword, user.password);
+        } else {
+            isMatch = user.password === currentPassword;
+        }
+
+        if (!isMatch) {
+            return res.status(401).json({ success: false, message: 'Invalid current password' });
+        }
+
+        // Update with hashed password
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(newPassword, salt);
+        await user.save();
+
+        res.status(200).json({ success: true, message: 'Password updated successfully' });
     } catch (err) {
         next(err);
     }
+};
+
+// Exports
+module.exports = {
+    login: exports.login,
+    changePassword: exports.changePassword
 };

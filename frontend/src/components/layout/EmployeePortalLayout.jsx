@@ -1,7 +1,7 @@
 import React from 'react';
 import { ProLayout } from '@ant-design/pro-components';
 import { Dropdown, theme, Typography } from 'antd';
-import { LogoutOutlined, DashboardOutlined, UserOutlined, CalendarOutlined, ProjectOutlined, SettingOutlined } from '@ant-design/icons';
+import { LogoutOutlined, DashboardOutlined, UserOutlined, CalendarOutlined, ProjectOutlined, SettingOutlined, RocketOutlined, CarryOutOutlined } from '@ant-design/icons';
 import { useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ThemeToggle from '../common/ThemeToggle';
@@ -15,7 +15,7 @@ const EmployeePortalLayout = () => {
         { path: '/employee/dashboard', name: 'Dashboard', icon: <DashboardOutlined /> },
         { path: '/employee/profile', name: 'My Profile', icon: <UserOutlined /> },
         { path: '/employee/tasks', name: 'My Tasks', icon: <CalendarOutlined /> },
-        { path: '/employee/projects', name: 'Projects', icon: <ProjectOutlined /> },
+        { path: '/employee/leave', name: 'Leave Apply', icon: <CarryOutOutlined /> },
         { path: '/employee/settings', name: 'Settings', icon: <SettingOutlined /> },
     ];
 
@@ -25,20 +25,60 @@ const EmployeePortalLayout = () => {
     };
 
     return (
-        <div style={{ height: '100vh' }}>
+        <div style={{ minHeight: '100vh', background: token.colorBgLayout }}>
+            {/* Animated Backdrop for "Legendary" UI */}
+            <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '400px',
+                background: 'linear-gradient(180deg, rgba(24, 144, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%)',
+                pointerEvents: 'none',
+                zIndex: 0
+            }} />
+
             <ProLayout
-                layout="mix"
-                navTheme="light"
-                colorPrimary={token.colorPrimary}
-                siderWidth={250}
-                fixSiderbar
+                layout="top"
                 fixedHeader
-                title="Employee Portal"
                 logo="https://gw.alipayobjects.com/zos/antfincdn/upvrAjAPQX/Logo_Tech%252520UI.svg"
+                title="Employee Portal"
                 location={{ pathname: location.pathname }}
                 route={{ routes: menuItems }}
+                navTheme="light"
+                menuProps={{
+                    style: {
+                        background: 'transparent',
+                        border: 'none',
+                        fontWeight: 600,
+                        flex: 1,
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        paddingRight: 24,
+                    }
+                }}
+                headerStyle={{
+                    background: 'rgba(255, 255, 255, 0.6)',
+                    backdropFilter: 'blur(30px) saturate(180%)',
+                    WebkitBackdropFilter: 'blur(30px) saturate(180%)',
+                    borderBottom: `1px solid rgba(255, 255, 255, 0.3)`,
+                    padding: '0 40px',
+                    height: 72,
+                    lineHeight: '72px',
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 100,
+                    boxShadow: '0 4px 30px rgba(0, 0, 0, 0.03)'
+                }}
                 menuItemRender={(item, dom) => (
-                    <div onClick={() => navigate(item.path || '/employee/dashboard')}>{dom}</div>
+                    <motion.div
+                        whileHover={{ y: -2, scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => navigate(item.path || '/employee/dashboard')}
+                        style={{ cursor: 'pointer', padding: '0 12px' }}
+                    >
+                        {dom}
+                    </motion.div>
                 )}
                 avatarProps={{
                     src: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
@@ -50,16 +90,31 @@ const EmployeePortalLayout = () => {
                             ],
                             onClick: ({ key }) => key === 'logout' && handleLogout()
                         }}>
-                            {dom}
+                            <motion.div
+                                whileHover={{ scale: 1.05 }}
+                                style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', padding: '4px 8px', borderRadius: 12, background: 'rgba(0,0,0,0.02)' }}
+                            >
+                                {dom}
+                            </motion.div>
                         </Dropdown>
                     ),
                 }}
-                actionsRender={() => [<ThemeToggle key="theme" />]}
-                contentStyle={{ padding: 32, minHeight: '100vh', background: token.colorBgLayout }}
+                actionsRender={() => [
+                    <div key="actions" style={{ display: 'flex', alignItems: 'center', gap: 16, marginLeft: 16 }}>
+                        <ThemeToggle />
+                    </div>
+                ]}
+                contentStyle={{
+                    padding: '24px 50px',
+                    maxWidth: 1400,
+                    margin: '0 auto',
+                    minHeight: 'calc(100vh - 64px)'
+                }}
             >
                 <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0, scale: 0.99 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
                     key={location.pathname}
                 >
                     <Outlet />

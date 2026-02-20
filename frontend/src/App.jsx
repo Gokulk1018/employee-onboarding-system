@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { ConfigProvider, App as AntApp, theme as antTheme } from 'antd';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { themeConfig } from './config/theme';
@@ -24,7 +24,11 @@ dayjs.locale('en');
 
 import SplashScreen from './components/auth/SplashScreen';
 import LoginPage from './pages/Login';
-import EmployeePortal from './pages/EmployeePortal';
+const EmployeePortal = lazy(() => import('./pages/EmployeePortal'));
+const EmployeeProfile = lazy(() => import('./pages/EmployeeProfile'));
+const EmployeeTasks = lazy(() => import('./pages/EmployeeTasks'));
+const EmployeeSettings = lazy(() => import('./pages/EmployeeSettings'));
+const EmployeeLeave = lazy(() => import('./pages/EmployeeLeave'));
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import OnboardingForm from './pages/OnboardingForm';
 import ApplyJob from './pages/ApplyJob';
@@ -35,7 +39,8 @@ const RootRedirect = () => {
     const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
     const userRole = localStorage.getItem('userRole');
 
-    if (!hasSeenSplash) {
+    // Skip splash if user is already authenticated or has seen it
+    if (!hasSeenSplash && !isAuthenticated) {
         return <Navigate to="/splash" replace />;
     }
 
@@ -65,41 +70,45 @@ const AppContent = () => {
         >
             <AntApp>
                 <SessionTimeout />
-                <Routes location={location} key={location.pathname}>
-                    <Route path="/" element={<RootRedirect />} />
-                    <Route path="/splash" element={<SplashScreen />} />
-                    <Route path="/login" element={<LoginPage />} />
+                <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</div>}>
+                    <Routes location={location} key={location.pathname}>
+                        <Route path="/" element={<RootRedirect />} />
+                        <Route path="/splash" element={<SplashScreen />} />
+                        <Route path="/login" element={<LoginPage />} />
 
-                    {/* HR Routes */}
-                    <Route path="/" element={<ProtectedRoute allowedRole="hr"><MainLayout /></ProtectedRoute>}>
-                        <Route path="dashboard" element={<Dashboard />} />
-                        <Route path="employees" element={<Employees />} />
-                        <Route path="recruitment" element={<RecruitmentDashboard />} />
-                        <Route path="recruitment/jobs/:id" element={<JobDetails />} />
-                        <Route path="performance" element={<Performance />} />
-                        <Route path="engagement" element={<Engagement />} />
-                        <Route path="onboarding" element={<Onboarding />} />
-                        <Route path="tasks" element={<Tasks />} />
-                        <Route path="payroll" element={<Payroll />} />
-                        <Route path="settings" element={<Settings />} />
-                    </Route>
+                        {/* HR Routes */}
+                        <Route path="/" element={<ProtectedRoute allowedRole="hr"><MainLayout /></ProtectedRoute>}>
+                            <Route path="dashboard" element={<Dashboard />} />
+                            <Route path="employees" element={<Employees />} />
+                            <Route path="recruitment" element={<RecruitmentDashboard />} />
+                            <Route path="recruitment/jobs/:id" element={<JobDetails />} />
+                            <Route path="performance" element={<Performance />} />
+                            <Route path="engagement" element={<Engagement />} />
+                            <Route path="onboarding" element={<Onboarding />} />
+                            <Route path="tasks" element={<Tasks />} />
+                            <Route path="payroll" element={<Payroll />} />
+                            <Route path="settings" element={<Settings />} />
+                        </Route>
 
-                    {/* Onboarding Flow */}
-                    <Route path="/onboarding/form" element={<ProtectedRoute allowedRole="onboarding"><OnboardingForm /></ProtectedRoute>} />
+                        {/* Onboarding Flow */}
+                        <Route path="/onboarding/form" element={<ProtectedRoute allowedRole="onboarding"><OnboardingForm /></ProtectedRoute>} />
 
-                    {/* Employee Portal Routes */}
-                    <Route path="/employee" element={<ProtectedRoute allowedRole="employee"><EmployeePortalLayout /></ProtectedRoute>}>
-                        <Route path="dashboard" element={<EmployeePortal />} />
-                        <Route path="profile" element={<div>My Profile Component</div>} />
-                        <Route path="tasks" element={<div>My Tasks Component</div>} />
-                    </Route>
+                        {/* Employee Portal Routes */}
+                        <Route path="/employee" element={<ProtectedRoute allowedRoles={['employee']}><EmployeePortalLayout /></ProtectedRoute>}>
+                            <Route path="dashboard" element={<EmployeePortal />} />
+                            <Route path="profile" element={<EmployeeProfile />} />
+                            <Route path="tasks" element={<EmployeeTasks />} />
+                            <Route path="leave" element={<EmployeeLeave />} />
+                            <Route path="settings" element={<EmployeeSettings />} />
+                        </Route>
 
-                    {/* Public Job Application */}
-                    <Route path="/jobs/:id/apply" element={<ApplyJob />} />
+                        {/* Public Job Application */}
+                        <Route path="/jobs/:id/apply" element={<ApplyJob />} />
 
-                    {/* Fallback */}
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
+                        {/* Fallback */}
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                </Suspense>
             </AntApp>
         </ConfigProvider>
     );

@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { login, seedHR } = require('../controllers/authController');
+const { login, changePassword } = require('../controllers/authController');
+const { protect } = require('../middleware/authMiddleware');
 
 router.post('/login', login);
-router.post('/seed-hr', seedHR);
+
+router.put('/change-password', protect, changePassword);
 
 module.exports = router;

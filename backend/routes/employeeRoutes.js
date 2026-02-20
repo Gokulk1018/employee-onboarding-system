@@ -6,9 +6,11 @@ const {
     createEmployee,
     updateEmployee,
     deleteEmployee,
-    generateCredentials
+    generateCredentials,
+    getDashboardStats
 } = require('../controllers/employeeController');
 
+router.get('/me/dashboard/:id', getDashboardStats);
 router.get('/', getEmployees);
 router.get('/:id', getEmployeeById);
 router.post('/', createEmployee);

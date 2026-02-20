@@ -61,7 +61,7 @@ const MeetingModal = ({ open, onClose, onSubmit, employees = [], loadingEmployee
             onCancel={onClose}
             onOk={handleSubmit}
             width={700}
-            destroyOnClose
+            destroyOnHidden
             centered
             styles={{ mask: { backdropFilter: 'blur(5px)' } }}
             footer={[
