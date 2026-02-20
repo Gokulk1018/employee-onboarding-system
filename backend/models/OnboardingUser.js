@@ -21,6 +21,14 @@ const onboardingUserSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    candidatePhone: {
+        type: String,
+        required: false
+    },
+    candidateAddress: {
+        type: String,
+        required: false
+    },
     offerId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Offer',

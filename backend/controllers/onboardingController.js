@@ -6,21 +6,62 @@ const sendEmail = require('../utils/emailHelper');
 
 // @desc    Submit onboarding form data
 // @route   POST /api/onboarding/submit
+// @desc    Submit onboarding form data
+// @route   POST /api/onboarding/submit
 exports.submitOnboardingForm = async (req, res, next) => {
     try {
         const { userId, personalData, documents } = req.body;
+        console.log('[DEBUG] Submit Onboarding - Body:', JSON.stringify(req.body, null, 2));
+        console.log('[DEBUG] Personal Data:', personalData);
 
         const user = await OnboardingUser.findById(userId);
         if (!user) {
             return res.status(404).json({ success: false, message: 'Onboarding user not found' });
         }
 
+        // If status is reupload_required or pending, we are replacing data
+        if (user.status === 'reupload_required' || user.status === 'pending') {
+            // Manually update the Map to ensure persistence
+            if (!user.onboardingData) {
+                user.onboardingData = new Map();
+            }
+            // Ensure personalData is an object before iterating
+            if (personalData && typeof personalData === 'object') {
+                for (const [key, value] of Object.entries(personalData)) {
+                    user.onboardingData.set(key, String(value));
+                }
+
+                // Explicitly save phone and address to top-level fields if present
+                if (personalData.phone) user.candidatePhone = String(personalData.phone);
+                if (personalData.address) user.candidateAddress = String(personalData.address);
+            }
+
+            user.documents = documents; // Replace documents
+            user.status = 'submitted';
+            await user.save();
+
+            // Create HR Notification (Updated message for re-submission)
+            const msg = user.status === 'reupload_required'
+                ? `Onboarding form re-submitted by ${user.candidateName}`
+                : `New onboarding form submitted by ${user.candidateName}`;
+
+            await Notification.create({
+                message: msg,
+                candidateName: user.candidateName,
+                candidateEmail: user.candidateEmail,
+                status: 'Pending',
+                createdAt: new Date()
+            });
+
+            return res.status(200).json({ success: true, message: 'Onboarding form submitted' });
+        }
+
+        // Default case (shouldn't happen if frontend checks status, but safety net)
         user.status = 'submitted';
         user.onboardingData = personalData;
         user.documents = documents;
         await user.save();
 
-        // Create HR Notification
         await Notification.create({
             message: `New onboarding form submitted by ${user.candidateName}`,
             candidateName: user.candidateName,
@@ -30,6 +71,20 @@ exports.submitOnboardingForm = async (req, res, next) => {
         });
 
         res.status(200).json({ success: true, message: 'Onboarding form submitted' });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @desc    Get onboarding user data (Candidate View)
+// @route   GET /api/onboarding/user/:id
+exports.getOnboardingUser = async (req, res, next) => {
+    try {
+        const user = await OnboardingUser.findById(req.params.id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Onboarding user not found' });
+        }
+        res.status(200).json({ success: true, data: user });
     } catch (err) {
         next(err);
     }

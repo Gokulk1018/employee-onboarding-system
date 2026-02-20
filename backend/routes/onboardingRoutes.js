@@ -9,7 +9,8 @@ const {
     rejectOnboardingDetails,
     finalizeOnboarding,
     verifyDocument,
-    getAllOnboardingUsers
+    getAllOnboardingUsers,
+    getOnboardingUser
 } = require('../controllers/onboardingController');
 
 router.post('/submit', submitOnboardingForm);
@@ -21,5 +22,6 @@ router.put('/verify-document/:id', verifyDocument);
 router.get('/users', getAllOnboardingUsers);
 router.get('/:employeeId', getOnboardingStatus);
 router.put('/:employeeId/update-step', updateOnboardingStep);
+router.get('/user/:id', getOnboardingUser);
 
 module.exports = router;

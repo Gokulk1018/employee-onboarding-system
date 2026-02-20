@@ -223,8 +223,16 @@ const Onboarding = () => {
                                                 <Text type="secondary" style={{ fontSize: 12, textTransform: 'uppercase' }}>Email Address</Text>
                                                 <div style={{ fontWeight: 600, color: token.colorText, fontSize: 15 }}>{selectedReview.onboardingData?.email || selectedReview.candidateEmail}</div>
                                             </Col>
+                                            <Col span={12}>
+                                                <Text type="secondary" style={{ fontSize: 12, textTransform: 'uppercase' }}>Phone Number</Text>
+                                                <div style={{ fontWeight: 600, color: token.colorText, fontSize: 15 }}>{selectedReview.candidatePhone || selectedReview.onboardingData?.phone || 'N/A'}</div>
+                                            </Col>
+                                            <Col span={24}>
+                                                <Text type="secondary" style={{ fontSize: 12, textTransform: 'uppercase' }}>Address</Text>
+                                                <div style={{ fontWeight: 600, color: token.colorText, fontSize: 15 }}>{selectedReview.candidateAddress || selectedReview.onboardingData?.address || 'N/A'}</div>
+                                            </Col>
                                             {Object.entries(selectedReview.onboardingData || {}).map(([key, val]) => {
-                                                if (['fullName', 'email'].includes(key)) return null;
+                                                if (['fullName', 'email', 'phone', 'address'].includes(key)) return null;
                                                 return (
                                                     <Col span={12} key={key}>
                                                         <Text type="secondary" style={{ fontSize: 12, textTransform: 'uppercase' }}>{key.replace(/([A-Z])/g, ' $1')}</Text>
