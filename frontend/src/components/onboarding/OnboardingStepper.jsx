@@ -8,17 +8,19 @@ import {
     SmileOutlined,
     CheckCircleOutlined,
     ArrowRightOutlined,
-    CloseCircleOutlined
+    CloseCircleOutlined,
+    ClockCircleOutlined,
+    SyncOutlined
 } from '@ant-design/icons';
 
 const OnboardingStepper = ({ candidateData }) => {
     const { token } = theme.useToken();
 
+    const offerStatus = candidateData?.rawStatus || candidateData?.status;
+    const onboardingStep = candidateData?.onboardingStep;
+
     // Calculate current step based on candidate status
     const getOnboardingState = () => {
-        const offerStatus = candidateData?.rawStatus || candidateData?.status;
-        const onboardingStep = candidateData?.onboardingStep;
-
         // Handle Offer Stage
         if (offerStatus === 'DECLINED' || offerStatus === 'Rejected') {
             return { step: 0, status: 'error', desc: 'Offer declined by candidate' };
@@ -61,32 +63,42 @@ const OnboardingStepper = ({ candidateData }) => {
     const steps = [
         {
             title: 'Offer Accepted',
-            icon: state.step === 0 && state.status === 'error' ? <CloseCircleOutlined /> : <CheckCircleOutlined />,
+            baseIcon: <CheckCircleOutlined />,
             description: (candidateData?.status === 'DECLINED' || candidateData?.status === 'Rejected')
                 ? 'Offer Rejected'
-                : (candidateData?.date || 'Awaiting response')
+                : (offerStatus === 'Accepted' || offerStatus === 'OFFER_ACCEPTED' || onboardingStep) ? (candidateData?.date || 'Accepted') : 'Awaiting response'
         },
         {
             title: 'Documentation',
-            icon: <SolutionOutlined />,
-            description: state.step > 1 ? 'Documents verified' : 'Pending verification'
+            baseIcon: <SolutionOutlined />,
+            description: state.step > 1 ? 'Documents verified' : (state.step === 1 ? 'Pending verification' : 'Not started')
         },
         {
             title: 'IT Setup',
-            icon: <LaptopOutlined />,
-            description: 'Laptop configuration'
+            baseIcon: <LaptopOutlined />,
+            description: state.step > 2 ? 'Completed' : 'Laptop configuration'
         },
         {
             title: 'Orientation',
-            icon: <TeamOutlined />,
-            description: candidateData?.joiningDate ? `Scheduled for ${candidateData.joiningDate}` : 'TBD'
+            baseIcon: <TeamOutlined />,
+            description: candidateData?.joiningDate ? `Scheduled for ${candidateData.joiningDate}` : (state.step > 3 ? 'Completed' : 'TBD')
         },
         {
             title: 'Ready (Day 1)',
-            icon: <SmileOutlined />,
+            baseIcon: <SmileOutlined />,
             description: 'First day'
         }
     ];
+
+    const getStepIcon = (index) => {
+        if (index < state.step) return <CheckCircleOutlined />;
+        if (index === state.step) {
+            if (state.status === 'error') return <CloseCircleOutlined />;
+            if (state.status === 'process') return <SyncOutlined spin />;
+            if (state.status === 'wait') return <ClockCircleOutlined />;
+        }
+        return steps[index].baseIcon;
+    };
 
     return (
         <div className="glass-card" style={{ padding: 24, height: '100%', borderColor: token.colorBorder }}>
@@ -138,6 +150,7 @@ const OnboardingStepper = ({ candidateData }) => {
                 status={state.status}
                 items={steps.map((step, index) => ({
                     ...step,
+                    icon: getStepIcon(index),
                     status: (index === state.step) ? state.status : (index < state.step ? 'finish' : 'wait'),
                     description: <span style={{ color: token.colorTextSecondary }}>{step.description}</span>
                 }))}

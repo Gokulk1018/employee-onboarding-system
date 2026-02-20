@@ -41,7 +41,9 @@ const OnboardingReviewList = ({
     isReviewModalOpen,
     setIsReviewModalOpen,
     fetchReviews,
-    fetchOffers
+    fetchOffers,
+    setSelectedOfferId,
+    offersData
 }) => {
     const { message } = App.useApp();
     const { token } = theme.useToken();
@@ -139,6 +141,15 @@ const OnboardingReviewList = ({
                 className="glass-table"
                 pagination={{ pageSize: 5 }}
                 scroll={{ x: 'max-content' }}
+                onRow={(record) => ({
+                    onClick: () => {
+                        const matchingOffer = offersData.find(o => o.email === record.candidateEmail);
+                        if (matchingOffer) {
+                            setSelectedOfferId(matchingOffer.id);
+                        }
+                    }
+                })}
+                rowClassName={(record) => record._id === selectedReview?._id ? 'selected-row' : ''}
             />
             <Modal
                 title={
@@ -781,6 +792,8 @@ const Onboarding = () => {
                                 setIsReviewModalOpen={setIsReviewModalOpen}
                                 fetchReviews={fetchReviews}
                                 fetchOffers={fetchOffers}
+                                setSelectedOfferId={setSelectedOfferId}
+                                offersData={offersData}
                             />
                         </Card>
                     </Col>
