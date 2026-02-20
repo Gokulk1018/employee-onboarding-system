@@ -15,17 +15,18 @@ import axios from 'axios';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 dayjs.extend(relativeTime);
-
 import {
     ResponsiveContainer, PieChart, Pie, Cell,
     BarChart, Bar, XAxis, YAxis, Tooltip, Legend
 } from 'recharts';
+import { useTheme } from '../context/ThemeContext';
 
 const { Title, Text } = Typography;
 
 const EmployeePortal = () => {
     const navigate = useNavigate();
     const { token } = theme.useToken();
+    const { isDarkMode } = useTheme();
     const [employeeData, setEmployeeData] = useState(null);
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -113,9 +114,11 @@ const EmployeePortal = () => {
                     className="glass-card"
                     style={{
                         marginBottom: 24,
-                        background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%)',
+                        background: isDarkMode
+                            ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%)'
+                            : 'linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%)',
                         borderRadius: 24,
-                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                        border: `1px solid ${token.colorBorderSecondary}`
                     }}
                 >
                     <Row gutter={24} align="middle">
@@ -158,10 +161,10 @@ const EmployeePortal = () => {
                                     borderRadius: 12,
                                     height: 50,
                                     padding: '0 24px',
-                                    background: 'rgba(255, 255, 255, 0.2)',
-                                    borderColor: 'rgba(255, 255, 255, 0.3)',
+                                    background: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(79, 70, 229, 0.1)',
+                                    borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(79, 70, 229, 0.2)',
                                     backdropFilter: 'blur(10px)',
-                                    color: '#fff',
+                                    color: isDarkMode ? '#fff' : token.colorPrimary,
                                     fontWeight: 600
                                 }}
                             >
@@ -219,8 +222,10 @@ const EmployeePortal = () => {
                                     style={{
                                         borderRadius: 24,
                                         height: '100%',
-                                        background: 'linear-gradient(135deg, rgba(24, 144, 255, 0.08) 0%, rgba(114, 46, 209, 0.08) 100%)',
-                                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                                        background: isDarkMode
+                                            ? 'linear-gradient(135deg, rgba(24, 144, 255, 0.08) 0%, rgba(114, 46, 209, 0.08) 100%)'
+                                            : 'linear-gradient(135deg, rgba(24, 144, 255, 0.05) 0%, rgba(114, 46, 209, 0.05) 100%)',
+                                        border: `1px solid ${token.colorBorderSecondary}`,
                                         overflow: 'hidden'
                                     }}
                                     styles={{ body: { padding: 24 } }}
@@ -232,7 +237,7 @@ const EmployeePortal = () => {
 
                                     <Row gutter={24} align="middle">
                                         <Col span={12}>
-                                            <div style={{ textAlign: 'center', padding: '12px 0', background: 'rgba(255,255,255,0.3)', borderRadius: 20, border: '1px solid rgba(255,255,255,0.4)' }}>
+                                            <div style={{ textAlign: 'center', padding: '12px 0', background: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)', borderRadius: 20, border: `1px solid ${token.colorBorderSecondary}` }}>
                                                 <Statistic
                                                     title={<Text type="secondary" style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1 }}>Performance Points</Text>}
                                                     value={stats?.performance.points || 0}
@@ -242,7 +247,7 @@ const EmployeePortal = () => {
                                             </div>
                                         </Col>
                                         <Col span={12}>
-                                            <div style={{ textAlign: 'center', padding: '12px 0', background: 'rgba(24, 144, 255, 0.05)', borderRadius: 20, border: '1px solid rgba(24, 144, 255, 0.1)' }}>
+                                            <div style={{ textAlign: 'center', padding: '12px 0', background: isDarkMode ? 'rgba(24, 144, 255, 0.05)' : 'rgba(24, 144, 255, 0.02)', borderRadius: 20, border: `1px solid ${token.colorBorderSecondary}` }}>
                                                 <Statistic
                                                     title={<Text type="secondary" style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1 }}>Global Ranking</Text>}
                                                     value={stats?.performance.rank || 'N/A'}

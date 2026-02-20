@@ -5,11 +5,13 @@ import { LogoutOutlined, DashboardOutlined, UserOutlined, CalendarOutlined, Proj
 import { useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ThemeToggle from '../common/ThemeToggle';
+import { useTheme } from '../../context/ThemeContext';
 
 const EmployeePortalLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { token } = theme.useToken();
+    const { isDarkMode } = useTheme();
 
     const menuItems = [
         { path: '/employee/dashboard', name: 'Dashboard', icon: <DashboardOutlined /> },
@@ -45,7 +47,7 @@ const EmployeePortalLayout = () => {
                 title="Employee Portal"
                 location={{ pathname: location.pathname }}
                 route={{ routes: menuItems }}
-                navTheme="light"
+                navTheme={isDarkMode ? 'dark' : 'light'}
                 menuProps={{
                     style: {
                         background: 'transparent',
@@ -58,17 +60,17 @@ const EmployeePortalLayout = () => {
                     }
                 }}
                 headerStyle={{
-                    background: 'rgba(255, 255, 255, 0.6)',
+                    background: isDarkMode ? 'rgba(15, 23, 42, 0.6)' : 'rgba(255, 255, 255, 0.6)',
                     backdropFilter: 'blur(30px) saturate(180%)',
                     WebkitBackdropFilter: 'blur(30px) saturate(180%)',
-                    borderBottom: `1px solid rgba(255, 255, 255, 0.3)`,
+                    borderBottom: `1px solid ${token.colorBorderSecondary}`,
                     padding: '0 40px',
                     height: 72,
                     lineHeight: '72px',
                     position: 'sticky',
                     top: 0,
                     zIndex: 100,
-                    boxShadow: '0 4px 30px rgba(0, 0, 0, 0.03)'
+                    boxShadow: isDarkMode ? '0 4px 30px rgba(0, 0, 0, 0.3)' : '0 4px 30px rgba(0, 0, 0, 0.03)'
                 }}
                 menuItemRender={(item, dom) => (
                     <motion.div

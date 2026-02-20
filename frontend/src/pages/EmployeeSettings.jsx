@@ -65,10 +65,10 @@ const EmployeeSettings = () => {
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 padding: '20px',
-                background: 'rgba(255, 255, 255, 0.03)',
+                background: isDarkMode ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
                 borderRadius: 16,
                 marginBottom: 12,
-                border: '1px solid rgba(255, 255, 255, 0.05)'
+                border: `1px solid ${token.colorBorderSecondary}`
             }}
         >
             <Space size="middle">
@@ -162,7 +162,9 @@ const EmployeeSettings = () => {
                                 borderRadius: 12,
                                 height: 48,
                                 padding: '0 32px',
-                                background: 'linear-gradient(135deg, #1890ff 0%, #722ed1 100%)',
+                                background: isDarkMode
+                                    ? 'linear-gradient(135deg, #4f46e5 0%, #722ed1 100%)'
+                                    : 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
                                 border: 'none',
                                 fontWeight: 600,
                                 marginTop: 8
@@ -243,7 +245,7 @@ const EmployeeSettings = () => {
                 <Col span={24}>
                     <Card
                         className="glass-card"
-                        style={{ borderRadius: 32, overflow: 'hidden', border: '1px solid rgba(255, 255, 255, 0.2)' }}
+                        style={{ borderRadius: 32, overflow: 'hidden', border: `1px solid ${token.colorBorderSecondary}` }}
                         styles={{ body: { padding: 32 } }}
                     >
                         <Tabs

@@ -11,6 +11,7 @@ import {
 } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import dayjs from 'dayjs';
+import { useTheme } from '../context/ThemeContext';
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -18,6 +19,7 @@ const { RangePicker } = DatePicker;
 const EmployeeLeave = () => {
     const { token } = theme.useToken();
     const { message: msg } = App.useApp();
+    const { isDarkMode } = useTheme();
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
 
@@ -136,7 +138,12 @@ const EmployeeLeave = () => {
 
                         <Card
                             className="glass-card"
-                            style={{ borderRadius: 24, background: 'linear-gradient(135deg, #1890ff 0%, #722ed1 100%)' }}
+                            style={{
+                                borderRadius: 24,
+                                background: isDarkMode
+                                    ? 'linear-gradient(135deg, rgba(24, 144, 255, 0.4) 114%, rgba(114, 46, 209, 0.4) 100%)'
+                                    : 'linear-gradient(135deg, #4f46e5 0%, #722ed1 100%)'
+                            }}
                             styles={{ body: { color: '#fff' } }}
                         >
                             <Title level={4} style={{ color: '#fff' }}><SendOutlined /> Quick Request</Title>

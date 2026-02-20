@@ -26,19 +26,19 @@ body {
 html.light,
 body.light {
     background-color: #f8fafc;
-    /* Slate 50 */
     color: #0f172a;
 }
 
 html.dark,
 body.dark {
     background-color: #020617;
-    /* Slate 950 */
     color: #f8fafc;
 }
 
 body {
     overflow-x: hidden;
+    background-color: var(--ant-color-bg-layout);
+    color: var(--ant-color-text);
 }
 
 h1,
@@ -252,12 +252,12 @@ h6 {
     color: #0f172a;
 }
 
-/* Override Browser Autofill Styles */
+/* Dynamic Autofill Override */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 1000px #0b1220 inset !important;
-    -webkit-text-fill-color: white !important;
+    -webkit-box-shadow: 0 0 0 1000px var(--ant-color-bg-container) inset !important;
+    -webkit-text-fill-color: var(--ant-color-text) !important;
     transition: background-color 5000s ease-in-out 0s;
 }

@@ -12,12 +12,14 @@ import {
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import dayjs from 'dayjs';
+import { useTheme } from '../context/ThemeContext';
 
 const { Title, Text } = Typography;
 
 const EmployeeTasks = () => {
     const { token } = theme.useToken();
     const { message: msg } = App.useApp();
+    const { isDarkMode } = useTheme();
     const [tasks, setTasks] = useState({ todo: [], inProgress: [], done: [] });
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('all');
@@ -93,7 +95,7 @@ const EmployeeTasks = () => {
                 </Space>
                 <Badge count={tasks.length} color={token.colorPrimary} />
             </div>
-            <div style={{ minHeight: 400, padding: 8, background: 'rgba(0,0,0,0.02)', borderRadius: 20 }}>
+            <div style={{ minHeight: 400, padding: 8, background: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', borderRadius: 20 }}>
                 {tasks.length > 0 ? (
                     tasks.map(task => <TaskCard key={task._id} task={task} />)
                 ) : (
