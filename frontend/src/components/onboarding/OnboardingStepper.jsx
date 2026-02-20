@@ -148,12 +148,15 @@ const OnboardingStepper = ({ candidateData }) => {
                 direction="vertical"
                 current={state.step}
                 status={state.status}
-                items={steps.map((step, index) => ({
-                    ...step,
-                    icon: getStepIcon(index),
-                    status: (index === state.step) ? state.status : (index < state.step ? 'finish' : 'wait'),
-                    description: <span style={{ color: token.colorTextSecondary }}>{step.description}</span>
-                }))}
+                items={steps.map((step, index) => {
+                    const { baseIcon, ...stepProps } = step;
+                    return {
+                        ...stepProps,
+                        icon: getStepIcon(index),
+                        status: (index === state.step) ? state.status : (index < state.step ? 'finish' : 'wait'),
+                        description: <span style={{ color: token.colorTextSecondary }}>{step.description}</span>
+                    };
+                })}
             />
 
 

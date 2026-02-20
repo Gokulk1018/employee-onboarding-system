@@ -1,4 +1,5 @@
 const Offer = require('../models/Offer');
+const Employee = require('../models/Employee');
 const Notification = require('../models/Notification');
 const sendEmail = require('../utils/emailHelper');
 const crypto = require('crypto');
@@ -195,7 +196,13 @@ exports.getOffers = async (req, res, next) => {
 // @desc    Delete offer
 exports.deleteOffer = async (req, res, next) => {
     try {
-        await Offer.findByIdAndDelete(req.params.id);
+        const OnboardingUser = require('../models/OnboardingUser');
+        const offerId = req.params.id;
+
+        await Offer.findByIdAndDelete(offerId);
+        // Clean up associated onboarding user as well
+        await OnboardingUser.findOneAndDelete({ offerId });
+
         res.status(200).json({ success: true, data: {} });
     } catch (err) {
         next(err);
@@ -267,60 +274,60 @@ exports.resendOffer = async (req, res, next) => {
 
         const htmlContent = `
             <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="utf-8">
-                <style>
-                    .card {
-                        max-width: 600px;
-                        margin: 20px auto;
-                        background: #ffffff;
-                        padding: 40px;
-                        border-radius: 16px;
-                        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                        color: #1f2937;
-                        border: 1px solid #e5e7eb;
-                    }
-                    .h1 { color: #7c3aed; font-size: 24px; margin-bottom: 24px; text-align: center; }
-                    .btn {
-                        display: inline-block;
-                        padding: 12px 32px;
-                        border-radius: 8px;
-                        text-decoration: none;
-                        font-weight: 600;
-                        margin: 10px;
-                        transition: opacity 0.2s;
-                    }
-                    .btn-accept { background-color: #10b981; color: #ffffff !important; }
-                    .btn-reject { background-color: #ef4444; color: #ffffff !important; }
-                    .details { background: #f9fafb; padding: 20px; border-radius: 12px; margin: 24px 0; }
-                    .message-box { border-left: 4px solid #7c3aed; padding-left: 16px; font-style: italic; color: #4b5563; margin: 20px 0; }
-                </style>
-            </head>
-            <body style="background-color: #f3f4f6; padding: 20px;">
-                <div class="card">
-                    <h1 class="h1">Job Offer - ${offer.role} (Updated)</h1>
-                    <p>Dear ${offer.candidateName},</p>
-                    <p>We are following up on our previous offer for the position of <strong>${offer.role}</strong> in our <strong>${offer.department}</strong> department.</p>
-                    
-                    ${offer.personalMessage ? `<div class="message-box">${offer.personalMessage}</div>` : ''}
+                <html>
+                    <head>
+                        <meta charset="utf-8">
+                            <style>
+                                .card {
+                                    max-width: 600px;
+                                    margin: 20px auto;
+                                    background: #ffffff;
+                                    padding: 40px;
+                                    border-radius: 16px;
+                                    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                                    color: #1f2937;
+                                    border: 1px solid #e5e7eb;
+                                }
+                                .h1 {color: #7c3aed; font-size: 24px; margin-bottom: 24px; text-align: center; }
+                                .btn {
+                                    display: inline-block;
+                                    padding: 12px 32px;
+                                    border-radius: 8px;
+                                    text-decoration: none;
+                                    font-weight: 600;
+                                    margin: 10px;
+                                    transition: opacity 0.2s;
+                                }
+                                .btn-accept {background-color: #10b981; color: #ffffff !important; }
+                                .btn-reject {background-color: #ef4444; color: #ffffff !important; }
+                                .details {background: #f9fafb; padding: 20px; border-radius: 12px; margin: 24px 0; }
+                                .message-box {border-left: 4px solid #7c3aed; padding-left: 16px; font-style: italic; color: #4b5563; margin: 20px 0; }
+                            </style>
+                    </head>
+                    <body style="background-color: #f3f4f6; padding: 20px;">
+                        <div class="card">
+                            <h1 class="h1">Job Offer - ${offer.role} (Updated)</h1>
+                            <p>Dear ${offer.candidateName},</p>
+                            <p>We are following up on our previous offer for the position of <strong>${offer.role}</strong> in our <strong>${offer.department}</strong> department.</p>
 
-                    <div class="details">
-                        <p style="margin: 0;"><strong>Offer Details:</strong></p>
-                        <ul style="margin: 12px 0; padding-left: 20px;">
-                            <li>Joining Date: ${new Date(offer.joiningDate).toLocaleDateString()}</li>
-                            <li>Annual Salary: $${offer.salary.toLocaleString()}</li>
-                        </ul>
-                    </div>
+                            ${offer.personalMessage ? `<div class="message-box">${offer.personalMessage}</div>` : ''}
 
-                    <div style="text-align: center; margin-top: 32px;">
-                        <a href="${acceptUrl}" class="btn btn-accept">Accept Offer</a>
-                        <a href="${rejectUrl}" class="btn btn-reject">Reject Offer</a>
-                    </div>
-                </div>
-            </body>
-            </html>
+                            <div class="details">
+                                <p style="margin: 0;"><strong>Offer Details:</strong></p>
+                                <ul style="margin: 12px 0; padding-left: 20px;">
+                                    <li>Joining Date: ${new Date(offer.joiningDate).toLocaleDateString()}</li>
+                                    <li>Annual Salary: $${offer.salary.toLocaleString()}</li>
+                                </ul>
+                            </div>
+
+                            <div style="text-align: center; margin-top: 32px;">
+                                <a href="${acceptUrl}" class="btn btn-accept">Accept Offer</a>
+                                <a href="${rejectUrl}" class="btn btn-reject">Reject Offer</a>
+                            </div>
+                        </div>
+                    </body>
+                </html>
         `;
 
         try {
@@ -369,15 +376,10 @@ exports.advanceOnboardingStep = async (req, res, next) => {
         if (currentStepIndex === -1) {
             // If for some reason the step is invalid, reset to start
             offer.onboardingStep = 'Offer Accepted';
-        } else if (currentStepIndex < ONBOARDING_STEPS.length - 1) {
-            // Move to next step
-            offer.onboardingStep = ONBOARDING_STEPS[currentStepIndex + 1];
-        } else {
-            return res.status(400).json({
-                success: false,
-                message: 'Onboarding is already at the final stage'
-            });
         }
+
+        console.log(`[DEBUG] Candidate: ${offer.candidateName}, Index: ${currentStepIndex}, Next: ${currentStepIndex + 1}, Setting Step to: "${ONBOARDING_STEPS[currentStepIndex + 1]}"`);
+        offer.onboardingStep = ONBOARDING_STEPS[currentStepIndex + 1];
 
         await offer.save();
 
@@ -387,6 +389,98 @@ exports.advanceOnboardingStep = async (req, res, next) => {
             message: `Moved to ${offer.onboardingStep}`
         });
     } catch (err) {
+        next(err);
+    }
+};
+
+// @desc    Convert offer to employee
+// @route   POST /api/offers/:id/convert
+exports.convertOfferToEmployee = async (req, res, next) => {
+    try {
+        console.log(`\n\x1b[36m[DEBUG-CONVERT] START: Processing conversion for ID: ${req.params.id}\x1b[0m`);
+
+        const offer = await Offer.findById(req.params.id);
+
+        if (!offer) {
+            console.log(`\x1b[31m[DEBUG-CONVERT] ERROR: Offer not found!\x1b[0m`);
+            return res.status(404).json({
+                success: false,
+                message: 'Offer not found'
+            });
+        }
+
+        console.log(`\x1b[32m[DEBUG-CONVERT] Candidate: ${offer.candidateName}\x1b[0m`);
+        console.log(`\x1b[32m[DEBUG-CONVERT] Step: "${offer.onboardingStep}"\x1b[0m`);
+        console.log(`\x1b[32m[DEBUG-CONVERT] Status: ${offer.status}\x1b[0m`);
+
+        if (offer.onboardingStep !== 'Ready') {
+            const msg = `Candidate ${offer.candidateName} is in ${offer.onboardingStep} stage, must be Ready.`;
+            console.log(`\x1b[31m[DEBUG-CONVERT] ERROR: ${msg}\x1b[0m`);
+            return res.status(400).json({
+                success: false,
+                message: `Candidate must be in Ready stage to be added as an employee. Current stage: ${offer.onboardingStep}`
+            });
+        }
+
+        // Create the employee record
+        console.log(`\x1b[33m[DEBUG-CONVERT] Creating Employee Record...\x1b[0m`);
+        let employee;
+        try {
+            // Check if employee with same email already exists
+            const existingEmployee = await Employee.findOne({ email: offer.candidateEmail });
+            if (existingEmployee) {
+                console.log(`\x1b[31m[DEBUG-CONVERT] ERROR: Employee with email ${offer.candidateEmail} already exists!\x1b[0m`);
+                return res.status(400).json({
+                    success: false,
+                    message: `An employee with the email ${offer.candidateEmail} already exists in the system.`
+                });
+            }
+
+            const employeeData = {
+                name: offer.candidateName,
+                email: offer.candidateEmail,
+                department: offer.department,
+                role: offer.role,
+                joinDate: offer.joiningDate,
+                offerId: offer._id,
+                status: 'Active'
+            };
+            console.log(`\x1b[33m[DEBUG-CONVERT] Employee Payload: ${JSON.stringify(employeeData, null, 2)}\x1b[0m`);
+
+            employee = await Employee.create(employeeData);
+            console.log(`\x1b[32m[DEBUG-CONVERT] SUCCESS: Employee Created with ID: ${employee._id}\x1b[0m`);
+        } catch (createErr) {
+            console.error(`\x1b[31m[DEBUG-CONVERT] CREATE_FAILED: ${createErr.message}\x1b[0m`);
+            if (createErr.errors) {
+                Object.keys(createErr.errors).forEach(key => {
+                    console.error(`\x1b[31m  - ${key}: ${createErr.errors[key].message}\x1b[0m`);
+                });
+            }
+            return res.status(400).json({
+                success: false,
+                message: `Failed to create employee record: ${createErr.message}`,
+                error: createErr.message
+            });
+        }
+
+        // Delete the matching onboarding user to clean up
+        console.log(`\x1b[33m[DEBUG-CONVERT] Cleaning up OnboardingUser...\x1b[0m`);
+        const OnboardingUser = require('../models/OnboardingUser');
+        await OnboardingUser.findOneAndDelete({ offerId: offer._id });
+
+        // Delete the offer after employee is created
+        console.log(`\x1b[33m[DEBUG-CONVERT] Deleting Offer Record...\x1b[0m`);
+        await Offer.findByIdAndDelete(req.params.id);
+
+        console.log(`\x1b[32m[DEBUG-CONVERT] FINISHED: ${offer.candidateName} converted successfully!\x1b[0m\n`);
+
+        res.status(200).json({
+            success: true,
+            data: employee,
+            message: 'Employee created successfully and onboarding record cleared'
+        });
+    } catch (err) {
+        console.error(`\x1b[31m[DEBUG-CONVERT] UNEXPECTED_ERROR:\x1b[0m`, err);
         next(err);
     }
 };

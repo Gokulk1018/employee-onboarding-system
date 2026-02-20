@@ -19,11 +19,13 @@ import {
     SyncOutlined,
     UserOutlined,
     EyeOutlined,
-    SendOutlined
+    SendOutlined,
+    UserAddOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
 import OnboardingStepper from '../components/onboarding/OnboardingStepper';
 import OfferDrawer from '../components/onboarding/OfferDrawer';
+import AddEmployeeModal from '../components/employees/AddEmployeeModal';
 
 import { motion } from 'framer-motion';
 import PageContainer from '../components/layout/PageContainer';
@@ -330,6 +332,8 @@ const Onboarding = () => {
     const [reviewLoading, setReviewLoading] = useState(false);
     const [selectedReviewId, setSelectedReviewId] = useState(null);
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+    const [isManualEntryModalOpen, setIsManualEntryModalOpen] = useState(false);
+    const [manualEntryData, setManualEntryData] = useState(null);
 
     // Derived state for the detail panels
     const selectedOffer = offersData.find(o => o.id === selectedOfferId) || null;
@@ -558,9 +562,35 @@ const Onboarding = () => {
         const offer = offersData.find(o => o.id === selectedOfferId);
         if (!offer) return;
 
-        // Don't advance if already ready or if it's a mock offer
+        // If at Ready stage, handle conversion to employee
         if (offer.onboardingStep === 'Ready') {
-            message.info('Candidate is already at the final stage');
+            try {
+                message.loading({ content: 'Adding as new employee...', key: 'convertEmployee' });
+                const response = await axios.post(`http://localhost:5000/api/offers/${selectedOfferId}/convert`);
+
+                if (response.data.success) {
+                    message.success({ content: 'Employee created successfully!', key: 'convertEmployee' });
+                    setSelectedOfferId(null); // Clear selection as the offer is gone
+                    fetchOffers(); // Refresh lists
+                    fetchReviews();
+                }
+            } catch (error) {
+                const errorMsg = error.response?.data?.message || 'Failed to add employee';
+                message.error({ content: errorMsg, key: 'convertEmployee' });
+
+                // If it's a duplicate email error, show manual entry modal
+                if (errorMsg.includes('already exists')) {
+                    setManualEntryData({
+                        name: offer.name,
+                        email: offer.email,
+                        department: offer.department,
+                        role: offer.role,
+                        joinDate: offer.rawJoiningDate,
+                        status: 'Active'
+                    });
+                    setIsManualEntryModalOpen(true);
+                }
+            }
             return;
         }
 
@@ -709,6 +739,18 @@ const Onboarding = () => {
         }
     };
 
+    const handleManualEntrySuccess = async () => {
+        try {
+            // After manual employee creation, we must delete the offer to complete the "conversion"
+            await axios.delete(`http://localhost:5000/api/offers/${selectedOfferId}`);
+            setSelectedOfferId(null);
+            fetchOffers();
+            fetchReviews();
+        } catch (error) {
+            console.error('Failed to cleanup offer after manual entry', error);
+        }
+    };
+
     return (
         <PageContainer>
             <motion.div
@@ -809,12 +851,19 @@ const Onboarding = () => {
                                     type="primary"
                                     block
                                     size="large"
-                                    icon={<CheckCircleOutlined />}
-                                    style={{ height: 50, borderRadius: 12, fontWeight: 600, boxShadow: `0 4px 14px ${token.colorPrimary}40` }}
+                                    icon={selectedOffer?.onboardingStep === 'Ready' ? <UserAddOutlined /> : <CheckCircleOutlined />}
+                                    style={{
+                                        height: 50,
+                                        borderRadius: 12,
+                                        fontWeight: 600,
+                                        boxShadow: `0 4px 14px ${selectedOffer?.onboardingStep === 'Ready' ? '#10b981' : token.colorPrimary}40`,
+                                        background: selectedOffer?.onboardingStep === 'Ready' ? '#10b981' : undefined,
+                                        borderColor: selectedOffer?.onboardingStep === 'Ready' ? '#10b981' : undefined
+                                    }}
                                     onClick={handleAdvanceStage}
-                                    disabled={!selectedOffer || selectedOffer.onboardingStep === 'Ready'}
+                                    disabled={!selectedOffer}
                                 >
-                                    Move to Next Stage
+                                    {selectedOffer?.onboardingStep === 'Ready' ? 'Add as New Employee' : 'Move to Next Stage'}
                                 </Button>
                             </motion.div>
                         </Space>
@@ -824,10 +873,20 @@ const Onboarding = () => {
                 <OfferDrawer
                     open={isDrawerOpen}
                     onClose={() => setIsDrawerOpen(false)}
-                    onSuccess={() => { setIsDrawerOpen(false); fetchOffers(); }}
+                    destroyOnHidden={true}
                     editData={editingOffer}
                 />
             </motion.div>
+
+            <AddEmployeeModal
+                open={isManualEntryModalOpen}
+                onClose={() => {
+                    setIsManualEntryModalOpen(false);
+                    setManualEntryData(null);
+                }}
+                onSuccess={handleManualEntrySuccess}
+                initialData={manualEntryData}
+            />
         </PageContainer>
     );
 };

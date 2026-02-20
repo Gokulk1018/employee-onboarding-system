@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Modal, Form, Input, DatePicker, Select, message, theme, Button, Row, Col } from 'antd';
+import { Modal, Form, Input, DatePicker, Select, message as messageStatic, theme, Button, Row, Col, App } from 'antd';
 import axios from 'axios';
 import dayjs from 'dayjs';
 
 const AddEmployeeModal = ({ open, onClose, onSuccess, initialData }) => {
+    const { message } = Modal.useModal() ? App.useApp() : { message: messageStatic }; // Fallback for static if needed, but we'll use App
     const [form] = Form.useForm();
     const [submitting, setSubmitting] = useState(false);
     const { token } = theme.useToken();
-    const isEditing = !!initialData;
+    const isEditing = !!(initialData && initialData._id);
 
     React.useEffect(() => {
         if (open) {
@@ -76,7 +77,7 @@ const AddEmployeeModal = ({ open, onClose, onSuccess, initialData }) => {
             centered
             width={600}
             className="glass-modal"
-            destroyOnClose
+            destroyOnHidden
             styles={{ mask: { backdropFilter: 'blur(8px)' } }}
         >
             <Form
