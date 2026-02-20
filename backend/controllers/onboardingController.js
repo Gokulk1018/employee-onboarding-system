@@ -19,58 +19,46 @@ exports.submitOnboardingForm = async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Onboarding user not found' });
         }
 
-        // If status is reupload_required or pending, we are replacing data
-        if (user.status === 'reupload_required' || user.status === 'pending') {
-            // Manually update the Map to ensure persistence
-            if (!user.onboardingData) {
-                user.onboardingData = new Map();
-            }
-            // Ensure personalData is an object before iterating
-            if (personalData && typeof personalData === 'object') {
-                for (const [key, value] of Object.entries(personalData)) {
-                    user.onboardingData.set(key, String(value));
-                }
-
-                // Explicitly save phone and address to top-level fields if present
-                if (personalData.phone) user.candidatePhone = String(personalData.phone);
-                if (personalData.address) user.candidateAddress = String(personalData.address);
-            }
-
-            user.documents = documents; // Replace documents
-            user.status = 'submitted';
-            await user.save();
-
-            // Create HR Notification (Updated message for re-submission)
-            const msg = user.status === 'reupload_required'
-                ? `Onboarding form re-submitted by ${user.candidateName}`
-                : `New onboarding form submitted by ${user.candidateName}`;
-
-            await Notification.create({
-                message: msg,
-                candidateName: user.candidateName,
-                candidateEmail: user.candidateEmail,
-                status: 'Pending',
-                createdAt: new Date()
-            });
-
-            return res.status(200).json({ success: true, message: 'Onboarding form submitted' });
+        // Initialize Map if it doesn't exist
+        if (!user.onboardingData) {
+            user.onboardingData = new Map();
         }
 
-        // Default case (shouldn't happen if frontend checks status, but safety net)
+        // Sync personalData to onboardingData Map and top-level fields
+        if (personalData && typeof personalData === 'object') {
+            for (const [key, value] of Object.entries(personalData)) {
+                user.onboardingData.set(key, String(value));
+            }
+
+            // Explicitly sync top-level fields for phone and address to ensure persistence/visibility
+            if (personalData.phone) user.candidatePhone = String(personalData.phone);
+            if (personalData.address) user.candidateAddress = String(personalData.address);
+
+            // Sync fullName as well if it's in personalData
+            if (personalData.fullName) user.candidateName = String(personalData.fullName);
+        }
+
+        user.documents = documents; // Replace or update documents
+
+        // Update behavior based on current status
+        const isReupload = user.status === 'reupload_required';
         user.status = 'submitted';
-        user.onboardingData = personalData;
-        user.documents = documents;
         await user.save();
 
+        // Create HR Notification
+        const notificationMsg = isReupload
+            ? `Onboarding form re-submitted by ${user.candidateName}`
+            : `New onboarding form submitted by ${user.candidateName}`;
+
         await Notification.create({
-            message: `New onboarding form submitted by ${user.candidateName}`,
+            message: notificationMsg,
             candidateName: user.candidateName,
             candidateEmail: user.candidateEmail,
             status: 'Pending',
             createdAt: new Date()
         });
 
-        res.status(200).json({ success: true, message: 'Onboarding form submitted' });
+        return res.status(200).json({ success: true, message: 'Onboarding form successfully submitted' });
     } catch (err) {
         next(err);
     }

@@ -41,10 +41,15 @@ const OnboardingForm = () => {
                     const user = response.data.data;
                     setUserData(user);
 
-                    // Pre-fill form if data exists
-                    if (user.onboardingData) {
-                        form.setFieldsValue(user.onboardingData);
-                    }
+                    // Pre-fill form with robust fallback (Map data + Top-level fields)
+                    const formValues = {
+                        ...(user.onboardingData || {}),
+                        fullName: user.candidateName || user.onboardingData?.fullName,
+                        email: user.candidateEmail || user.onboardingData?.email,
+                        phone: user.candidatePhone || user.onboardingData?.phone,
+                        address: user.candidateAddress || user.onboardingData?.address
+                    };
+                    form.setFieldsValue(formValues);
 
                     // Pre-fill documents if they exist
                     if (user.documents && user.documents.length > 0) {

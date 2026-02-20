@@ -31,6 +31,277 @@ import PageContainer from '../components/layout/PageContainer';
 const { Title, Text } = Typography;
 const { confirm } = Modal;
 
+const OnboardingReviewList = ({
+    reviewData,
+    reviewLoading,
+    reviewSearchText,
+    setReviewSearchText,
+    selectedReview,
+    setSelectedReviewId,
+    isReviewModalOpen,
+    setIsReviewModalOpen,
+    fetchReviews,
+    fetchOffers
+}) => {
+    const { message } = App.useApp();
+    const { token } = theme.useToken();
+    const [reviewRemarks, setReviewRemarks] = useState('');
+    const [joiningDate, setJoiningDate] = useState(null);
+    const [verificationLoading, setVerificationLoading] = useState(false);
+
+    const filteredReviewData = reviewData.filter(record =>
+        record.candidateName.toLowerCase().includes(reviewSearchText.toLowerCase()) ||
+        record.candidateEmail.toLowerCase().includes(reviewSearchText.toLowerCase())
+    );
+
+    const reviewColumns = [
+        { title: 'Candidate', dataIndex: 'candidateName', key: 'name' },
+        { title: 'Email', dataIndex: 'candidateEmail', key: 'email' },
+        {
+            title: 'Status',
+            dataIndex: 'status',
+            key: 'status',
+            width: 150,
+            render: status => (
+                <Tag color={status === 'submitted' ? 'blue' : (status === 'approved' ? 'success' : 'error')}>
+                    {status.toUpperCase()}
+                </Tag>
+            )
+        },
+        {
+            title: 'Actions',
+            key: 'actions',
+            width: 300,
+            render: (_, record) => (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap' }}>
+                    <Button type="link" icon={<EyeOutlined />} onClick={() => { setSelectedReviewId(record._id); setIsReviewModalOpen(true); }} style={{ padding: 0 }}>Review Details</Button>
+                    {record.status === 'reupload_required' && (
+                        <Tag color="warning" style={{ margin: 0, fontSize: 10 }}>WAITING FOR RE-UPLOAD</Tag>
+                    )}
+                </div>
+            )
+        }
+    ];
+
+    const handleVerifyDoc = async (docId, status) => {
+        try {
+            await axios.put(`http://localhost:5000/api/onboarding/verify-document/${selectedReview._id}`, {
+                documentId: docId,
+                status
+            });
+            message.success('Document status updated');
+            fetchReviews();
+        } catch (error) {
+            message.error('Failed to update document status');
+        }
+    };
+
+    const handleFinalAction = async (action) => {
+        if (action === 'finalize' && !joiningDate) {
+            return message.warning('Please select a joining date first');
+        }
+
+        setVerificationLoading(true);
+        try {
+            const endpoint = action === 'finalize' ? 'finalize' : 'reject-details';
+            const payload = action === 'finalize' ? { joiningDate } : { remarks: reviewRemarks };
+            const response = await axios.post(`http://localhost:5000/api/onboarding/${endpoint}/${selectedReview._id}`, payload);
+            if (response.data.success) {
+                message.success(action === 'finalize' ? 'Onboarding finalized successfully' : 'Onboarding details rejected');
+                setIsReviewModalOpen(false);
+                fetchReviews();
+                fetchOffers();
+            }
+        } catch (error) {
+            message.error('Action failed: ' + (error.response?.data?.message || 'Server error'));
+        } finally {
+            setVerificationLoading(false);
+        }
+    };
+
+    return (
+        <>
+            <div style={{ marginBottom: 16 }}>
+                <Input
+                    placeholder="Search onboarding candidates"
+                    prefix={<SearchOutlined />}
+                    value={reviewSearchText}
+                    onChange={(e) => setReviewSearchText(e.target.value)}
+                    style={{ width: 280 }}
+                    allowClear
+                />
+            </div>
+            <Table
+                dataSource={filteredReviewData}
+                columns={reviewColumns}
+                loading={reviewLoading}
+                rowKey="_id"
+                className="glass-table"
+                pagination={{ pageSize: 5 }}
+                scroll={{ x: 'max-content' }}
+            />
+            <Modal
+                title={
+                    <Space align="center" style={{ width: '100%', justifyContent: 'space-between' }}>
+                        <Title level={3} style={{ margin: 0 }}>Onboarding Review: {selectedReview?.candidateName}</Title>
+                        <Tag color={selectedReview?.status === 'submitted' ? 'blue' : (selectedReview?.status === 'approved' ? 'success' : 'error')}>
+                            {selectedReview?.status?.toUpperCase()}
+                        </Tag>
+                    </Space>
+                }
+                open={isReviewModalOpen}
+                onCancel={() => setIsReviewModalOpen(false)}
+                footer={[
+                    <Button key="close" onClick={() => setIsReviewModalOpen(false)}>Close</Button>,
+                    selectedReview?.status !== 'approved' && (
+                        <Button key="reject" danger onClick={() => handleFinalAction('reject-details')} loading={verificationLoading} icon={<CloseCircleOutlined />}>
+                            Reject Details
+                        </Button>
+                    ),
+                    selectedReview?.status !== 'approved' && (
+                        <Button key="accept" type="primary" onClick={() => handleFinalAction('finalize')} loading={verificationLoading} icon={<CheckCircleOutlined />}>
+                            Accept Details & Finalize
+                        </Button>
+                    )
+                ]}
+                width={1000}
+                className="glass-modal"
+                centered
+            >
+                {selectedReview && (
+                    <div style={{ padding: '20px 0' }}>
+                        <Row gutter={24}>
+                            <Col span={15}>
+                                <Title level={4} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <UserOutlined /> Personal Information
+                                </Title>
+                                <Card variant="borderless" className="glass-card" style={{ marginBottom: 24, background: `${token.colorPrimary}05` }}>
+                                    <Row gutter={[16, 24]}>
+                                        <Col span={12}>
+                                            <Text type="secondary" style={{ fontSize: 12, textTransform: 'uppercase' }}>Full Name</Text>
+                                            <div style={{ fontWeight: 600, color: token.colorText, fontSize: 15 }}>{selectedReview.onboardingData?.fullName || selectedReview.candidateName}</div>
+                                        </Col>
+                                        <Col span={12}>
+                                            <Text type="secondary" style={{ fontSize: 12, textTransform: 'uppercase' }}>Email Address</Text>
+                                            <div style={{ fontWeight: 600, color: token.colorText, fontSize: 15 }}>{selectedReview.onboardingData?.email || selectedReview.candidateEmail}</div>
+                                        </Col>
+                                        <Col span={12}>
+                                            <Text type="secondary" style={{ fontSize: 12, textTransform: 'uppercase' }}>Phone Number</Text>
+                                            <div style={{ fontWeight: 600, color: token.colorText, fontSize: 15 }}>{selectedReview.candidatePhone || selectedReview.onboardingData?.phone || 'N/A'}</div>
+                                        </Col>
+                                        <Col span={24}>
+                                            <Text type="secondary" style={{ fontSize: 12, textTransform: 'uppercase' }}>Address</Text>
+                                            <div style={{ fontWeight: 600, color: token.colorText, fontSize: 15 }}>{selectedReview.candidateAddress || selectedReview.onboardingData?.address || 'N/A'}</div>
+                                        </Col>
+                                        {Object.entries(selectedReview.onboardingData || {}).map(([key, val]) => {
+                                            if (['fullName', 'email', 'phone', 'address'].includes(key)) return null;
+                                            return (
+                                                <Col span={12} key={key}>
+                                                    <Text type="secondary" style={{ fontSize: 12, textTransform: 'uppercase' }}>{key.replace(/([A-Z])/g, ' $1')}</Text>
+                                                    <div style={{ fontWeight: 600, color: token.colorText, fontSize: 15 }}>{val || 'N/A'}</div>
+                                                </Col>
+                                            );
+                                        })}
+                                    </Row>
+                                </Card>
+
+                                <Title level={4} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <FileTextOutlined /> Uploaded Documents
+                                </Title>
+                                <List
+                                    dataSource={selectedReview.documents || []}
+                                    renderItem={(doc) => (
+                                        <List.Item
+                                            actions={[
+                                                <Button type="link" href={doc.url} target="_blank" icon={<EyeOutlined />}>View</Button>,
+                                                <Space>
+                                                    <Button
+                                                        size="small"
+                                                        type={doc.status === 'verified' ? 'primary' : 'default'}
+                                                        icon={<CheckCircleOutlined />}
+                                                        onClick={() => handleVerifyDoc(doc._id, 'verified')}
+                                                    >
+                                                        {doc.status === 'verified' ? 'Verified' : 'Verify'}
+                                                    </Button>
+                                                    <Button
+                                                        size="small"
+                                                        danger={doc.status === 'rejected'}
+                                                        icon={<CloseCircleOutlined />}
+                                                        onClick={() => handleVerifyDoc(doc._id, 'rejected')}
+                                                    >
+                                                        Reject
+                                                    </Button>
+                                                </Space>
+                                            ]}
+                                            className="glass-card"
+                                            style={{ marginBottom: 12, padding: '12px 20px', borderRadius: 12, border: `1px solid ${token.colorBorderSecondary}` }}
+                                        >
+                                            <List.Item.Meta
+                                                avatar={<div style={{ padding: 8, background: `${token.colorPrimary}15`, borderRadius: 8 }}><FileTextOutlined style={{ fontSize: 24, color: token.colorPrimary }} /></div>}
+                                                title={<Text strong>{doc.name}</Text>}
+                                                description={
+                                                    <Space split={<Divider type="vertical" />}>
+                                                        <Tag bordered={false} color={doc.status === 'verified' ? 'success' : doc.status === 'rejected' ? 'error' : 'processing'}>
+                                                            {doc.status?.toUpperCase() || 'PENDING'}
+                                                        </Tag>
+                                                        <Text type="secondary" style={{ fontSize: 12, whiteSpace: 'nowrap' }}>{new Date(doc.uploadedAt).toLocaleDateString()}</Text>
+                                                    </Space>
+                                                }
+                                            />
+                                        </List.Item>
+                                    )}
+                                />
+                            </Col>
+
+                            <Col span={9}>
+                                <div style={{ position: 'sticky', top: 0 }}>
+                                    <Title level={4} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                        <ClockCircleOutlined /> Finalization
+                                    </Title>
+                                    <Card className="glass-card" style={{ background: `${token.colorSuccess}05`, border: `1px dashed ${token.colorSuccess}50` }}>
+                                        <div style={{ marginBottom: 20 }}>
+                                            <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Joining Date</label>
+                                            <DatePicker
+                                                style={{ width: '100%' }}
+                                                size="large"
+                                                placeholder="Select joining date"
+                                                onChange={(date) => setJoiningDate(date ? date.toISOString() : null)}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>HR Remarks / Notes</label>
+                                            <Input.TextArea
+                                                rows={5}
+                                                placeholder="Add feedback for the candidate or internal notes..."
+                                                value={reviewRemarks}
+                                                onChange={(e) => setReviewRemarks(e.target.value)}
+                                                className="glass-input"
+                                            />
+                                            <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 8 }}>
+                                                * Remarks will be shared with the candidate if details are rejected.
+                                            </Text>
+                                        </div>
+                                    </Card>
+
+                                    <div style={{ marginTop: 24, padding: 16, background: `${token.colorInfo}10`, borderRadius: 12 }}>
+                                        <Title level={5} style={{ margin: '0 0 8px 0', fontSize: 14 }}>Review Summary</Title>
+                                        <ul style={{ paddingLeft: 20, margin: 0, color: token.colorTextSecondary, fontSize: 13 }}>
+                                            <li>Verify all mandatory documents</li>
+                                            <li>Cross-check personal information</li>
+                                            <li>Set an accurate joining date</li>
+                                            <li>Provide clear remarks for rejection</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </Col>
+                        </Row>
+                    </div>
+                )}
+            </Modal>
+        </>
+    );
+};
+
 const Onboarding = () => {
     const { message } = App.useApp();
     const { token } = theme.useToken();
@@ -46,299 +317,35 @@ const Onboarding = () => {
     const [editingOffer, setEditingOffer] = useState(null);
     const [reviewData, setReviewData] = useState([]);
     const [reviewLoading, setReviewLoading] = useState(false);
-    const [selectedReview, setSelectedReview] = useState(null);
+    const [selectedReviewId, setSelectedReviewId] = useState(null);
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
     // Derived state for the detail panels
     const selectedOffer = offersData.find(o => o.id === selectedOfferId) || null;
+    const selectedReview = reviewData.find(r => r._id === selectedReviewId) || null;
 
     const fetchReviews = async () => {
-        setReviewLoading(true);
+        // Only show full loading spinner on initial fetch, not during polling
+        if (reviewData.length === 0) setReviewLoading(true);
         try {
             const response = await axios.get('http://localhost:5000/api/onboarding/users');
             if (response.data.success) {
+                console.log('[DEBUG] Fetched Reviews:', response.data.data.length, response.data.data);
                 setReviewData(response.data.data.filter(u => u.status !== 'pending'));
             }
         } catch (error) {
-            message.error('Failed to fetch reviews');
+            console.error('Failed to fetch reviews', error);
         } finally {
             setReviewLoading(false);
         }
     };
 
-    const handleReviewAction = async (id, action) => {
-        try {
-            const response = await axios.post(`http://localhost:5000/api/onboarding/${action}/${id}`);
-            if (response.data.success) {
-                message.success(`${action === 'approve' ? 'Approved' : 'Rejected'} successfully`);
-                fetchReviews();
-                fetchOffers();
-            }
-        } catch (error) {
-            message.error('Action failed');
-        }
-    };
-
-    const OnboardingReviewList = () => {
-        const [reviewRemarks, setReviewRemarks] = useState('');
-        const [joiningDate, setJoiningDate] = useState(null);
-        const [verificationLoading, setVerificationLoading] = useState(false);
-
-        const filteredReviewData = reviewData.filter(record =>
-            record.candidateName.toLowerCase().includes(reviewSearchText.toLowerCase()) ||
-            record.candidateEmail.toLowerCase().includes(reviewSearchText.toLowerCase())
-        );
-
-        const reviewColumns = [
-            { title: 'Candidate', dataIndex: 'candidateName', key: 'name' },
-            { title: 'Email', dataIndex: 'candidateEmail', key: 'email' },
-            {
-                title: 'Status',
-                dataIndex: 'status',
-                key: 'status',
-                width: 150,
-                render: status => (
-                    <Tag color={status === 'submitted' ? 'blue' : (status === 'approved' ? 'success' : 'error')}>
-                        {status.toUpperCase()}
-                    </Tag>
-                )
-            },
-            {
-                title: 'Actions',
-                key: 'actions',
-                width: 300,
-                render: (_, record) => (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap' }}>
-                        <Button type="link" icon={<EyeOutlined />} onClick={() => { setSelectedReview(record); setIsReviewModalOpen(true); }} style={{ padding: 0 }}>Review Details</Button>
-                        {record.status === 'reupload_required' && (
-                            <Tag color="warning" style={{ margin: 0, fontSize: 10 }}>WAITING FOR RE-UPLOAD</Tag>
-                        )}
-                    </div>
-                )
-            }
-        ];
-
-        const handleVerifyDoc = async (docId, status) => {
-            try {
-                await axios.put(`http://localhost:5000/api/onboarding/verify-document/${selectedReview._id}`, {
-                    documentId: docId,
-                    status
-                });
-                message.success('Document status updated');
-                fetchReviews();
-                // Update local state to reflect change immediately in modal
-                const updatedDocs = selectedReview.documents.map(d => d._id === docId ? { ...d, status } : d);
-                setSelectedReview({ ...selectedReview, documents: updatedDocs });
-            } catch (error) {
-                message.error('Failed to update document status');
-            }
-        };
-
-        const handleFinalAction = async (action) => {
-            if (action === 'finalize' && !joiningDate) {
-                return message.warning('Please select a joining date first');
-            }
-
-            setVerificationLoading(true);
-            try {
-                const endpoint = action === 'finalize' ? 'finalize' : 'reject-details';
-                const payload = action === 'finalize' ? { joiningDate } : { remarks: reviewRemarks };
-                const response = await axios.post(`http://localhost:5000/api/onboarding/${endpoint}/${selectedReview._id}`, payload);
-                if (response.data.success) {
-                    message.success(action === 'finalize' ? 'Onboarding finalized successfully' : 'Onboarding details rejected');
-                    setIsReviewModalOpen(false);
-                    fetchReviews();
-                    fetchOffers();
-                }
-            } catch (error) {
-                message.error('Action failed: ' + (error.response?.data?.message || 'Server error'));
-            } finally {
-                setVerificationLoading(false);
-            }
-        };
-
-        return (
-            <>
-                <div style={{ marginBottom: 16 }}>
-                    <Input
-                        placeholder="Search onboarding candidates"
-                        prefix={<SearchOutlined />}
-                        value={reviewSearchText}
-                        onChange={(e) => setReviewSearchText(e.target.value)}
-                        style={{ width: 280 }}
-                        allowClear
-                    />
-                </div>
-                <Table
-                    dataSource={filteredReviewData}
-                    columns={reviewColumns}
-                    loading={reviewLoading}
-                    rowKey="_id"
-                    className="glass-table"
-                    pagination={{ pageSize: 5 }}
-                    scroll={{ x: 'max-content' }}
-                />
-                <Modal
-                    title={
-                        <Space align="center" style={{ width: '100%', justifyContent: 'space-between' }}>
-                            <Title level={3} style={{ margin: 0 }}>Onboarding Review: {selectedReview?.candidateName}</Title>
-                            <Tag color={selectedReview?.status === 'submitted' ? 'blue' : (selectedReview?.status === 'approved' ? 'success' : 'error')}>
-                                {selectedReview?.status?.toUpperCase()}
-                            </Tag>
-                        </Space>
-                    }
-                    open={isReviewModalOpen}
-                    onCancel={() => setIsReviewModalOpen(false)}
-                    footer={[
-                        <Button key="close" onClick={() => setIsReviewModalOpen(false)}>Close</Button>,
-                        selectedReview?.status !== 'approved' && (
-                            <Button key="reject" danger onClick={() => handleFinalAction('reject-details')} loading={verificationLoading} icon={<CloseCircleOutlined />}>
-                                Reject Details
-                            </Button>
-                        ),
-                        selectedReview?.status !== 'approved' && (
-                            <Button key="accept" type="primary" onClick={() => handleFinalAction('finalize')} loading={verificationLoading} icon={<CheckCircleOutlined />}>
-                                Accept Details & Finalize
-                            </Button>
-                        )
-                    ]}
-                    width={1000}
-                    className="glass-modal"
-                    centered
-                >
-                    {selectedReview && (
-                        <div style={{ padding: '20px 0' }}>
-                            <Row gutter={24}>
-                                <Col span={15}>
-                                    <Title level={4} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                        <UserOutlined /> Personal Information
-                                    </Title>
-                                    <Card bordered={false} className="glass-card" style={{ marginBottom: 24, background: `${token.colorPrimary}05` }}>
-                                        <Row gutter={[16, 24]}>
-                                            <Col span={12}>
-                                                <Text type="secondary" style={{ fontSize: 12, textTransform: 'uppercase' }}>Full Name</Text>
-                                                <div style={{ fontWeight: 600, color: token.colorText, fontSize: 15 }}>{selectedReview.onboardingData?.fullName || selectedReview.candidateName}</div>
-                                            </Col>
-                                            <Col span={12}>
-                                                <Text type="secondary" style={{ fontSize: 12, textTransform: 'uppercase' }}>Email Address</Text>
-                                                <div style={{ fontWeight: 600, color: token.colorText, fontSize: 15 }}>{selectedReview.onboardingData?.email || selectedReview.candidateEmail}</div>
-                                            </Col>
-                                            <Col span={12}>
-                                                <Text type="secondary" style={{ fontSize: 12, textTransform: 'uppercase' }}>Phone Number</Text>
-                                                <div style={{ fontWeight: 600, color: token.colorText, fontSize: 15 }}>{selectedReview.candidatePhone || selectedReview.onboardingData?.phone || 'N/A'}</div>
-                                            </Col>
-                                            <Col span={24}>
-                                                <Text type="secondary" style={{ fontSize: 12, textTransform: 'uppercase' }}>Address</Text>
-                                                <div style={{ fontWeight: 600, color: token.colorText, fontSize: 15 }}>{selectedReview.candidateAddress || selectedReview.onboardingData?.address || 'N/A'}</div>
-                                            </Col>
-                                            {Object.entries(selectedReview.onboardingData || {}).map(([key, val]) => {
-                                                if (['fullName', 'email', 'phone', 'address'].includes(key)) return null;
-                                                return (
-                                                    <Col span={12} key={key}>
-                                                        <Text type="secondary" style={{ fontSize: 12, textTransform: 'uppercase' }}>{key.replace(/([A-Z])/g, ' $1')}</Text>
-                                                        <div style={{ fontWeight: 600, color: token.colorText, fontSize: 15 }}>{val || 'N/A'}</div>
-                                                    </Col>
-                                                );
-                                            })}
-                                        </Row>
-                                    </Card>
-
-                                    <Title level={4} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                        <FileTextOutlined /> Uploaded Documents
-                                    </Title>
-                                    <List
-                                        dataSource={selectedReview.documents || []}
-                                        renderItem={(doc) => (
-                                            <List.Item
-                                                actions={[
-                                                    <Button type="link" href={doc.url} target="_blank" icon={<EyeOutlined />}>View</Button>,
-                                                    <Space>
-                                                        <Button
-                                                            size="small"
-                                                            type={doc.status === 'verified' ? 'primary' : 'default'}
-                                                            icon={<CheckCircleOutlined />}
-                                                            onClick={() => handleVerifyDoc(doc._id, 'verified')}
-                                                        >
-                                                            {doc.status === 'verified' ? 'Verified' : 'Verify'}
-                                                        </Button>
-                                                        <Button
-                                                            size="small"
-                                                            danger={doc.status === 'rejected'}
-                                                            icon={<CloseCircleOutlined />}
-                                                            onClick={() => handleVerifyDoc(doc._id, 'rejected')}
-                                                        >
-                                                            Reject
-                                                        </Button>
-                                                    </Space>
-                                                ]}
-                                                className="glass-card"
-                                                style={{ marginBottom: 12, padding: '12px 20px', borderRadius: 12, border: `1px solid ${token.colorBorderSecondary}` }}
-                                            >
-                                                <List.Item.Meta
-                                                    avatar={<div style={{ padding: 8, background: `${token.colorPrimary}15`, borderRadius: 8 }}><FileTextOutlined style={{ fontSize: 24, color: token.colorPrimary }} /></div>}
-                                                    title={<Text strong>{doc.name}</Text>}
-                                                    description={
-                                                        <Space split={<Divider type="vertical" />}>
-                                                            <Tag bordered={false} color={doc.status === 'verified' ? 'success' : doc.status === 'rejected' ? 'error' : 'processing'}>
-                                                                {doc.status?.toUpperCase() || 'PENDING'}
-                                                            </Tag>
-                                                            <Text type="secondary" style={{ fontSize: 12, whiteSpace: 'nowrap' }}>{new Date(doc.uploadedAt).toLocaleDateString()}</Text>
-                                                        </Space>
-                                                    }
-                                                />
-                                            </List.Item>
-                                        )}
-                                    />
-                                </Col>
-
-                                <Col span={9}>
-                                    <div style={{ position: 'sticky', top: 0 }}>
-                                        <Title level={4} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                            <ClockCircleOutlined /> Finalization
-                                        </Title>
-                                        <Card className="glass-card" style={{ background: `${token.colorSuccess}05`, border: `1px dashed ${token.colorSuccess}50` }}>
-                                            <div style={{ marginBottom: 20 }}>
-                                                <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Joining Date</label>
-                                                <DatePicker
-                                                    style={{ width: '100%' }}
-                                                    size="large"
-                                                    placeholder="Select joining date"
-                                                    onChange={(date) => setJoiningDate(date ? date.toISOString() : null)}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>HR Remarks / Notes</label>
-                                                <Input.TextArea
-                                                    rows={5}
-                                                    placeholder="Add feedback for the candidate or internal notes..."
-                                                    value={reviewRemarks}
-                                                    onChange={(e) => setReviewRemarks(e.target.value)}
-                                                    className="glass-input"
-                                                />
-                                                <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 8 }}>
-                                                    * Remarks will be shared with the candidate if details are rejected.
-                                                </Text>
-                                            </div>
-                                        </Card>
-
-                                        <div style={{ marginTop: 24, padding: 16, background: `${token.colorInfo}10`, borderRadius: 12 }}>
-                                            <Title level={5} style={{ margin: '0 0 8px 0', fontSize: 14 }}>Review Summary</Title>
-                                            <ul style={{ paddingLeft: 20, margin: 0, color: token.colorTextSecondary, fontSize: 13 }}>
-                                                <li>Verify all mandatory documents</li>
-                                                <li>Cross-check personal information</li>
-                                                <li>Set an accurate joining date</li>
-                                                <li>Provide clear remarks for rejection</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </Col>
-                            </Row>
-                        </div>
-                    )}
-                </Modal>
-            </>
-        );
-    };
+    // Auto-refresh reviews every 10 seconds
+    useEffect(() => {
+        fetchReviews();
+        const interval = setInterval(fetchReviews, 10000);
+        return () => clearInterval(interval);
+    }, []);
 
     const fetchOffers = useCallback(async () => {
         setLoading(true);
@@ -716,7 +723,7 @@ const Onboarding = () => {
                 <Row gutter={[24, 24]}>
                     {/* Top Section: Recruitment Offers */}
                     <Col span={24}>
-                        <Card bordered={false} className="glass-card" style={{ marginBottom: 24 }}>
+                        <Card variant="borderless" className="glass-card" style={{ marginBottom: 24 }}>
                             <div className="flex-between" style={{ marginBottom: 20 }}>
                                 <Title level={4} style={{ margin: 0 }}><FileTextOutlined /> Recruitment Offers</Title>
                                 <Space size="middle">
@@ -758,12 +765,23 @@ const Onboarding = () => {
 
                     {/* Left Column: Onboarding Reviews */}
                     <Col xs={24} xl={16}>
-                        <Card bordered={false} className="glass-card" style={{ height: '100%' }}>
+                        <Card variant="borderless" className="glass-card" style={{ height: '100%' }}>
                             <div style={{ marginBottom: 24 }}>
                                 <Title level={4} style={{ margin: 0 }}><CheckCircleOutlined /> Onboarding Reviews</Title>
                                 <Text type="secondary">Review and verify documents submitted by candidates</Text>
                             </div>
-                            <OnboardingReviewList />
+                            <OnboardingReviewList
+                                reviewData={reviewData}
+                                reviewLoading={reviewLoading}
+                                reviewSearchText={reviewSearchText}
+                                setReviewSearchText={setReviewSearchText}
+                                selectedReview={selectedReview}
+                                setSelectedReviewId={setSelectedReviewId}
+                                isReviewModalOpen={isReviewModalOpen}
+                                setIsReviewModalOpen={setIsReviewModalOpen}
+                                fetchReviews={fetchReviews}
+                                fetchOffers={fetchOffers}
+                            />
                         </Card>
                     </Col>
 

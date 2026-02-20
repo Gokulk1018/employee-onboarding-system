@@ -82,7 +82,7 @@ const CandidateLogin = () => {
                     style={{ width: '100%', maxWidth: 400, padding: 20 }}
                 >
                     <Card
-                        bordered={false}
+                        variant="borderless"
                         className={isDarkMode ? "glass-premium neon-glow-purple" : "glass-card"}
                         style={{ borderRadius: 24, textAlign: 'center' }}
                     >
