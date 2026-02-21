@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { List, Avatar, Typography, theme, Button, Tag, Modal, message, Skeleton, Empty } from 'antd';
-import { FileSearchOutlined, MailOutlined, CarryOutOutlined, ArrowRightOutlined, SendOutlined, UserOutlined } from '@ant-design/icons';
+import { List, Avatar, Typography, theme, Button, Tag, Modal, message, Skeleton, Empty, Space, Popconfirm } from 'antd';
+import { FileSearchOutlined, MailOutlined, CarryOutOutlined, ArrowRightOutlined, SendOutlined, UserOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
+import api from '../../services/api';
+import { updateLeaveStatus } from '../../services/leaveService';
 
 const { Text, Title } = Typography;
 
@@ -12,15 +15,17 @@ const PendingApprovals = ({ data, loading, onRefresh }) => {
     const navigate = useNavigate();
     const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
     const [isDocModalOpen, setIsDocModalOpen] = useState(false);
+    const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
     const [pendingOffers, setPendingOffers] = useState([]);
     const [pendingDocs, setPendingDocs] = useState([]);
+    const [pendingLeaves, setPendingLeaves] = useState([]);
     const [modalLoading, setModalLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState(null);
 
     const fetchPendingOffers = async () => {
         setModalLoading(true);
         try {
-            const response = await axios.get('http://localhost:5000/api/dashboard/pending-offers');
+            const response = await api.get('/dashboard/pending-offers');
             if (response.data.success) {
                 setPendingOffers(response.data.data);
             }
@@ -34,7 +39,7 @@ const PendingApprovals = ({ data, loading, onRefresh }) => {
     const fetchPendingDocs = async () => {
         setModalLoading(true);
         try {
-            const response = await axios.get('http://localhost:5000/api/dashboard/pending-documents');
+            const response = await api.get('/dashboard/pending-documents');
             if (response.data.success) {
                 setPendingDocs(response.data.data);
             }
@@ -45,19 +50,45 @@ const PendingApprovals = ({ data, loading, onRefresh }) => {
         }
     };
 
+    const fetchPendingLeaves = async () => {
+        setModalLoading(true);
+        try {
+            const response = await api.get('/dashboard/pending-leaves');
+            if (response.data.success) {
+                setPendingLeaves(response.data.data);
+            }
+        } catch (error) {
+            message.error('Failed to fetch pending leave requests');
+        } finally {
+            setModalLoading(false);
+        }
+    };
+
     const handleSendCredentials = async (offerId) => {
         setActionLoading(offerId);
         try {
-            const response = await axios.post(`http://localhost:5000/api/dashboard/send-credentials/${offerId}`);
+            const response = await api.post(`/dashboard/send-credentials/${offerId}`);
             if (response.data.success) {
                 message.success('Credentials sent successfully');
-                // Remove from list
                 setPendingOffers(prev => prev.filter(o => o._id !== offerId));
-                // Trigger dashboard refresh if available
                 if (onRefresh) onRefresh();
             }
         } catch (error) {
             message.error(error.response?.data?.message || 'Failed to send credentials');
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handleLeaveAction = async (id, status) => {
+        setActionLoading(id);
+        try {
+            await updateLeaveStatus(id, status);
+            message.success(`Leave request ${status.toLowerCase()} successfully`);
+            setPendingLeaves(prev => prev.filter(l => l._id !== id));
+            if (onRefresh) onRefresh();
+        } catch (error) {
+            message.error('Failed to update leave status');
         } finally {
             setActionLoading(null);
         }
@@ -68,8 +99,10 @@ const PendingApprovals = ({ data, loading, onRefresh }) => {
             setIsOfferModalOpen(true);
             fetchPendingOffers();
         } else if (type === 'Document Verification') {
-            setIsDocModalOpen(true);
-            fetchPendingDocs();
+            navigate('/onboarding');
+        } else if (type === 'Leave Requests') {
+            setIsLeaveModalOpen(true);
+            fetchPendingLeaves();
         }
     };
 
@@ -83,7 +116,7 @@ const PendingApprovals = ({ data, loading, onRefresh }) => {
             count: data?.leaveRequests || 0,
             icon: <CarryOutOutlined />,
             color: '#f59e0b',
-            onClick: () => message.info('Leave requests module coming soon')
+            onClick: () => handleCardClick('Leave Requests')
         },
         {
             title: 'Offer Letters',
@@ -155,6 +188,47 @@ const PendingApprovals = ({ data, loading, onRefresh }) => {
                 />
             </div>
 
+            {/* Leave Requests Modal */}
+            <Modal
+                title="Pending Leave Requests"
+                open={isLeaveModalOpen}
+                onCancel={() => setIsLeaveModalOpen(false)}
+                footer={null}
+                className="glass-modal"
+                width={600}
+            >
+                <List
+                    loading={modalLoading}
+                    dataSource={pendingLeaves}
+                    locale={{ emptyText: <Empty description="No pending leave requests" /> }}
+                    renderItem={item => (
+                        <List.Item
+                            actions={[
+                                <Space key="actions">
+                                    <Popconfirm title="Approve leave?" onConfirm={() => handleLeaveAction(item._id, 'Approved')}>
+                                        <Button type="primary" size="small" icon={<CheckOutlined />} loading={actionLoading === item._id}>Approve</Button>
+                                    </Popconfirm>
+                                    <Popconfirm title="Reject leave?" onConfirm={() => handleLeaveAction(item._id, 'Rejected')}>
+                                        <Button danger size="small" icon={<CloseOutlined />} loading={actionLoading === item._id}>Reject</Button>
+                                    </Popconfirm>
+                                </Space>
+                            ]}
+                        >
+                            <List.Item.Meta
+                                avatar={<Avatar src={item.employeeId?.avatar}>{item.employeeId?.name?.[0]}</Avatar>}
+                                title={<Text strong>{item.employeeId?.name}</Text>}
+                                description={
+                                    <Space direction="vertical" size={0}>
+                                        <Text type="secondary" style={{ fontSize: 12 }}>{item.leaveType} | {dayjs(item.startDate).format('MMM D')} - {dayjs(item.endDate).format('MMM D')}</Text>
+                                        <Text style={{ fontSize: 13 }}>{item.reason}</Text>
+                                    </Space>
+                                }
+                            />
+                        </List.Item>
+                    )}
+                />
+            </Modal>
+
             {/* Offer Letters Modal */}
             <Modal
                 title="Pending Offer Utilites"
@@ -191,40 +265,6 @@ const PendingApprovals = ({ data, loading, onRefresh }) => {
                                     </div>
                                 }
                             />
-                        </List.Item>
-                    )}
-                />
-            </Modal>
-
-            {/* Document Verification Modal */}
-            <Modal
-                title="Pending Document Verification"
-                open={isDocModalOpen}
-                onCancel={() => setIsDocModalOpen(false)}
-                footer={null}
-                className="glass-modal"
-            >
-                <List
-                    loading={modalLoading}
-                    dataSource={pendingDocs}
-                    locale={{ emptyText: <Empty description="No pending documents to verify" /> }}
-                    renderItem={item => (
-                        <List.Item
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => handleNavigateToDocs(item.email)}
-                            className="hover-bg-list"
-                        >
-                            <List.Item.Meta
-                                avatar={<Avatar icon={<UserOutlined />} />}
-                                title={item.name}
-                                description={
-                                    <div className="flex-between">
-                                        <Text type="secondary">{item.email}</Text>
-                                        <Tag color="processing">{item.pendingCount} Pending Docs</Tag>
-                                    </div>
-                                }
-                            />
-                            <ArrowRightOutlined style={{ color: token.colorTextSecondary }} />
                         </List.Item>
                     )}
                 />

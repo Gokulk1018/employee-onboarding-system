@@ -46,6 +46,11 @@ const employeeSchema = new mongoose.Schema({
         type: String,
         enum: ['active', 'blocked'],
         default: 'active'
+    },
+    leaveBalance: {
+        annual: { type: Number, default: 18 },
+        sick: { type: Number, default: 12 },
+        casual: { type: Number, default: 5 }
     }
 }, {
     timestamps: true

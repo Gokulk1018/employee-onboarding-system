@@ -1,5 +1,7 @@
 const Document = require('../models/Document');
 const OnboardingStatus = require('../models/OnboardingStatus');
+const Notification = require('../models/Notification');
+const Employee = require('../models/Employee');
 
 // @desc    Upload document
 // @route   POST /api/documents/upload
@@ -28,7 +30,23 @@ exports.uploadDocument = async (req, res, next) => {
             { upsert: true } // Just in case it doesn't exist
         );
 
+        // Fetch employee for name
+        const employee = await Employee.findById(employeeId);
+
+        // Create notification for HR
+        await Notification.create({
+            title: 'Document Uploaded',
+            message: `${employee ? employee.name : 'A candidate'} has uploaded a ${documentType} document.`,
+            type: 'document',
+            status: 'Info',
+            candidateName: employee ? employee.name : undefined,
+            candidateEmail: employee ? employee.email : undefined,
+            isGlobal: true,
+            link: '/onboarding'
+        });
+
         res.status(201).json({ success: true, data: document });
+
     } catch (err) {
         next(err);
     }

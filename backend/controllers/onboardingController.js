@@ -51,12 +51,16 @@ exports.submitOnboardingForm = async (req, res, next) => {
             : `New onboarding form submitted by ${user.candidateName}`;
 
         await Notification.create({
+            title: 'Onboarding Submission',
             message: notificationMsg,
             candidateName: user.candidateName,
             candidateEmail: user.candidateEmail,
             status: 'Pending',
+            isGlobal: true,
+            link: '/onboarding',
             createdAt: new Date()
         });
+
 
         return res.status(200).json({ success: true, message: 'Onboarding form successfully submitted' });
     } catch (err) {

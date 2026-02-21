@@ -136,11 +136,15 @@ exports.acceptOffer = async (req, res) => {
 
         // Create notification for HR
         await Notification.create({
+            title: 'Offer Accepted',
             candidateName: offer.candidateName,
             candidateEmail: offer.candidateEmail,
             status: 'Accepted',
-            message: `${offer.candidateName} has ACCEPTED the offer.`
+            message: `${offer.candidateName} has ACCEPTED the offer.`,
+            isGlobal: true,
+            link: '/onboarding'
         });
+
 
         res.send(`
             <div style="text-align: center; font-family: sans-serif; padding: 50px;">
@@ -166,11 +170,14 @@ exports.rejectOffer = async (req, res) => {
 
         // Create notification for HR
         await Notification.create({
+            title: 'Offer Rejected',
             candidateName: offer.candidateName,
             candidateEmail: offer.candidateEmail,
             status: 'Rejected',
-            message: `${offer.candidateName} has REJECTED the offer.`
+            message: `${offer.candidateName} has REJECTED the offer.`,
+            isGlobal: true
         });
+
 
         res.send(`
             <div style="text-align: center; font-family: sans-serif; padding: 50px;">

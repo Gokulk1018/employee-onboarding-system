@@ -8,7 +8,9 @@ const OnboardingUser = require('../models/OnboardingUser'); // Added OnboardingU
 const PayrollTransaction = require('../models/PayrollTransaction');
 const Candidate = require('../models/Candidate');
 const Job = require('../models/Job');
+const Leave = require('../models/Leave');
 const mongoose = require('mongoose');
+
 const sendEmail = require('../utils/emailHelper');
 
 // @desc    Get dashboard statistics
@@ -118,9 +120,18 @@ exports.getDashboardStats = async (req, res) => {
             ]),
 
             // 6. Pending Approvals
-            EmployeeRequest.countDocuments({ status: 'Pending', requestType: 'Leave Request' }).lean(),
-            Offer.countDocuments({ status: { $in: ['Accepted', 'OFFER_ACCEPTED'] }, credentialsSent: { $ne: true } }).lean(),
-            OnboardingUser.countDocuments({ 'documents.status': 'pending' }).lean(),
+            Leave.countDocuments({ status: 'Pending' }).lean(),
+            Offer.countDocuments({
+                status: 'Accepted',
+                credentialsSent: { $ne: true }
+            }).lean(),
+            OnboardingUser.aggregate([
+                { $match: { status: 'submitted' } },
+                { $unwind: "$documents" },
+                { $match: { "documents.status": "pending" } },
+                { $count: "total" }
+            ]),
+
 
             // 7. Task Stats
             Task.aggregate([
@@ -151,9 +162,10 @@ exports.getDashboardStats = async (req, res) => {
                 pendingApprovals: {
                     leaveRequests: pendingLeave,
                     offerLetters: pendingOffers,
-                    documentVerification: pendingDocs,
-                    total: pendingLeave + pendingOffers + pendingDocs
+                    documentVerification: pendingDocs && pendingDocs.length > 0 ? pendingDocs[0].total : 0,
+                    total: pendingLeave + pendingOffers + (pendingDocs && pendingDocs.length > 0 ? pendingDocs[0].total : 0)
                 },
+
                 taskOverview: {
                     stats: taskStats,
                     overdue: overdueTasks,
@@ -263,8 +275,10 @@ exports.sendCredentials = async (req, res) => {
 exports.getPendingDocuments = async (req, res) => {
     try {
         const users = await OnboardingUser.find({
+            status: 'submitted',
             'documents.status': 'pending'
         }).select('candidateName candidateEmail documents');
+
 
         // Filter to only include users who actually have pending docs (double check)
         const formattedUsers = users.map(user => ({
@@ -279,3 +293,18 @@ exports.getPendingDocuments = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+// @desc    Get pending leave requests
+// @route   GET /api/dashboard/pending-leaves
+exports.getPendingLeaves = async (req, res) => {
+    try {
+        const leaves = await Leave.find({ status: 'Pending' })
+            .populate('employeeId', 'name email department avatar')
+            .sort('-appliedOn');
+
+        res.status(200).json({ success: true, data: leaves });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
