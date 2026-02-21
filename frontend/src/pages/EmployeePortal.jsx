@@ -334,9 +334,17 @@ const EmployeePortal = () => {
                                     dataSource={stats?.notifications || []}
                                     locale={{ emptyText: <Text type="secondary">No new notifications</Text> }}
                                     renderItem={item => (
-                                        <List.Item style={{ padding: '12px 0' }}>
+                                        <List.Item
+                                            style={{
+                                                padding: '12px 0',
+                                                cursor: item.link ? 'pointer' : 'default'
+                                            }}
+                                            onClick={() => item.link && navigate(item.link)}
+                                        >
                                             <Space direction="vertical" size={0}>
-                                                <Text strong style={{ fontSize: 13 }}>{item.title}</Text>
+                                                <Text strong style={{ fontSize: 13, color: item.link ? token.colorPrimary : 'inherit' }}>
+                                                    {item.title}
+                                                </Text>
                                                 <Text type="secondary" style={{ fontSize: 12 }}>{item.message}</Text>
                                                 <Text type="secondary" style={{ fontSize: 10 }}>{dayjs(item.createdAt).fromNow()}</Text>
                                             </Space>

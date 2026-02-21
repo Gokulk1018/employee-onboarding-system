@@ -1,41 +1,66 @@
-import React from 'react';
-import { Card, List, Avatar, Typography, Space, Tag, theme, Badge } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Card, List, Avatar, Typography, Space, Tag, theme, Badge, Input, Button, Modal, App } from 'antd';
 import { motion } from 'framer-motion';
-import { MessageOutlined, FireOutlined, NotificationOutlined } from '@ant-design/icons';
+import { MessageOutlined, FireOutlined, SendOutlined } from '@ant-design/icons';
+import { getWallResponses, replyToResponse } from '../../services/engagementService';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+dayjs.extend(relativeTime);
 
 const { Title, Text } = Typography;
 
 const EngagementWall = () => {
     const { token } = theme.useToken();
+    const { message: antMessage } = App.useApp();
+    const userRole = localStorage.getItem('userRole');
+    const [feedItems, setFeedItems] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [replyModalVisible, setReplyModalVisible] = useState(false);
+    const [selectedResponse, setSelectedResponse] = useState(null);
+    const [replyText, setReplyText] = useState('');
+    const [submittingReply, setSubmittingReply] = useState(false);
 
-    const feedItems = [
-        {
-            id: 1,
-            type: 'announcement',
-            user: 'HR Team',
-            content: 'Welcome to our new Town Hall series! Join us this Friday.',
-            time: '2 hours ago',
-            tags: ['Official']
-        },
-        {
-            id: 2,
-            type: 'shoutout',
-            user: 'John Doe',
-            target: 'Jane Smith',
-            content: 'A huge shoutout to Jane for leading the Q1 project transition so smoothly! 🚀',
-            time: '5 hours ago',
-            tags: ['Appreciation', 'Teamwork']
-        },
-        {
-            id: 3,
-            type: 'shoutout',
-            user: 'Mike Ross',
-            target: 'All Team',
-            content: 'Great work everyone on hitting the 100% deployment target!',
-            time: '1 day ago',
-            tags: ['Achievement']
+    const fetchWallData = async () => {
+        try {
+            setLoading(true);
+            const res = await getWallResponses();
+            if (res.success) {
+                setFeedItems(res.data);
+            }
+        } catch (error) {
+            antMessage.error('Failed to load engagement wall');
+        } finally {
+            setLoading(false);
         }
-    ];
+    };
+
+    useEffect(() => {
+        fetchWallData();
+    }, []);
+
+    const handleOpenReply = (item) => {
+        setSelectedResponse(item);
+        setReplyText(item.hrReply || '');
+        setReplyModalVisible(true);
+    };
+
+    const handleSendReply = async () => {
+        if (!replyText.trim()) return;
+        try {
+            setSubmittingReply(true);
+            const res = await replyToResponse(selectedResponse._id, replyText);
+            if (res.success) {
+                antMessage.success('Reply sent successfully');
+                setReplyModalVisible(false);
+                fetchWallData();
+            }
+        } catch (error) {
+            antMessage.error('Failed to send reply');
+        } finally {
+            setSubmittingReply(false);
+        }
+    };
 
     return (
         <Card
@@ -49,8 +74,9 @@ const EngagementWall = () => {
             styles={{ body: { padding: 0 } }}
             style={{ borderRadius: 24, overflow: 'hidden', border: 'none', height: '100%' }}
         >
-            <div style={{ maxHeight: 500, overflowY: 'auto', padding: '12px' }}>
+            <div style={{ maxHeight: 600, overflowY: 'auto', padding: '12px' }}>
                 <List
+                    loading={loading}
                     dataSource={feedItems}
                     renderItem={(item, index) => (
                         <motion.div
@@ -60,51 +86,99 @@ const EngagementWall = () => {
                         >
                             <div style={{
                                 padding: 16,
-                                background: item.type === 'announcement' ? `${token.colorPrimary}10` : 'rgba(128, 128, 128, 0.05)',
+                                background: 'rgba(128, 128, 128, 0.05)',
                                 borderRadius: 16,
                                 marginBottom: 12,
-                                border: `1px solid ${item.type === 'announcement' ? `${token.colorPrimary}20` : 'rgba(128, 128, 128, 0.1)'}`
+                                border: '1px solid rgba(128, 128, 128, 0.1)'
                             }}>
                                 <div className="flex-between" style={{ marginBottom: 8 }}>
                                     <Space>
-                                        <Avatar size="small" style={{ backgroundColor: item.type === 'announcement' ? token.colorPrimary : '#a855f7' }}>
-                                            {item.user[0]}
+                                        <Avatar
+                                            size="small"
+                                            src={item.employeeId?.avatar}
+                                            style={{ backgroundColor: token.colorPrimary }}
+                                        >
+                                            {item.employeeId?.name?.[0]}
                                         </Avatar>
-                                        <Text strong style={{ color: item.type === 'announcement' ? token.colorPrimary : token.colorText }}>
-                                            {item.user}
-                                            {item.target && <span style={{ fontWeight: 400, opacity: 0.6 }}> ➔ {item.target}</span>}
+                                        <Text strong>
+                                            {item.employeeId?.name}
+                                            <span style={{ fontWeight: 400, opacity: 0.6, fontSize: 11 }}> • {item.employeeId?.department}</span>
                                         </Text>
                                     </Space>
-                                    <Text type="secondary" style={{ fontSize: 11 }}>{item.time}</Text>
+                                    <Text type="secondary" style={{ fontSize: 11 }}>{dayjs(item.createdAt).fromNow()}</Text>
                                 </div>
                                 <Text style={{ display: 'block', color: token.colorText, marginBottom: 8, opacity: 0.85 }}>
-                                    {item.content}
+                                    {item.message}
                                 </Text>
-                                <Space size={[0, 4]} wrap>
-                                    {item.tags.map(tag => (
-                                        <Tag key={tag} style={{
-                                            borderRadius: 4,
-                                            background: 'rgba(128, 128, 128, 0.08)',
-                                            border: 'none',
-                                            color: token.colorTextSecondary,
-                                            fontSize: 10
-                                        }}>
-                                            #{tag}
-                                        </Tag>
-                                    ))}
-                                </Space>
+
+                                {item.hrReply && (
+                                    <div style={{
+                                        marginTop: 12,
+                                        padding: '8px 12px',
+                                        background: `${token.colorPrimary}10`,
+                                        borderRadius: 8,
+                                        borderLeft: `3px solid ${token.colorPrimary}`
+                                    }}>
+                                        <Text strong style={{ fontSize: 11, color: token.colorPrimary }}>HR REPLY:</Text>
+                                        <Text style={{ display: 'block', fontSize: 13, marginTop: 4 }}>{item.hrReply}</Text>
+                                    </div>
+                                )}
+
+                                <div className="flex-between" style={{ marginTop: 12 }}>
+                                    <Tag style={{ borderRadius: 4, background: 'rgba(128, 128, 128, 0.08)', border: 'none', color: token.colorTextSecondary, fontSize: 10 }}>
+                                        #{item.formId?.category?.replace(/\s+/g, '')}
+                                    </Tag>
+                                    {userRole === 'hr' && (
+                                        <Button
+                                            type="link"
+                                            size="small"
+                                            onClick={() => handleOpenReply(item)}
+                                            icon={<MessageOutlined />}
+                                        >
+                                            {item.hrReply ? 'Edit Reply' : 'Reply'}
+                                        </Button>
+                                    )}
+                                </div>
                             </div>
                         </motion.div>
                     )}
                 />
             </div>
-            <div style={{ padding: 16, borderTop: `1px solid ${token.colorBorderSecondary}`, textAlign: 'center' }}>
-                <Button type="link" icon={<MessageOutlined />} style={{ color: token.colorPrimary }}>Post a Shoutout</Button>
-            </div>
+
+            <Modal
+                title="Reply to Feedback"
+                open={replyModalVisible}
+                onCancel={() => setReplyModalVisible(false)}
+                footer={null}
+                centered
+                className="glass-modal"
+            >
+                <div style={{ marginBottom: 16 }}>
+                    <Text type="secondary">User Remark:</Text>
+                    <div style={{ padding: 12, background: 'rgba(128, 128, 128, 0.05)', borderRadius: 8, marginTop: 8 }}>
+                        <Text>"{selectedResponse?.message}"</Text>
+                    </div>
+                </div>
+                <Input.TextArea
+                    rows={4}
+                    placeholder="Type your reply to the employee..."
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    style={{ borderRadius: 12 }}
+                />
+                <Button
+                    type="primary"
+                    block
+                    icon={<SendOutlined />}
+                    loading={submittingReply}
+                    onClick={handleSendReply}
+                    style={{ marginTop: 16, height: 44, borderRadius: 12 }}
+                >
+                    Send Reply
+                </Button>
+            </Modal>
         </Card>
     );
 };
-
-const Button = Typography.Button || (() => null); // Fallback if using custom button
 
 export default EngagementWall;

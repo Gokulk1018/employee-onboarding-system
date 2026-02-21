@@ -6,6 +6,8 @@ const {
     getFormById,
     submitResponse,
     getFormAnalytics,
+    getWallResponses,
+    replyToResponse,
     createRequest,
     getRequests,
     updateRequest,
@@ -19,6 +21,8 @@ router.route('/forms')
     .post(protect, createForm)
     .get(protect, getForms);
 
+router.get('/wall', protect, getWallResponses);
+
 router.route('/forms/:id')
     .get(protect, getFormById)
     .put(protect, updateForm)
@@ -26,6 +30,8 @@ router.route('/forms/:id')
 
 router.route('/forms/respond')
     .post(protect, submitResponse);
+
+router.put('/responses/:id/reply', protect, replyToResponse);
 
 router.route('/forms/analytics/:id')
     .get(protect, getFormAnalytics);

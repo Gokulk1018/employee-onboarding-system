@@ -76,6 +76,16 @@ exports.submitReview = async (req, res, next) => {
             submittedAt: new Date()
         });
 
+        // Send feedback notification to employee
+        const Notification = require('../models/Notification');
+        await Notification.create({
+            userId: employeeId,
+            title: 'Performance Feedback Received',
+            message: `New feedback for ${reviewPeriod}: ${remarks || 'View your performance dashboard for details.'}`,
+            type: 'performance',
+            status: 'Info'
+        });
+
         res.status(201).json({ success: true, data: review });
     } catch (err) {
         next(err);

@@ -97,17 +97,14 @@ exports.deleteEmployee = async (req, res) => {
 // @route   POST /api/employees/generate-credentials/:id
 exports.generateCredentials = async (req, res, next) => {
     try {
-        // Find by Offer ID instead of Employee ID
         const offer = await Offer.findById(req.params.id);
         if (!offer) {
             return res.status(404).json({ success: false, message: 'Offer not found' });
         }
 
-        // Generate username = candidate name (lowercase, no spaces)
         const username = offer.candidateName.toLowerCase().replace(/\s+/g, '');
         const password = "123";
 
-        // Create or Update OnboardingUser
         let onboardingUser = await OnboardingUser.findOne({ offerId: offer._id });
 
         if (onboardingUser) {
@@ -124,7 +121,6 @@ exports.generateCredentials = async (req, res, next) => {
             });
         }
 
-        // Send email
         const loginUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
         const htmlContent = `
             <div style="font-family: sans-serif; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; max-width: 600px; margin: 0 auto;">
@@ -153,19 +149,15 @@ exports.generateCredentials = async (req, res, next) => {
 };
 
 // @desc    Get dashboard stats for the logged-in employee
-// @route   GET /api/employees/me/dashboard
+// @route   GET /api/employees/me/dashboard/:id
 exports.getDashboardStats = async (req, res, next) => {
     try {
         const employeeId = req.params.id;
 
-        // Validate ID format
         if (!mongoose.Types.ObjectId.isValid(employeeId)) {
             return res.status(400).json({ success: false, message: 'Invalid employee ID' });
         }
 
-        const objId = new mongoose.Types.ObjectId(employeeId);
-
-        // Check if employee exists
         const employeeSnippet = await Employee.findById(employeeId).select('name');
         if (!employeeSnippet) {
             return res.status(404).json({ success: false, message: 'Employee profile not found' });
@@ -194,32 +186,49 @@ exports.getDashboardStats = async (req, res, next) => {
         const internalJobs = await Job.find({ status: 'OPEN' }).sort({ createdAt: -1 }).limit(3);
 
         // 6. Calculate Performance Points & Ranking
-        const allEmployeesTasks = await Task.aggregate([
-            { $match: { status: 'done', assignees: { $exists: true, $ne: [] } } },
+        const allEmployeesPoints = await Task.aggregate([
+            { $match: { status: 'done' } },
             { $unwind: "$assignees" },
             {
-                $group: {
-                    _id: "$assignees",
-                    points: {
-                        $sum: {
-                            $switch: {
-                                branches: [
-                                    { case: { $eq: ["$priority", "High"] }, then: 10 },
-                                    { case: { $eq: ["$priority", "Medium"] }, then: 7 },
-                                    { case: { $eq: ["$priority", "Low"] }, then: 5 }
-                                ],
-                                default: 7
+                $addFields: {
+                    effectivePoints: {
+                        $ifNull: [
+                            "$points",
+                            {
+                                $switch: {
+                                    branches: [
+                                        { case: { $eq: ["$priority", "High"] }, then: 10 },
+                                        { case: { $eq: ["$priority", "Medium"] }, then: 7 },
+                                        { case: { $eq: ["$priority", "Low"] }, then: 5 }
+                                    ],
+                                    default: 7
+                                }
                             }
-                        }
+                        ]
                     }
                 }
             },
+            {
+                $group: {
+                    _id: "$assignees",
+                    points: { $sum: "$effectivePoints" }
+                }
+            },
+            {
+                $lookup: {
+                    from: "employees",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "employee"
+                }
+            },
+            { $unwind: "$employee" },
             { $sort: { points: -1 } }
         ]);
 
-        const myPerformance = allEmployeesTasks.find(p => p._id && p._id.toString() === employeeId);
+        const myPerformance = allEmployeesPoints.find(p => p._id && p._id.toString() === employeeId);
         const myPoints = myPerformance ? myPerformance.points : 0;
-        const myRank = allEmployeesTasks.findIndex(p => p._id && p._id.toString() === employeeId) + 1;
+        const myRank = allEmployeesPoints.findIndex(p => p._id && p._id.toString() === employeeId) + 1;
 
         res.status(200).json({
             success: true,

@@ -27,9 +27,22 @@ const notificationSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Employee',
+        required: false
+    },
+    isGlobal: {
+        type: Boolean,
+        default: false
+    },
     isRead: {
         type: Boolean,
         default: false
+    },
+    link: {
+        type: String, // e.g., /engagement, /performance, etc.
+        required: false
     }
 }, {
     timestamps: true

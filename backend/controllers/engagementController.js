@@ -21,7 +21,93 @@ exports.createForm = async (req, res, next) => {
             createdBy
         });
 
+        // Trigger Notifications for Target Audience
+        const Notification = require('../models/Notification');
+        let targetUserIds = [];
+
+        if (targetAudience === 'allEmployees') {
+            const employees = await Employee.find({ status: 'Active' }).select('_id');
+            targetUserIds = employees.map(emp => emp._id);
+        } else if (targetAudience === 'department') {
+            const employees = await Employee.find({ department: targetDepartment, status: 'Active' }).select('_id');
+            targetUserIds = employees.map(emp => emp._id);
+        } else if (targetAudience === 'selectedEmployees') {
+            targetUserIds = targetEmployees;
+        }
+
+        const notificationPromises = targetUserIds.map(userId =>
+            Notification.create({
+                userId,
+                title: `New ${formType === 'survey' ? 'Survey' : 'Feedback Form'}`,
+                message: `You have a new ${formType}: ${title}. Please complete it at your earliest convenience.`,
+                type: 'engagement',
+                status: 'Info',
+                link: `/engagement?formId=${form._id}`
+            })
+        );
+        await Promise.all(notificationPromises);
+
         res.status(201).json({ success: true, data: form });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @desc    Get responses for the Engagement Wall
+// @route   GET /api/engagement/wall
+exports.getWallResponses = async (req, res, next) => {
+    try {
+        const responses = await EngagementResponse.find({
+            message: { $exists: true, $ne: '' }
+        })
+            .populate('employeeId', 'name avatar department')
+            .populate('formId', 'title category')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({ success: true, count: responses.length, data: responses });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @desc    Reply to an engagement response (HR)
+// @route   PUT /api/engagement/responses/:id/reply
+exports.replyToResponse = async (req, res, next) => {
+    try {
+        const { hrReply } = req.body;
+        const responseId = req.params.id;
+
+        const response = await EngagementResponse.findById(responseId);
+        if (!response) {
+            return res.status(404).json({ success: false, message: 'Response not found' });
+        }
+
+        response.hrReply = hrReply;
+        response.hrReplyDate = new Date();
+        await response.save();
+
+        // Notify Employee
+        const Notification = require('../models/Notification');
+        await Notification.create({
+            userId: response.employeeId,
+            title: 'HR Replied to Your Feedback',
+            message: `An HR admin has replied to your feedback: "${hrReply.substring(0, 50)}..."`,
+            type: 'engagement',
+            status: 'Info',
+            link: '/engagement'
+        });
+
+        // Notify HR Team (Requirement 5)
+        await Notification.create({
+            title: 'Admin Replied to Employee Feedback',
+            message: `Admin responded to feedback from ${response.employeeId?.name || 'an employee'}.`,
+            type: 'engagement',
+            status: 'Info',
+            isGlobal: true, // HR dashboard picks up global notifications
+            link: '/engagement'
+        });
+
+        res.status(200).json({ success: true, data: response });
     } catch (err) {
         next(err);
     }

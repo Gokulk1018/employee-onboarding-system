@@ -20,6 +20,13 @@ const EngagementResponseSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+    hrReply: {
+        type: String,
+        trim: true
+    },
+    hrReplyDate: {
+        type: Date
+    },
     createdAt: {
         type: Date,
         default: Date.now

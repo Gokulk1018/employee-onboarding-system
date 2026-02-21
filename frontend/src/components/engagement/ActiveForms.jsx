@@ -15,22 +15,32 @@ const ActiveForms = () => {
     const [isRespondModalVisible, setIsRespondModalVisible] = useState(false);
     const [form] = Form.useForm();
 
-    const fetchActiveForms = async () => {
-        try {
-            setLoading(true);
-            const res = await getForms();
-            if (res.success) {
-                setForms(res.data);
-            }
-        } catch (error) {
-            message.error('Failed to load assigned forms');
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
-        fetchActiveForms();
+        const fetchActiveFormsAndCheckQuery = async () => {
+            try {
+                setLoading(true);
+                const res = await getForms();
+                if (res.success) {
+                    setForms(res.data);
+
+                    // Check for formId in URL to auto-open
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const formId = urlParams.get('formId');
+                    if (formId) {
+                        const targetForm = res.data.find(f => f._id === formId);
+                        if (targetForm) {
+                            handleOpenResponse(targetForm);
+                        }
+                    }
+                }
+            } catch (error) {
+                message.error('Failed to load assigned forms');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchActiveFormsAndCheckQuery();
     }, []);
 
     const handleOpenResponse = (f) => {

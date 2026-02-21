@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Tag, Button, Typography, Space, Divider, List, Avatar, Spin, Modal, Form, Input, InputNumber, DatePicker, Select, App, Breadcrumb, Descriptions } from 'antd';
+import { Card, Tag, Button, Typography, Space, Divider, List, Avatar, Spin, Modal, Form, Input, InputNumber, DatePicker, Select, App, Breadcrumb, Descriptions, Row, Col } from 'antd';
 import {
     ArrowLeftOutlined, EditOutlined, ShareAltOutlined, PlusOutlined,
     InstagramOutlined, LinkedinOutlined, WhatsAppOutlined, MailOutlined, CopyOutlined, GlobalOutlined, CheckCircleOutlined
@@ -26,7 +26,7 @@ const INITIAL_MOCK_CANDIDATES = [
 ];
 
 const JobDetails = () => {
-    const { message: msg } = App.useApp();
+    const { message } = App.useApp();
     const { id } = useParams();
     const navigate = useNavigate();
     const { token } = theme.useToken();
@@ -34,7 +34,10 @@ const JobDetails = () => {
 
     const [job, setJob] = useState(null);
     const [realCandidates, setRealCandidates] = useState([]);
-    const [mocks, setMocks] = useState(INITIAL_MOCK_CANDIDATES);
+    const [mocks, setMocks] = useState(() => {
+        const sessionMocks = JSON.parse(sessionStorage.getItem('sessionMocks') || '{}');
+        return sessionMocks[id] || INITIAL_MOCK_CANDIDATES;
+    });
     const [loading, setLoading] = useState(true);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [submitting, setSubmitting] = useState(false);
@@ -55,6 +58,12 @@ const JobDetails = () => {
 
     useEffect(() => {
         const fetchJobAndCandidates = async () => {
+            // Load custom mocks for this job ID if they exist in session
+            const sessionMocks = JSON.parse(sessionStorage.getItem('sessionMocks') || '{}');
+            if (sessionMocks[id]) {
+                setMocks(sessionMocks[id]);
+            }
+
             // Validate ID before fetching
             if (!isValidMongoId(id)) {
                 console.warn("Invalid MongoDB ID, skipping backend fetch:", id);
@@ -66,7 +75,7 @@ const JobDetails = () => {
                     setJob(foundJob);
                     setRealCandidates(getSessionCandidates(id) || []); // Load mock candidates for this job
                 } else {
-                    msg.error('Job not found');
+                    message.error('Job not found');
                     navigate('/recruitment');
                 }
                 setLoading(false);
@@ -93,7 +102,7 @@ const JobDetails = () => {
                         setJob(foundJob);
                         setLoading(false); // Show UI immediately
                     } else {
-                        msg.error('Job not found');
+                        message.error('Job not found');
                         navigate('/recruitment');
                         return;
                     }
@@ -114,7 +123,7 @@ const JobDetails = () => {
                 if (foundJob) {
                     setJob(foundJob);
                 } else {
-                    msg.error('Job not found');
+                    message.error('Job not found');
                     navigate('/recruitment');
                 }
                 setLoading(false);
@@ -143,11 +152,11 @@ const JobDetails = () => {
                 const data = await response.json();
 
                 if (data.success) {
-                    msg.success('Job updated successfully');
+                    message.success('Job updated successfully');
                     setJob(data.data);
                     setIsEditModalVisible(false);
                 } else {
-                    msg.error(data.message || 'Failed to update job');
+                    message.error(data.message || 'Failed to update job');
                 }
             } else {
                 // Fake frontend job - update local state only
@@ -188,7 +197,23 @@ const JobDetails = () => {
         const isMock = candidateId.startsWith('m');
 
         if (isMock) {
-            setMocks(prev => prev.map(c => c._id === candidateId ? { ...c, stage: newStage } : c));
+            const updatedMocks = mocks.map(c => c._id === candidateId ? { ...c, stage: newStage } : c);
+            setMocks(updatedMocks);
+
+            // Persist base mocks for this session
+            const sessionMocks = JSON.parse(sessionStorage.getItem('sessionMocks') || '{}');
+            sessionMocks[id] = updatedMocks;
+            sessionStorage.setItem('sessionMocks', JSON.stringify(sessionMocks));
+
+            message.success(`Candidate moved to ${newStage}`);
+            return;
+        }
+
+        // For real mock candidates from mockRecruitmentData.js (starting with 'c')
+        if (candidateId.startsWith('c')) {
+            const updatedList = realCandidates.map(c => c._id === candidateId ? { ...c, stage: newStage } : c);
+            setRealCandidates(updatedList);
+            updateSessionCandidates(id, updatedList);
             message.success(`Candidate moved to ${newStage}`);
             return;
         }
@@ -219,6 +244,26 @@ const JobDetails = () => {
     const handleAddCandidate = async (values) => {
         setSubmitting(true);
         try {
+            if (!isValidMongoId(id)) {
+                // Mock job - save to local storage
+                const newCandidate = {
+                    _id: `c${Date.now()}`,
+                    ...values,
+                    skills: values.skills.split(',').map(s => s.trim()),
+                    stage: 'Applied',
+                    appliedAt: new Date().toISOString()
+                };
+
+                const updatedList = [...realCandidates, newCandidate];
+                setRealCandidates(updatedList);
+                updateSessionCandidates(id, updatedList);
+
+                message.success('Candidate added to mock job');
+                setIsModalVisible(false);
+                form.resetFields();
+                return;
+            }
+
             const response = await fetch(`http://localhost:5000/api/jobs/${id}/apply`, {
                 method: 'POST',
                 headers: {

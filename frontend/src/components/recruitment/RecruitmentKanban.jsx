@@ -56,8 +56,11 @@ const RecruitmentKanban = ({ candidates, onStageUpdate, jobStatus }) => {
                             display: 'flex',
                             flexDirection: 'column',
                             gap: 10,
-                            padding: 4,
-                            minHeight: 150
+                            padding: '4px 8px 4px 4px',
+                            maxHeight: '450px',
+                            overflowY: 'auto',
+                            minHeight: 150,
+                            scrollbarWidth: 'thin'
                         }}>
                             {stageCandidates.length > 0 ? (
                                 stageCandidates.map((candidate) => (
