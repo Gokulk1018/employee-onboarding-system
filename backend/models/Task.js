@@ -29,8 +29,7 @@ const taskSchema = new mongoose.Schema({
         default: 'medium'
     },
     points: {
-        type: Number,
-        default: 7 // Default for medium
+        type: Number
     },
     estimatedHours: {
         type: Number,
@@ -56,5 +55,18 @@ const taskSchema = new mongoose.Schema({
         default: false
     }
 }, { timestamps: true });
+
+// Pre-save hook to set points based on priority if not provided
+taskSchema.pre('save', function (next) {
+    if (this.points === undefined || this.points === null) {
+        const pointMap = {
+            'High': 10,
+            'Medium': 7,
+            'Low': 5
+        };
+        this.points = pointMap[this.priority] || 7;
+    }
+    next();
+});
 
 module.exports = mongoose.model('Task', taskSchema);

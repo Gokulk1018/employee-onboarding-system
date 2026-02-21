@@ -44,13 +44,14 @@ const ActiveForms = () => {
             if (formId) {
                 const targetForm = forms.find(f => f._id === formId);
                 if (targetForm) {
-                    form.resetFields();
                     setSelectedForm(targetForm);
                     setIsRespondModalVisible(true);
+                    // Use timeout to ensure form is connected
+                    setTimeout(() => form.resetFields(), 0);
                 }
             }
         }
-    }, [forms, search]);
+    }, [forms, search, form]);
 
     const handleOpenResponse = (f) => {
         setSelectedForm(f);

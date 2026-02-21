@@ -86,8 +86,8 @@ const FormAnalytics = ({ data, formType, formTitle }) => {
                 {(data.totalSubmitted > 0 || true) ? (
                     <div style={{ padding: '0 8px' }}>
                         <Text strong style={{ display: 'block', marginBottom: 16, fontSize: 13, textTransform: 'uppercase', letterSpacing: 1, color: token.colorTextSecondary }}>Sentiment Analysis</Text>
-                        <div style={{ width: '100%', height: 280, position: 'relative' }}>
-                            <ResponsiveContainer>
+                        <div style={{ width: '100%', height: 280, position: 'relative', minHeight: 280 }}>
+                            <ResponsiveContainer width="100%" height="100%" minHeight={280}>
                                 <PieChart>
                                     <Pie
                                         data={data.totalSubmitted > 0 ? chartData : [{ name: 'No Data', value: 1 }]}

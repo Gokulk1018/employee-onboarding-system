@@ -102,7 +102,7 @@ const Engagement = () => {
                     {/* Bottom Section: Wall */}
                     <Col span={24}>
                         <motion.div variants={itemVariants}>
-                            <EngagementWall />
+                            <EngagementWall selectedFormId={selectedForm?._id} />
                         </motion.div>
                     </Col>
                 </Row>

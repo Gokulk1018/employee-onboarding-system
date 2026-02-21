@@ -61,8 +61,8 @@ const OnboardingForm = () => {
                         })));
                     }
 
-                    // If already submitted and not rejected, it will be handled by the blocking logic below
-                    if (user.status === 'submitted' || user.status === 'approved' || user.status === 'pending') {
+                    // If already submitted and not approved, it will be handled by the blocking logic below
+                    if (user.status === 'submitted' || user.status === 'approved') {
                         setIsSubmitted(true);
                     }
                 }
@@ -228,8 +228,8 @@ const OnboardingForm = () => {
         );
     }
 
-    // Block re-submission if status is submitted or pending (and not reupload_required)
-    if (userData?.status === 'submitted' || userData?.status === 'pending') {
+    // Block re-submission if status is submitted (and not reupload_required)
+    if (userData?.status === 'submitted') {
         return (
             <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f2f5', position: 'relative' }}>
                 <div style={{ position: 'absolute', top: 20, right: 20 }}>

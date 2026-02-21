@@ -10,7 +10,7 @@ dayjs.extend(relativeTime);
 
 const { Title, Text } = Typography;
 
-const EngagementWall = () => {
+const EngagementWall = ({ selectedFormId }) => {
     const { token } = theme.useToken();
     const { message: antMessage } = App.useApp();
     const userRole = localStorage.getItem('userRole');
@@ -20,6 +20,10 @@ const EngagementWall = () => {
     const [selectedResponse, setSelectedResponse] = useState(null);
     const [replyText, setReplyText] = useState('');
     const [submittingReply, setSubmittingReply] = useState(false);
+
+    const filteredItems = selectedFormId
+        ? feedItems.filter(item => item.formId?._id === selectedFormId)
+        : feedItems;
 
     const fetchWallData = async () => {
         try {
@@ -68,7 +72,7 @@ const EngagementWall = () => {
             title={
                 <Space>
                     <FireOutlined style={{ color: '#f97316' }} />
-                    <Title level={4} style={{ margin: 0 }}>Engagement Wall</Title>
+                    <Title level={4} style={{ margin: 0 }}>Engagement Wall {selectedFormId && <Text type="secondary" style={{ fontSize: 13, fontWeight: 400 }}>(Filtered by Selected Form)</Text>}</Title>
                 </Space>
             }
             styles={{ body: { padding: 0 } }}
@@ -77,7 +81,7 @@ const EngagementWall = () => {
             <div style={{ maxHeight: 600, overflowY: 'auto', padding: '12px' }}>
                 <List
                     loading={loading}
-                    dataSource={feedItems}
+                    dataSource={filteredItems}
                     renderItem={(item, index) => (
                         <motion.div
                             initial={{ opacity: 0, x: -20 }}

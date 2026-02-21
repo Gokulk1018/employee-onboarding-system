@@ -82,7 +82,7 @@ exports.getOnboardingUser = async (req, res, next) => {
 // @route   POST /api/onboarding/approve/:id
 exports.approveOnboarding = async (req, res, next) => {
     try {
-        const user = await OnboardingUser.findById(req.params.id);
+        const user = await OnboardingUser.findById(req.params.id).populate('offerId');
         if (!user) {
             return res.status(404).json({ success: false, message: 'Onboarding user not found' });
         }
@@ -91,6 +91,7 @@ exports.approveOnboarding = async (req, res, next) => {
         const employee = await Employee.create({
             name: user.candidateName,
             email: user.candidateEmail,
+            department: user.offerId?.department || 'General',
             username: user.username,
             password: user.password, // Set their password
             role: 'employee',
@@ -221,7 +222,7 @@ exports.verifyDocument = async (req, res, next) => {
 exports.finalizeOnboarding = async (req, res, next) => {
     try {
         const { joiningDate } = req.body;
-        const user = await OnboardingUser.findById(req.params.id);
+        const user = await OnboardingUser.findById(req.params.id).populate('offerId');
 
         if (!user) {
             return res.status(404).json({ success: false, message: 'Onboarding user not found' });
@@ -234,6 +235,7 @@ exports.finalizeOnboarding = async (req, res, next) => {
             employee = await Employee.create({
                 name: user.candidateName,
                 email: user.candidateEmail,
+                department: user.offerId?.department || 'General',
                 username: user.username,
                 password: user.password,
                 role: 'employee',
