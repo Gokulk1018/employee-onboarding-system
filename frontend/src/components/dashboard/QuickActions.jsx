@@ -22,9 +22,28 @@ const actions = [
     { icon: <SettingOutlined />, label: 'Settings', color: '#64748b', path: '/settings' },
 ];
 
-const QuickActions = ({ onMeeting }) => {
+const QuickActions = ({ onMeeting, onLeaveAction }) => {
     const { token } = theme.useToken();
     const navigate = useNavigate();
+
+    const handleActionClick = (action) => {
+        if (action.action === 'meeting' && onMeeting) {
+            onMeeting();
+        } else if (action.action === 'leave' && onLeaveAction) {
+            onLeaveAction();
+        } else if (action.path) {
+            navigate(action.path);
+        }
+    };
+
+    const actions = [
+        { icon: <UserAddOutlined />, label: 'Add Employee', color: '#4f46e5', path: '/employees?action=add' },
+        { icon: <PlusCircleOutlined />, label: 'New Task', color: '#8b5cf6', path: '/tasks?action=add' },
+        { icon: <RocketOutlined />, label: 'Post Job', color: '#10b981', path: '/recruitment?action=add' },
+        { icon: <TeamOutlined />, label: 'Team Meeting', color: '#3b82f6', action: 'meeting' },
+        { icon: <CheckSquareOutlined />, label: 'Approve Leave', color: '#f59e0b', action: 'leave' },
+        { icon: <SettingOutlined />, label: 'Settings', color: '#64748b', path: '/settings' },
+    ];
 
     return (
         <div className="glass-card" style={{ padding: 24, height: '100%', borderColor: token.colorBorder }}>
@@ -35,10 +54,8 @@ const QuickActions = ({ onMeeting }) => {
                         <motion.div
                             whileHover={{ y: -5, scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            onClick={() => {
-                                if (action.path) navigate(action.path);
-                                if (action.action === 'meeting' && onMeeting) onMeeting();
-                            }}
+                            onClick={() => handleActionClick(action)}
+
                             style={{
                                 display: 'flex',
                                 flexDirection: 'column',

@@ -14,6 +14,8 @@ import PendingApprovals from '../components/dashboard/PendingApprovals';
 import TaskOverview from '../components/dashboard/TaskOverview';
 import TodayFocus from '../components/dashboard/TodayFocus';
 import MeetingModal from '../components/dashboard/MeetingModal';
+import LeaveManagementModal from '../components/dashboard/LeaveManagementModal';
+
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -40,7 +42,9 @@ const Dashboard = () => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
+    const [isLeaveManagementModalOpen, setIsLeaveManagementModalOpen] = useState(false);
     const [employees, setEmployees] = useState([]);
+
     const [loadingEmployees, setLoadingEmployees] = useState(false);
 
     const fetchStats = async () => {
@@ -160,9 +164,13 @@ const Dashboard = () => {
                     </Col>
                     <Col xs={24} lg={8}>
                         <motion.div variants={itemVariants} style={{ height: '100%' }}>
-                            <QuickActions onMeeting={() => setIsMeetingModalOpen(true)} />
+                            <QuickActions
+                                onMeeting={() => setIsMeetingModalOpen(true)}
+                                onLeaveAction={() => setIsLeaveManagementModalOpen(true)}
+                            />
                         </motion.div>
                     </Col>
+
                 </Row>
 
                 {/* Department & Activity Section */}
@@ -209,7 +217,14 @@ const Dashboard = () => {
                     employees={employees}
                     loadingEmployees={loadingEmployees}
                 />
+
+                <LeaveManagementModal
+                    open={isLeaveManagementModalOpen}
+                    onClose={() => setIsLeaveManagementModalOpen(false)}
+                    onRefresh={fetchStats}
+                />
             </motion.div>
+
         </PageContainer>
     );
 };
