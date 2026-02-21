@@ -59,6 +59,18 @@ const AppContent = () => {
     const { isDarkMode } = useTheme();
     const location = useLocation();
 
+    // Helper to handle legacy links and role-based redirects
+    const EngagementRedirect = () => {
+        const userRole = localStorage.getItem('userRole');
+        if (userRole === 'employee') {
+            return <Navigate to={`/employee/dashboard${location.search}`} replace />;
+        }
+        if (userRole === 'hr') {
+            return <Engagement />;
+        }
+        return <Navigate to="/login" replace />;
+    };
+
     return (
         <ConfigProvider
             locale={enUS}
@@ -104,6 +116,9 @@ const AppContent = () => {
 
                         {/* Public Job Application */}
                         <Route path="/jobs/:id/apply" element={<ApplyJob />} />
+
+                        {/* Redirect for existing notifications */}
+                        <Route path="/engagement" element={<EngagementRedirect />} />
 
                         {/* Fallback */}
                         <Route path="*" element={<Navigate to="/" replace />} />

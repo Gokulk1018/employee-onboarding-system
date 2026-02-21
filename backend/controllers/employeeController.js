@@ -185,7 +185,16 @@ exports.getDashboardStats = async (req, res, next) => {
         // 5. Fetch Internal Jobs (Openings)
         const internalJobs = await Job.find({ status: 'OPEN' }).sort({ createdAt: -1 }).limit(3);
 
-        // 6. Calculate Performance Points & Ranking
+        // 6. Fetch Personal Sentiment Stats
+        const EngagementResponse = require('../models/EngagementResponse');
+        const personalResponses = await EngagementResponse.find({ employeeId });
+        const sentimentStats = {
+            Good: personalResponses.filter(r => r.selectedOption === 'Good').length,
+            Neutral: personalResponses.filter(r => r.selectedOption === 'Neutral').length,
+            Bad: personalResponses.filter(r => r.selectedOption === 'Bad').length
+        };
+
+        // 7. Calculate Performance Points & Ranking
         const allEmployeesPoints = await Task.aggregate([
             { $match: { status: 'done' } },
             { $unwind: "$assignees" },
@@ -251,7 +260,8 @@ exports.getDashboardStats = async (req, res, next) => {
                     rank: myRank || 'N/A'
                 },
                 notifications,
-                internalJobs
+                internalJobs,
+                sentimentStats
             }
         });
     } catch (err) {

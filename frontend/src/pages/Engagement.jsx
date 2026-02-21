@@ -6,7 +6,6 @@ import FormManager from '../components/engagement/FormManager';
 import ActiveForms from '../components/engagement/ActiveForms';
 import EngagementInsights from '../components/engagement/EngagementInsights';
 import EngagementWall from '../components/engagement/EngagementWall';
-import EventCalendar from '../components/engagement/EventCalendar';
 import FormAnalytics from '../components/engagement/FormAnalytics';
 
 const { Title, Text } = Typography;
@@ -100,20 +99,11 @@ const Engagement = () => {
                         </Row>
                     </Col>
 
-                    {/* Bottom Section: Wall and Calendar */}
+                    {/* Bottom Section: Wall */}
                     <Col span={24}>
-                        <Row gutter={[24, 24]}>
-                            <Col xs={24} lg={16}>
-                                <motion.div variants={itemVariants}>
-                                    <EngagementWall />
-                                </motion.div>
-                            </Col>
-                            <Col xs={24} lg={8}>
-                                <motion.div variants={itemVariants}>
-                                    <EventCalendar />
-                                </motion.div>
-                            </Col>
-                        </Row>
+                        <motion.div variants={itemVariants}>
+                            <EngagementWall />
+                        </motion.div>
                     </Col>
                 </Row>
             </motion.div>

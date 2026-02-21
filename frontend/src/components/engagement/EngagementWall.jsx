@@ -104,6 +104,14 @@ const EngagementWall = () => {
                                             {item.employeeId?.name}
                                             <span style={{ fontWeight: 400, opacity: 0.6, fontSize: 11 }}> • {item.employeeId?.department}</span>
                                         </Text>
+                                        {item.selectedOption && (
+                                            <Tag color={
+                                                item.selectedOption === 'Good' ? 'success' :
+                                                    item.selectedOption === 'Bad' ? 'error' : 'warning'
+                                            } style={{ fontSize: 10, borderRadius: 4 }}>
+                                                {item.selectedOption.toUpperCase()}
+                                            </Tag>
+                                        )}
                                     </Space>
                                     <Text type="secondary" style={{ fontSize: 11 }}>{dayjs(item.createdAt).fromNow()}</Text>
                                 </div>

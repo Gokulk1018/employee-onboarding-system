@@ -13,8 +13,8 @@ const EngagementResponseSchema = new mongoose.Schema({
     },
     selectedOption: {
         type: String,
-        enum: ['Good', 'Not Bad', 'Worst', 'Need Improvement'],
-        required: function () { return this.formType === 'survey'; }
+        enum: ['Good', 'Neutral', 'Bad'],
+        required: function () { return this.formType === 'survey' || this.formType === 'feedback'; }
     },
     message: {
         type: String,

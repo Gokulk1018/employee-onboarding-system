@@ -83,52 +83,58 @@ const FormAnalytics = ({ data, formType, formTitle }) => {
                     </Row>
                 </div>
 
-                {formType === 'survey' && chartData.length > 0 ? (
+                {(data.totalSubmitted > 0 || true) ? (
                     <div style={{ padding: '0 8px' }}>
                         <Text strong style={{ display: 'block', marginBottom: 16, fontSize: 13, textTransform: 'uppercase', letterSpacing: 1, color: token.colorTextSecondary }}>Sentiment Analysis</Text>
                         <div style={{ width: '100%', height: 280, position: 'relative' }}>
                             <ResponsiveContainer>
                                 <PieChart>
-                                    <defs>
-                                        {COLORS.map((color, index) => (
-                                            <linearGradient id={`grad-${index}`} key={index} x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor={color} stopOpacity={0.8} />
-                                                <stop offset="95%" stopColor={color} stopOpacity={0.3} />
-                                            </linearGradient>
-                                        ))}
-                                    </defs>
                                     <Pie
-                                        data={chartData}
+                                        data={data.totalSubmitted > 0 ? chartData : [{ name: 'No Data', value: 1 }]}
                                         innerRadius={75}
                                         outerRadius={100}
-                                        paddingAngle={10}
+                                        paddingAngle={data.totalSubmitted > 0 ? 10 : 0}
                                         dataKey="value"
                                         stroke="none"
                                         animationBegin={0}
                                         animationDuration={1500}
                                     >
-                                        {chartData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={`url(#grad-${index % COLORS.length})`} cornerRadius={8} />
-                                        ))}
+                                        {data.totalSubmitted > 0 ? (
+                                            chartData.map((entry, index) => {
+                                                const sentimentColors = {
+                                                    'Good': '#52c41a',
+                                                    'Neutral': '#faad14',
+                                                    'Bad': '#ff4d4f'
+                                                };
+                                                const color = sentimentColors[entry.name] || COLORS[index % COLORS.length];
+                                                return <Cell key={`cell-${index}`} fill={color} cornerRadius={8} />;
+                                            })
+                                        ) : (
+                                            <Cell fill={`${token.colorTextQuaternary}20`} />
+                                        )}
                                     </Pie>
-                                    <Tooltip
-                                        contentStyle={{
-                                            borderRadius: 16,
-                                            border: 'none',
-                                            boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-                                            background: token.colorBgContainer,
-                                            backdropFilter: 'blur(10px)'
-                                        }}
-                                        itemStyle={{ fontWeight: 600 }}
-                                    />
-                                    <Legend
-                                        verticalAlign="bottom"
-                                        align="center"
-                                        iconType="circle"
-                                        iconSize={8}
-                                        wrapperStyle={{ paddingTop: 20 }}
-                                        formatter={(value) => <span style={{ fontSize: 12, fontWeight: 500, color: token.colorTextSecondary }}>{value}</span>}
-                                    />
+                                    {data.totalSubmitted > 0 && (
+                                        <Tooltip
+                                            contentStyle={{
+                                                borderRadius: 16,
+                                                border: 'none',
+                                                boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+                                                background: token.colorBgContainer,
+                                                backdropFilter: 'blur(10px)'
+                                            }}
+                                            itemStyle={{ fontWeight: 600 }}
+                                        />
+                                    )}
+                                    {data.totalSubmitted > 0 && (
+                                        <Legend
+                                            verticalAlign="bottom"
+                                            align="center"
+                                            iconType="circle"
+                                            iconSize={8}
+                                            wrapperStyle={{ paddingTop: 20 }}
+                                            formatter={(value) => <span style={{ fontSize: 12, fontWeight: 500, color: token.colorTextSecondary }}>{value}</span>}
+                                        />
+                                    )}
                                 </PieChart>
                             </ResponsiveContainer>
                             <div style={{
@@ -138,18 +144,16 @@ const FormAnalytics = ({ data, formType, formTitle }) => {
                                 transform: 'translate(-50%, -50%)',
                                 textAlign: 'center'
                             }}>
-                                <Title level={1} style={{ margin: 0, fontSize: 36, fontWeight: 800, color: token.colorPrimary }}>{data.totalSubmitted}</Title>
+                                <Title level={1} style={{ margin: 0, fontSize: 36, fontWeight: 800, color: data.totalSubmitted > 0 ? token.colorPrimary : token.colorTextQuaternary }}>
+                                    {data.totalSubmitted}
+                                </Title>
                                 <Text type="secondary" style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1 }}>TOTAL</Text>
                             </div>
                         </div>
                     </div>
-                ) : formType === 'survey' ? (
-                    <div style={{ textAlign: 'center', padding: '40px 0', background: 'rgba(0,0,0,0.02)', borderRadius: 16 }}>
-                        <Text type="secondary">No survey responses yet</Text>
-                    </div>
                 ) : (
                     <div style={{ textAlign: 'center', padding: '40px 0', background: 'rgba(0,0,0,0.02)', borderRadius: 16 }}>
-                        <Text type="secondary">Charts are available for surveys</Text>
+                        <Text type="secondary">No responses yet</Text>
                     </div>
                 )}
             </motion.div>

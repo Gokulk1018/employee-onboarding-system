@@ -26,7 +26,7 @@ exports.createForm = async (req, res, next) => {
         let targetUserIds = [];
 
         if (targetAudience === 'allEmployees') {
-            const employees = await Employee.find({ status: 'Active' }).select('_id');
+            const employees = await Employee.find({ status: 'Active', role: 'employee' }).select('_id');
             targetUserIds = employees.map(emp => emp._id);
         } else if (targetAudience === 'department') {
             const employees = await Employee.find({ department: targetDepartment, status: 'Active' }).select('_id');
@@ -42,7 +42,7 @@ exports.createForm = async (req, res, next) => {
                 message: `You have a new ${formType}: ${title}. Please complete it at your earliest convenience.`,
                 type: 'engagement',
                 status: 'Info',
-                link: `/engagement?formId=${form._id}`
+                link: `/employee/dashboard?formId=${form._id}`
             })
         );
         await Promise.all(notificationPromises);
@@ -86,26 +86,20 @@ exports.replyToResponse = async (req, res, next) => {
         response.hrReplyDate = new Date();
         await response.save();
 
-        // Notify Employee
+        // Notify Employee with conversation history
         const Notification = require('../models/Notification');
+        const previewMsg = response.message ? `Your message: "${response.message.substring(0, 30)}..."` : "Your feedback";
         await Notification.create({
             userId: response.employeeId,
             title: 'HR Replied to Your Feedback',
-            message: `An HR admin has replied to your feedback: "${hrReply.substring(0, 50)}..."`,
+            message: `${previewMsg} | HR Response: "${hrReply}"`,
             type: 'engagement',
             status: 'Info',
-            link: '/engagement'
+            link: '/employee/dashboard'
         });
 
-        // Notify HR Team (Requirement 5)
-        await Notification.create({
-            title: 'Admin Replied to Employee Feedback',
-            message: `Admin responded to feedback from ${response.employeeId?.name || 'an employee'}.`,
-            type: 'engagement',
-            status: 'Info',
-            isGlobal: true, // HR dashboard picks up global notifications
-            link: '/engagement'
-        });
+
+
 
         res.status(200).json({ success: true, data: response });
     } catch (err) {
@@ -188,9 +182,8 @@ exports.getFormAnalytics = async (req, res, next) => {
             totalSubmitted: responses.length,
             optionsCount: {
                 'Good': 0,
-                'Not Bad': 0,
-                'Worst': 0,
-                'Need Improvement': 0
+                'Neutral': 0,
+                'Bad': 0
             }
         };
 

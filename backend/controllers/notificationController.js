@@ -4,7 +4,19 @@ const Notification = require('../models/Notification');
 // @route   GET /api/notifications
 exports.getNotifications = async (req, res, next) => {
     try {
-        const notifications = await Notification.find().sort({ createdAt: -1 });
+        const userId = req.headers['x-user-id'];
+        let query = {};
+
+        if (userId) {
+            query = {
+                $or: [
+                    { userId: userId },
+                    { isGlobal: true }
+                ]
+            };
+        }
+
+        const notifications = await Notification.find(query).sort({ createdAt: -1 });
         res.status(200).json({
             success: true,
             count: notifications.length,

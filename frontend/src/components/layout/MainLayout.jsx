@@ -41,7 +41,10 @@ const MainLayout = () => {
 
     const fetchNotifications = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/notifications');
+            const userId = localStorage.getItem('userId');
+            const response = await axios.get('http://localhost:5000/api/notifications', {
+                headers: { 'x-user-id': userId }
+            });
             if (response.data.success) {
                 setNotifications(response.data.data);
             }

@@ -20,6 +20,7 @@ import {
     BarChart, Bar, XAxis, YAxis, Tooltip, Legend
 } from 'recharts';
 import { useTheme } from '../context/ThemeContext';
+import ActiveForms from '../components/engagement/ActiveForms';
 
 const { Title, Text } = Typography;
 
@@ -181,8 +182,13 @@ const EmployeePortal = () => {
                     <Row gutter={[24, 24]}>
                         {/* Task Progress Chart */}
                         <Col xs={24} md={12}>
-                            <motion.div variants={itemVariants}>
-                                <Card title="Task Completion" className="glass-card" style={{ borderRadius: 20, height: '100%' }}>
+                            <motion.div variants={itemVariants} style={{ height: '100%' }}>
+                                <Card
+                                    title="Task Completion"
+                                    className="glass-card"
+                                    style={{ borderRadius: 20, height: '100%', display: 'flex', flexDirection: 'column' }}
+                                    styles={{ body: { flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' } }}
+                                >
                                     <div style={{ height: 200, display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 0 }}>
                                         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                                             <PieChart>
@@ -222,13 +228,15 @@ const EmployeePortal = () => {
                                     style={{
                                         borderRadius: 24,
                                         height: '100%',
+                                        display: 'flex',
+                                        flexDirection: 'column',
                                         background: isDarkMode
                                             ? 'linear-gradient(135deg, rgba(24, 144, 255, 0.08) 0%, rgba(114, 46, 209, 0.08) 100%)'
                                             : 'linear-gradient(135deg, rgba(24, 144, 255, 0.05) 0%, rgba(114, 46, 209, 0.05) 100%)',
                                         border: `1px solid ${token.colorBorderSecondary}`,
                                         overflow: 'hidden'
                                     }}
-                                    styles={{ body: { padding: 24 } }}
+                                    styles={{ body: { padding: 24, flex: 1, display: 'flex', flexDirection: 'column' } }}
                                 >
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                                         <Title level={4} style={{ margin: 0 }}><TrophyOutlined style={{ color: '#fadb14' }} /> Elite Performance</Title>
@@ -329,35 +337,36 @@ const EmployeePortal = () => {
                                 className="glass-card"
                                 style={{ borderRadius: 20 }}
                                 styles={{ body: { padding: '12px 24px' } }}
-                            >                                <List
-                                    size="small"
-                                    dataSource={stats?.notifications || []}
-                                    locale={{ emptyText: <Text type="secondary">No new notifications</Text> }}
-                                    renderItem={item => (
-                                        <List.Item
-                                            style={{
-                                                padding: '12px 0',
-                                                cursor: item.link ? 'pointer' : 'default'
-                                            }}
-                                            onClick={() => item.link && navigate(item.link)}
-                                        >
-                                            <Space direction="vertical" size={0}>
-                                                <Text strong style={{ fontSize: 13, color: item.link ? token.colorPrimary : 'inherit' }}>
-                                                    {item.title}
-                                                </Text>
-                                                <Text type="secondary" style={{ fontSize: 12 }}>{item.message}</Text>
-                                                <Text type="secondary" style={{ fontSize: 10 }}>{dayjs(item.createdAt).fromNow()}</Text>
-                                            </Space>
-                                        </List.Item>
-                                    )}
-                                />
+                            >                                <div style={{ maxHeight: 250, overflowY: 'auto', paddingRight: 4 }} className="custom-scrollbar">
+                                    <List
+                                        size="small"
+                                        dataSource={stats?.notifications || []}
+                                        locale={{ emptyText: <Text type="secondary">No new notifications</Text> }}
+                                        renderItem={item => (
+                                            <List.Item
+                                                style={{
+                                                    padding: '12px 0',
+                                                    cursor: item.link ? 'pointer' : 'default',
+                                                    borderBottom: `1px solid ${token.colorBorderSecondary}50`
+                                                }}
+                                                onClick={() => item.link && navigate(item.link)}
+                                            >
+                                                <Space direction="vertical" size={0}>
+                                                    <Text strong style={{ fontSize: 13, color: item.link ? token.colorPrimary : 'inherit' }}>
+                                                        {item.title}
+                                                    </Text>
+                                                    <Text type="secondary" style={{ fontSize: 12 }}>{item.message}</Text>
+                                                    <Text type="secondary" style={{ fontSize: 10 }}>{dayjs(item.createdAt).fromNow()}</Text>
+                                                </Space>
+                                            </List.Item>
+                                        )}
+                                    />
+                                </div>
                             </Card>
                         </motion.div>
 
                         <motion.div variants={itemVariants}>
-                            <Card styles={{ body: { padding: 12 } }} className="glass-card" style={{ borderRadius: 20 }}>
-                                <Calendar fullscreen={false} />
-                            </Card>
+                            <ActiveForms />
                         </motion.div>
                     </Space>
                 </Col>

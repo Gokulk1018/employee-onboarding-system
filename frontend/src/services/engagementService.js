@@ -58,6 +58,6 @@ export const getWallResponses = async () => {
 };
 
 export const replyToResponse = async (id, hrReply) => {
-    const response = await api.put(`/responses/${id}/reply`, { hrReply });
+    const response = await api.put(`/engagement/responses/${id}/reply`, { hrReply });
     return response.data;
 };
