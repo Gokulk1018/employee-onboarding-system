@@ -1,52 +1,70 @@
-import React from 'react';
-import { Card, Row, Col, Statistic, Typography, theme, Space, Badge } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Card, Row, Col, Statistic, Typography, theme, Space, Badge, App } from 'antd';
 import { RiseOutlined, TeamOutlined, HeartOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { motion } from 'framer-motion';
+import { getEngagementInsights } from '../../services/engagementService';
 
 const { Text } = Typography;
 
 const EngagementInsights = () => {
     const { token } = theme.useToken();
+    const { message } = App.useApp();
+    const [insights, setInsights] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    const fetchInsights = async () => {
+        try {
+            setLoading(true);
+            const res = await getEngagementInsights();
+            if (res.success) {
+                setInsights(res.data);
+            }
+        } catch (error) {
+            console.error('Failed to load insights:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchInsights();
+    }, []);
 
     const stats = [
         {
             title: 'Participation',
-            value: '84%',
+            value: insights?.participation || '0%',
             icon: <RiseOutlined />,
             color: '#6366f1',
-            desc: '+5% from last month',
+            desc: insights?.participationTrend || '+0% from last month',
             gradient: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)'
         },
         {
             title: 'Active Forms',
-            value: '12',
+            value: insights?.activeForms || '0',
             icon: <CheckCircleOutlined />,
             color: '#10b981',
-            desc: '4 pending responses',
+            desc: 'Ongoing engagement',
             gradient: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)'
         },
         {
             title: 'Happiness',
-            value: '4.2',
+            value: insights?.happiness || '5.0',
             icon: <HeartOutlined />,
             color: '#f43f5e',
-            desc: 'Average sentiment',
+            desc: insights?.happinessLabel || 'Average sentiment',
             gradient: 'linear-gradient(135deg, #f43f5e 0%, #fb7185 100%)'
-        },
-        {
-            title: 'Shoutouts',
-            value: '128',
-            icon: <TeamOutlined />,
-            color: '#f59e0b',
-            desc: 'Peer recognitions',
-            gradient: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)'
         }
     ];
+
+    if (loading && !insights) {
+        return <div style={{ height: 160, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Space><Badge status="processing" /> <Text type="secondary">Loading insights...</Text></Space></div>;
+    }
 
     return (
         <Row gutter={[16, 16]}>
             {stats.map((item, index) => (
-                <Col xs={12} sm={12} md={6} key={index}>
+                <Col xs={24} sm={12} md={8} key={index}>
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}

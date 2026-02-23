@@ -12,7 +12,11 @@ const {
     getRequests,
     updateRequest,
     updateForm,
-    deleteForm
+    deleteForm,
+    getRecognitions,
+    createRecognition,
+    toggleLike,
+    getEngagementInsights
 } = require('../controllers/engagementController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -43,5 +47,15 @@ router.route('/request')
 
 router.route('/request/:id')
     .put(protect, updateRequest);
+
+// Recognition Routes
+router.route('/recognitions')
+    .get(protect, getRecognitions)
+    .post(protect, createRecognition);
+
+router.put('/recognitions/:id/like', protect, toggleLike);
+
+// Insights Route
+router.get('/insights', protect, getEngagementInsights);
 
 module.exports = router;

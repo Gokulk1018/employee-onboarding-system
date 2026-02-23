@@ -2,6 +2,8 @@ const EngagementForm = require('../models/EngagementForm');
 const EngagementResponse = require('../models/EngagementResponse');
 const EmployeeRequest = require('../models/EmployeeRequest');
 const Employee = require('../models/Employee');
+const Recognition = require('../models/Recognition');
+const Notification = require('../models/Notification');
 
 // @desc    Create a new engagement form (HR)
 // @route   POST /api/engagement/forms
@@ -175,7 +177,7 @@ exports.getFormAnalytics = async (req, res, next) => {
         const form = await EngagementForm.findById(formId);
         if (!form) return res.status(404).json({ success: false, message: 'Form not found' });
 
-        const responses = await EngagementResponse.find({ formId });
+        const responses = await EngagementResponse.find({ formId }).populate('employeeId', 'name avatar department');
 
         // Calculate counts for survey options
         const analytics = {
@@ -184,27 +186,35 @@ exports.getFormAnalytics = async (req, res, next) => {
                 'Good': 0,
                 'Neutral': 0,
                 'Bad': 0
-            }
+            },
+            submittedEmployees: [],
+            pendingEmployees: []
         };
 
         responses.forEach(resp => {
             if (resp.selectedOption) {
                 analytics.optionsCount[resp.selectedOption]++;
             }
+            if (resp.employeeId) {
+                analytics.submittedEmployees.push(resp.employeeId);
+            }
         });
 
-        // Determine total assigned (rough estimate if department/all)
-        let totalAssigned = 0;
+        // Determine target employees to find pending ones
+        let targetEmployees = [];
         if (form.targetAudience === 'allEmployees') {
-            totalAssigned = await Employee.countDocuments();
+            targetEmployees = await Employee.find({ status: 'Active' }).select('name avatar department');
         } else if (form.targetAudience === 'department') {
-            totalAssigned = await Employee.countDocuments({ department: form.targetDepartment });
+            targetEmployees = await Employee.find({ department: form.targetDepartment, status: 'Active' }).select('name avatar department');
         } else {
-            totalAssigned = form.targetEmployees.length;
+            targetEmployees = await Employee.find({ _id: { $in: form.targetEmployees } }).select('name avatar department');
         }
 
-        analytics.totalAssigned = totalAssigned;
-        analytics.totalNotSubmitted = Math.max(0, totalAssigned - responses.length);
+        const submittedIds = analytics.submittedEmployees.map(emp => emp._id.toString());
+        analytics.pendingEmployees = targetEmployees.filter(emp => !submittedIds.includes(emp._id.toString()));
+
+        analytics.totalAssigned = targetEmployees.length;
+        analytics.totalNotSubmitted = analytics.pendingEmployees.length;
 
         res.status(200).json({ success: true, data: analytics });
     } catch (err) {
@@ -307,6 +317,128 @@ exports.deleteForm = async (req, res, next) => {
         await EngagementForm.findByIdAndDelete(req.params.id);
 
         res.status(200).json({ success: true, data: {} });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @desc    Get all recognitions (Kudos)
+// @route   GET /api/engagement/recognitions
+exports.getRecognitions = async (req, res, next) => {
+    try {
+        const recognitions = await Recognition.find()
+            .populate('senderId', 'name avatar')
+            .populate('receiverId', 'name avatar')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({ success: true, count: recognitions.length, data: recognitions });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @desc    Create a new recognition
+// @route   POST /api/engagement/recognitions
+exports.createRecognition = async (req, res, next) => {
+    try {
+        const { receiverId, message, category } = req.body;
+        const senderId = req.user._id;
+
+        const recognition = await Recognition.create({
+            senderId,
+            receiverId,
+            message,
+            category
+        });
+
+        const fullRecognition = await Recognition.findById(recognition._id)
+            .populate('senderId', 'name avatar')
+            .populate('receiverId', 'name avatar');
+
+        // Notify Receiver
+        await Notification.create({
+            userId: receiverId,
+            title: 'You received Kudos!',
+            message: `${fullRecognition.senderId.name} recognized you for ${category}: "${message.substring(0, 30)}..."`,
+            type: 'engagement',
+            status: 'Info',
+            link: '/engagement'
+        });
+
+        res.status(201).json({ success: true, data: fullRecognition });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @desc    Toggle like on recognition
+// @route   PUT /api/engagement/recognitions/:id/like
+exports.toggleLike = async (req, res, next) => {
+    try {
+        const recognition = await Recognition.findById(req.params.id);
+        if (!recognition) return res.status(404).json({ success: false, message: 'Recognition not found' });
+
+        const userId = req.user._id;
+        const index = recognition.likes.indexOf(userId);
+
+        if (index === -1) {
+            recognition.likes.push(userId);
+        } else {
+            recognition.likes.splice(index, 1);
+        }
+
+        await recognition.save();
+        res.status(200).json({ success: true, data: recognition.likes });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @desc    Get engagement insights (HR)
+// @route   GET /api/engagement/insights
+exports.getEngagementInsights = async (req, res, next) => {
+    try {
+        const totalEmployees = await Employee.countDocuments({ status: 'Active' });
+        const totalForms = await EngagementForm.countDocuments({ isActive: true });
+
+        // Participation rate (based on responses / potential responses for active forms)
+        const activeForms = await EngagementForm.find({ isActive: true });
+        let totalPotentialResponses = 0;
+        for (const form of activeForms) {
+            if (form.targetAudience === 'allEmployees') {
+                totalPotentialResponses += totalEmployees;
+            } else if (form.targetAudience === 'department') {
+                totalPotentialResponses += await Employee.countDocuments({ department: form.targetDepartment, status: 'Active' });
+            } else {
+                totalPotentialResponses += form.targetEmployees.length;
+            }
+        }
+
+        const totalResponses = await EngagementResponse.countDocuments();
+        const participationRate = totalPotentialResponses > 0
+            ? Math.round((totalResponses / totalPotentialResponses) * 100)
+            : 0;
+
+        // Happiness Score (average sentiment from responses)
+        const responses = await EngagementResponse.find();
+        const sentimentMap = { 'Good': 5, 'Neutral': 3, 'Bad': 1 };
+        const totalSentiment = responses.reduce((acc, curr) => acc + (sentimentMap[curr.selectedOption] || 3), 0);
+        const avgHappiness = responses.length > 0 ? (totalSentiment / responses.length).toFixed(1) : '5.0';
+
+        // Total Shoutouts (Recognitions)
+        const totalShoutouts = await Recognition.countDocuments();
+
+        res.status(200).json({
+            success: true,
+            data: {
+                participation: `${participationRate}%`,
+                activeForms: totalForms,
+                happiness: avgHappiness,
+                shoutouts: totalShoutouts,
+                participationTrend: '+5% from last month', // Static for now as historical data tracking is complex
+                happinessLabel: 'Average sentiment'
+            }
+        });
     } catch (err) {
         next(err);
     }

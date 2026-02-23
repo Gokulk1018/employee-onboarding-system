@@ -61,3 +61,25 @@ export const replyToResponse = async (id, hrReply) => {
     const response = await api.put(`/engagement/responses/${id}/reply`, { hrReply });
     return response.data;
 };
+
+// --- Recognition APIs ---
+export const getRecognitions = async () => {
+    const response = await api.get('/engagement/recognitions');
+    return response.data;
+};
+
+export const sendRecognition = async (recognitionData) => {
+    const response = await api.post('/engagement/recognitions', recognitionData);
+    return response.data;
+};
+
+export const toggleLike = async (id) => {
+    const response = await api.put(`/engagement/recognitions/${id}/like`);
+    return response.data;
+};
+
+// --- Insights API ---
+export const getEngagementInsights = async () => {
+    const response = await api.get('/engagement/insights');
+    return response.data;
+};

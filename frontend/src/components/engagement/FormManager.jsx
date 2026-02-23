@@ -3,7 +3,7 @@ import { Card, Table, Tag, Button, Space, Typography, theme, Badge, App, Tooltip
 import { PlusOutlined, BarChartOutlined, EyeOutlined, FormOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import { Popconfirm } from 'antd';
-import { getForms, getFormAnalytics, deleteForm } from '../../services/engagementService';
+import { getForms, getFormAnalytics, deleteForm, updateForm } from '../../services/engagementService';
 import FormCreator from './FormCreator';
 
 const { Title, Text } = Typography;
@@ -70,6 +70,18 @@ const FormManager = ({ onSelectForm }) => {
         }
     };
 
+    const handleToggleStatus = async (record) => {
+        try {
+            const res = await updateForm(record._id, { isActive: !record.isActive });
+            if (res.success) {
+                message.success(`Form status updated to ${!record.isActive ? 'Live' : 'Closed'}`);
+                fetchForms();
+            }
+        } catch (error) {
+            message.error('Failed to update form status');
+        }
+    };
+
     const columns = [
         {
             title: 'FORM DETAILS',
@@ -100,13 +112,31 @@ const FormManager = ({ onSelectForm }) => {
             dataIndex: 'isActive',
             key: 'isActive',
             align: 'center',
-            render: (active) => (
-                <Tag
-                    color={active ? 'success' : 'error'}
-                    style={{ borderRadius: 6, fontSize: 10, background: active ? `${token.colorSuccess}20` : `${token.colorError}20`, border: 'none' }}
+            render: (active, record) => (
+                <Popconfirm
+                    title={`${active ? 'Close' : 'Open'} this form?`}
+                    onConfirm={(e) => {
+                        e.stopPropagation();
+                        handleToggleStatus(record);
+                    }}
+                    onCancel={(e) => e.stopPropagation()}
+                    okText="Yes"
+                    cancelText="No"
                 >
-                    {active ? 'LIVE' : 'CLOSED'}
-                </Tag>
+                    <Tag
+                        color={active ? 'success' : 'error'}
+                        style={{
+                            borderRadius: 6,
+                            fontSize: 10,
+                            background: active ? `${token.colorSuccess}20` : `${token.colorError}20`,
+                            border: 'none',
+                            cursor: 'pointer'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {active ? 'LIVE' : 'CLOSED'}
+                    </Tag>
+                </Popconfirm>
             ),
         },
         {
@@ -213,7 +243,7 @@ const FormManager = ({ onSelectForm }) => {
                         Create New
                     </Button>
                 }
-                style={{ borderRadius: 24, overflow: 'hidden', border: 'none' }}
+                style={{ borderRadius: 24, overflow: 'hidden', border: 'none', height: 600 }}
                 styles={{ body: { padding: '0px' } }}
             >
                 <Table
