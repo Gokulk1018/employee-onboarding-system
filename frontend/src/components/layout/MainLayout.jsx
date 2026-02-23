@@ -26,6 +26,7 @@ import { useLocation, useNavigate, Outlet } from 'react-router-dom';
 import ThemeToggle from '../common/ThemeToggle';
 import AIAssistant from '../common/AIAssistant';
 import { motion } from 'framer-motion';
+import { useTheme } from '../../context/ThemeContext';
 
 import { useSettings } from '../../context/SettingsContext';
 
@@ -35,6 +36,7 @@ const MainLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { token } = theme.useToken();
+    const { isDarkMode } = useTheme();
     const [adminName, setAdminName] = useState(localStorage.getItem('name') || localStorage.getItem('username') || 'Admin User');
     const [adminAvatar, setAdminAvatar] = useState(localStorage.getItem('avatar') || '');
     const [notifications, setNotifications] = useState([]);
@@ -174,7 +176,7 @@ const MainLayout = () => {
         <div style={{ height: '100vh' }}>
             <ProLayout
                 layout="mix"
-                navTheme="light"
+                navTheme={isDarkMode ? 'dark' : 'light'}
                 colorPrimary={token.colorPrimary}
                 siderWidth={250}
                 fixSiderbar
@@ -271,7 +273,6 @@ const MainLayout = () => {
                 contentStyle={{
                     padding: 32,
                     minHeight: '100vh',
-                    background: token.colorBgLayout,
                 }}
                 headerContentRender={() => {
                     const currentPath = menuItems.find(m => m.path === location.pathname);

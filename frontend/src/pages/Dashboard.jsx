@@ -15,6 +15,7 @@ import TaskOverview from '../components/dashboard/TaskOverview';
 import TodayFocus from '../components/dashboard/TodayFocus';
 import MeetingModal from '../components/dashboard/MeetingModal';
 import LeaveManagementModal from '../components/dashboard/LeaveManagementModal';
+import LeaderboardModal from '../components/dashboard/LeaderboardModal';
 
 
 const containerVariants = {
@@ -43,6 +44,9 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
     const [isLeaveManagementModalOpen, setIsLeaveManagementModalOpen] = useState(false);
+    const [isLeaderboardModalOpen, setIsLeaderboardModalOpen] = useState(false);
+    const [leaderboardData, setLeaderboardData] = useState([]);
+    const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
     const [employees, setEmployees] = useState([]);
 
     const [loadingEmployees, setLoadingEmployees] = useState(false);
@@ -59,6 +63,21 @@ const Dashboard = () => {
             message.error('Failed to load dashboard metrics');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchLeaderboard = async () => {
+        try {
+            setLoadingLeaderboard(true);
+            const response = await axios.get('http://localhost:5000/api/dashboard/leaderboard');
+            if (response.data.success) {
+                setLeaderboardData(response.data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching leaderboard:', error);
+            message.error('Failed to load full leaderboard');
+        } finally {
+            setLoadingLeaderboard(false);
         }
     };
 
@@ -205,7 +224,14 @@ const Dashboard = () => {
                     </Col>
                     <Col xs={24} lg={6}>
                         <motion.div variants={itemVariants} style={{ height: '100%' }}>
-                            <TopPerformers data={data?.topPerformers} loading={loading} />
+                            <TopPerformers
+                                data={data?.topPerformers}
+                                loading={loading}
+                                onViewAll={() => {
+                                    setIsLeaderboardModalOpen(true);
+                                    fetchLeaderboard();
+                                }}
+                            />
                         </motion.div>
                     </Col>
                 </Row>
@@ -222,6 +248,13 @@ const Dashboard = () => {
                     open={isLeaveManagementModalOpen}
                     onClose={() => setIsLeaveManagementModalOpen(false)}
                     onRefresh={fetchStats}
+                />
+
+                <LeaderboardModal
+                    open={isLeaderboardModalOpen}
+                    onClose={() => setIsLeaderboardModalOpen(false)}
+                    data={leaderboardData}
+                    loading={loadingLeaderboard}
                 />
             </motion.div>
 

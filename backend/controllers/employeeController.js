@@ -177,10 +177,10 @@ exports.getDashboardStats = async (req, res, next) => {
         // 3. Fetch Latest Performance Review
         const latestReview = await PerformanceReview.findOne({ employeeId }).sort({ createdAt: -1 });
 
-        // 4. Fetch Recent Notifications
-        const notifications = await Notification.find({
-            $or: [{ userId: employeeId }, { isGlobal: true }]
-        }).sort({ createdAt: -1 }).limit(5);
+        // 4. Fetch Recent Notifications (Personal only)
+        const notifications = await Notification.find({ userId: employeeId })
+            .sort({ createdAt: -1 })
+            .limit(5);
 
         // 5. Fetch Internal Jobs (Openings)
         const internalJobs = await Job.find({ status: 'OPEN' }).sort({ createdAt: -1 }).limit(3);

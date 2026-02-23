@@ -1,4 +1,5 @@
 const Task = require('../models/Task');
+const Notification = require('../models/Notification');
 
 // @desc    Get all tasks
 // @route   GET /api/tasks
@@ -30,6 +31,22 @@ exports.getTasks = async (req, res, next) => {
 exports.createTask = async (req, res, next) => {
     try {
         const task = await Task.create(req.body);
+
+        // Notify Assignees
+        if (task.assignees && task.assignees.length > 0) {
+            const notificationPromises = task.assignees.map(userId =>
+                Notification.create({
+                    userId,
+                    title: 'New Task Assigned',
+                    message: `You have been assigned a new task: "${task.title}"`,
+                    type: 'task',
+                    status: 'Info',
+                    link: '/employee/tasks'
+                })
+            );
+            await Promise.all(notificationPromises);
+        }
+
         res.status(201).json({
             success: true,
             data: task

@@ -8,12 +8,9 @@ exports.getNotifications = async (req, res, next) => {
         let query = {};
 
         if (userId) {
-            query = {
-                $or: [
-                    { userId: userId },
-                    { isGlobal: true }
-                ]
-            };
+            query = { userId: userId };
+        } else if (req.user) {
+            query = { userId: req.user._id };
         }
 
         const notifications = await Notification.find(query).sort({ createdAt: -1 });
@@ -49,8 +46,14 @@ exports.markAsRead = async (req, res, next) => {
 // @route   PUT /api/notifications/read-all
 exports.markAllAsRead = async (req, res, next) => {
     try {
-        await Notification.updateMany({ isRead: false }, { isRead: true });
-        res.status(200).json({ success: true, message: 'All notifications marked as read' });
+        const userId = req.headers['x-user-id'] || (req.user && req.user._id);
+
+        const query = userId
+            ? { userId, isRead: false }
+            : { isGlobal: true, isRead: false };
+
+        await Notification.updateMany(query, { isRead: true });
+        res.status(200).json({ success: true, message: 'Your notifications marked as read' });
     } catch (err) {
         next(err);
     }

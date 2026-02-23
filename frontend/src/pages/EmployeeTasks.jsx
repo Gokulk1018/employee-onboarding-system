@@ -95,7 +95,15 @@ const EmployeeTasks = () => {
                 </Space>
                 <Badge count={tasks.length} color={token.colorPrimary} />
             </div>
-            <div style={{ minHeight: 400, padding: 8, background: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', borderRadius: 20 }}>
+            <div style={{
+                height: 'calc(100vh - 320px)',
+                minHeight: 450,
+                padding: 12,
+                background: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                borderRadius: 20,
+                overflowY: 'auto',
+                scrollbarWidth: 'none'
+            }}>
                 {tasks.length > 0 ? (
                     tasks.map(task => <TaskCard key={task._id} task={task} />)
                 ) : (

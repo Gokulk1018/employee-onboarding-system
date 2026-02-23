@@ -1,8 +1,8 @@
 import React from 'react';
-import { Table, Avatar, Tag, Space, Button, theme, Tooltip, Popconfirm } from 'antd';
+import { Table, Avatar, Tag, Space, Button, theme, Tooltip, Popconfirm, Select } from 'antd';
 import { EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 
-const EmployeeTable = ({ data, loading, onDelete, onEdit, onView }) => {
+const EmployeeTable = ({ data, loading, onDelete, onEdit, onView, onStatusChange }) => {
     const { token } = theme.useToken();
 
     const columns = [
@@ -36,45 +36,68 @@ const EmployeeTable = ({ data, loading, onDelete, onEdit, onView }) => {
             title: 'Status',
             dataIndex: 'status',
             key: 'status',
-            render: (status) => {
-                let color = 'default';
-                let bg = 'rgba(0,0,0,0.05)';
-                let border = 'transparent';
+            render: (status, record) => {
+                const getStatusStyle = (s) => {
+                    let color = 'default';
+                    let bg = 'rgba(0,0,0,0.05)';
+                    let border = 'transparent';
 
-                if (status === 'Active') {
-                    color = token.colorSuccess;
-                    bg = `${token.colorSuccess}15`;
-                    border = `${token.colorSuccess}30`;
-                }
-                if (status === 'On Leave') {
-                    color = token.colorWarning;
-                    bg = `${token.colorWarning}15`;
-                    border = `${token.colorWarning}30`;
-                }
-                if (status === 'Inactive') {
-                    color = token.colorError;
-                    bg = `${token.colorError}15`;
-                    border = `${token.colorError}30`;
-                }
-                if (status === 'Probation') {
-                    color = token.colorInfo;
-                    bg = `${token.colorInfo}15`;
-                    border = `${token.colorInfo}30`;
-                }
+                    if (s === 'Active') {
+                        color = token.colorSuccess;
+                        bg = `${token.colorSuccess}15`;
+                        border = `${token.colorSuccess}30`;
+                    }
+                    else if (s === 'On Leave') {
+                        color = token.colorWarning;
+                        bg = `${token.colorWarning}15`;
+                        border = `${token.colorWarning}30`;
+                    }
+                    else if (s === 'Inactive') {
+                        color = token.colorError;
+                        bg = `${token.colorError}15`;
+                        border = `${token.colorError}30`;
+                    }
+                    else if (s === 'Probation') {
+                        color = token.colorInfo;
+                        bg = `${token.colorInfo}15`;
+                        border = `${token.colorInfo}30`;
+                    }
+                    return { color, bg, border };
+                };
+
+                const { color, bg, border } = getStatusStyle(status);
 
                 return (
-                    <Tag
-                        style={{
-                            color,
-                            background: bg,
-                            borderColor: border,
-                            borderRadius: 12,
-                            padding: '0 10px',
-                            fontWeight: 500
-                        }}
+                    <Select
+                        defaultValue={status}
+                        variant="borderless"
+                        suffixIcon={null}
+                        onChange={(value) => onStatusChange(record._id, value)}
+                        style={{ width: 100 }}
+                        dropdownStyle={{ borderRadius: 12, padding: 4 }}
+                        popupMatchSelectWidth={false}
                     >
-                        {status}
-                    </Tag>
+                        {['Active', 'On Leave', 'Inactive', 'Probation'].map(s => {
+                            const style = getStatusStyle(s);
+                            return (
+                                <Select.Option key={s} value={s}>
+                                    <Tag
+                                        style={{
+                                            color: style.color,
+                                            background: style.bg,
+                                            borderColor: style.border,
+                                            borderRadius: 12,
+                                            padding: '0 10px',
+                                            fontWeight: 500,
+                                            margin: 0
+                                        }}
+                                    >
+                                        {s}
+                                    </Tag>
+                                </Select.Option>
+                            );
+                        })}
+                    </Select>
                 );
             },
         },

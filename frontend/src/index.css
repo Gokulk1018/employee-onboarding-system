@@ -23,18 +23,6 @@ body {
     transition: background 0.3s ease, color 0.3s ease;
 }
 
-html.light,
-body.light {
-    background-color: #f8fafc;
-    color: #0f172a;
-}
-
-html.dark,
-body.dark {
-    background-color: #020617;
-    color: #f8fafc;
-}
-
 body {
     overflow-x: hidden;
     background-color: var(--ant-color-bg-layout);

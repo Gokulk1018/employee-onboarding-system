@@ -89,7 +89,7 @@ const Tasks = () => {
     // Calculate statistics
     const allTasks = [...tasks.todo, ...tasks.inProgress, ...tasks.done];
     const totalTasks = allTasks.length;
-    const overdueTasks = allTasks.filter(t => t.isOverdue || (t.dueDate && new Date(t.dueDate) < new Date())).length;
+    const overdueTasks = allTasks.filter(t => t.status !== 'done' && t.dueDate && new Date(t.dueDate) < new Date()).length;
     const dueTodayTasks = allTasks.filter(t => t.dueDate && new Date(t.dueDate).toDateString() === new Date().toDateString()).length;
     const completedTasks = tasks.done.length;
 
@@ -113,9 +113,9 @@ const Tasks = () => {
     };
 
     const filteredTasks = {
-        todo: filterTasks(tasks.todo),
-        inProgress: filterTasks(tasks.inProgress),
-        done: filterTasks(tasks.done)
+        todo: filterTasks(tasks.todo).map(t => ({ ...t, isOverdue: t.dueDate && new Date(t.dueDate) < new Date() })),
+        inProgress: filterTasks(tasks.inProgress).map(t => ({ ...t, isOverdue: t.dueDate && new Date(t.dueDate) < new Date() })),
+        done: filterTasks(tasks.done).map(t => ({ ...t, isOverdue: false })) // Never overdue if done
     };
 
     const handleTaskMove = async (taskId, sourceColumn, destColumn, sourceIndex, destIndex) => {

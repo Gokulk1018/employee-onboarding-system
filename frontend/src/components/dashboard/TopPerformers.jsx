@@ -27,13 +27,19 @@ const data = [
     },
 ];
 
-const TopPerformers = ({ data = [], loading }) => {
+const TopPerformers = ({ data = [], loading, onViewAll }) => {
     const { token } = theme.useToken();
     return (
         <div className="glass-card" style={{ height: '100%', padding: 24, borderColor: token.colorBorder }}>
             <div className="flex-between" style={{ marginBottom: 24 }}>
                 <Title level={4} style={{ margin: 0, color: token.colorText }}>Top Performers</Title>
-                <Button type="text" style={{ color: token.colorPrimary }}>View All <ArrowRightOutlined /></Button>
+                <Button
+                    type="text"
+                    style={{ color: token.colorPrimary }}
+                    onClick={onViewAll}
+                >
+                    View All <ArrowRightOutlined />
+                </Button>
             </div>
             <div style={{
                 maxHeight: 600,

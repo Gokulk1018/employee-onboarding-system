@@ -17,6 +17,7 @@ export const themeConfig = {
         Layout: {
             headerBg: 'transparent',
             bodyBg: 'transparent',
+            siderBg: 'transparent',
         },
         Card: {
             paddingLG: 24,

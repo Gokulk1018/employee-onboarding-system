@@ -71,7 +71,7 @@ const EmployeePortalLayout = () => {
                     }
                 }}
                 headerStyle={{
-                    background: isDarkMode ? 'rgba(15, 23, 42, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+                    background: 'var(--glass-bg)',
                     backdropFilter: 'blur(30px) saturate(180%)',
                     WebkitBackdropFilter: 'blur(30px) saturate(180%)',
                     borderBottom: `1px solid ${token.colorBorderSecondary}`,

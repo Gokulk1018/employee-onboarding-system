@@ -13,6 +13,70 @@ const mongoose = require('mongoose');
 
 const sendEmail = require('../utils/emailHelper');
 
+// @desc    Get full leaderboard (all performers)
+// @route   GET /api/dashboard/leaderboard
+exports.getLeaderboard = async (req, res) => {
+    try {
+        const leaderboard = await Task.aggregate([
+            { $match: { status: 'done' } },
+            { $unwind: "$assignees" },
+            {
+                $addFields: {
+                    effectivePoints: {
+                        $ifNull: [
+                            "$points",
+                            {
+                                $switch: {
+                                    branches: [
+                                        { case: { $eq: ["$priority", "High"] }, then: 10 },
+                                        { case: { $eq: ["$priority", "Medium"] }, then: 7 },
+                                        { case: { $eq: ["$priority", "Low"] }, then: 5 }
+                                    ],
+                                    default: 7
+                                }
+                            }
+                        ]
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: "$assignees",
+                    totalPoints: { $sum: "$effectivePoints" }
+                }
+            },
+            { $sort: { totalPoints: -1 } },
+            {
+                $lookup: {
+                    from: "employees",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "employee"
+                }
+            },
+            { $unwind: "$employee" },
+            {
+                $project: {
+                    name: "$employee.name",
+                    role: "$employee.role",
+                    avatar: "$employee.avatar",
+                    totalPoints: 1
+                }
+            }
+        ]);
+
+        res.status(200).json({
+            success: true,
+            data: leaderboard
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Server Error'
+        });
+    }
+};
+
 // @desc    Get dashboard statistics
 // @route   GET /api/dashboard/stats
 exports.getDashboardStats = async (req, res) => {

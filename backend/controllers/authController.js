@@ -98,6 +98,7 @@ exports.login = async (req, res, next) => {
                     userId: user ? user._id : '507f1f77bcf86cd799439011',
                     username: user ? user.username : 'gokul',
                     name: user ? user.name : 'Gokul Admin',
+                    avatar: user ? user.avatar : '',
                     role: 'hr'
                 }
             });
@@ -110,6 +111,7 @@ exports.login = async (req, res, next) => {
                     userId: user ? user._id : '507f1f77bcf86cd799439011',
                     username: user ? user.username : 'gokul',
                     name: user ? user.name : 'Gokul Admin',
+                    avatar: user ? user.avatar : '',
                     role: 'hr'
                 }
             });
@@ -129,6 +131,7 @@ exports.login = async (req, res, next) => {
                         userId: onboardingUser._id,
                         username: onboardingUser.username,
                         name: onboardingUser.candidateName,
+                        avatar: '', // Candidates don't usually have avatars yet
                         offerId: onboardingUser.offerId,
                         status: onboardingUser.status,
                         role: 'onboarding'
@@ -195,6 +198,7 @@ exports.login = async (req, res, next) => {
                             userId: employee._id,
                             username: employee.username || employee.name,
                             name: employee.name,
+                            avatar: employee.avatar || '',
                             role: 'employee'
                         }
                     });

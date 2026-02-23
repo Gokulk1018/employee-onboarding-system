@@ -19,7 +19,7 @@ const { Text } = Typography;
 const TaskCard = ({ task, onDetail, onEdit, onDelete, onPin, onMoveLeft, onMoveRight, showMoveLeft, showMoveRight }) => {
     const { token } = theme.useToken();
 
-    const isOverdue = task.isOverdue;
+    const isOverdue = task.status !== 'done' && task.isOverdue;
 
     const getPriorityColor = (priority) => {
         switch (priority) {
@@ -204,7 +204,14 @@ const Column = ({ title, tasks, columnId, color, onDetail, onEdit, onDelete, onP
                 />
             </div>
 
-            <div style={{ minHeight: 400 }}>
+            <div style={{
+                height: 'calc(100vh - 350px)',
+                minHeight: 500,
+                overflowY: 'auto',
+                paddingRight: 4,
+                scrollbarWidth: 'thin',
+                msOverflowStyle: 'none'
+            }}>
                 {tasks.map((task) => (
                     <TaskCard
                         key={task._id}

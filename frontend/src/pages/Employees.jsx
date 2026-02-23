@@ -73,6 +73,19 @@ const Employees = () => {
         setIsViewModalOpen(true);
     };
 
+    const handleStatusChange = async (id, newStatus) => {
+        try {
+            const response = await axios.put(`http://localhost:5000/api/employees/${id}`, { status: newStatus });
+            if (response.data.success) {
+                msg.success('Status updated successfully');
+                fetchEmployees();
+            }
+        } catch (error) {
+            console.error('Error updating status:', error);
+            msg.error('Failed to update status');
+        }
+    };
+
     const handleDelete = async (id) => {
         try {
             const response = await axios.delete(`http://localhost:5000/api/employees/${id}`);
@@ -203,6 +216,7 @@ const Employees = () => {
                                         onDelete={handleDelete}
                                         onEdit={handleEdit}
                                         onView={handleView}
+                                        onStatusChange={handleStatusChange}
                                     />
                                 ) : (
                                     <EmployeeCardList data={filteredData} />
