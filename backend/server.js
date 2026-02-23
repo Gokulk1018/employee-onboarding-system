@@ -20,24 +20,18 @@ const settingsRoutes = require('./routes/settingsRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const leaveRoutes = require('./routes/leaveRoutes');
 
-
-console.log('All modules imported');
-
 const { errorHandler } = require('./middleware/errorMiddleware');
 
 dotenv.config();
 
 const app = express();
 
-console.log('Starting server...');
 // Middleware
 app.use(express.json());
 app.use(cors());
 app.use('/uploads', express.static('public/uploads'));
-console.log('Middleware initialized');
 
 // Mount Routes
-console.log('Mounting routes...');
 app.use('/api/offers', offerRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/documents', documentRoutes);
@@ -53,8 +47,6 @@ app.use('/api/engagement', engagementRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/leaves', leaveRoutes);
-
-console.log('Routes mounted');
 
 // Move listen to BEFORE connectDB to avoid hanging the entire process if DB is slow
 const PORT = process.env.PORT || 5000;

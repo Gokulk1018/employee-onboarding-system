@@ -36,6 +36,10 @@ const hrUserSchema = new mongoose.Schema({
     },
     lastFailedLogin: {
         type: Date
+    },
+    avatar: {
+        type: String,
+        default: ''
     }
 }, {
     timestamps: true

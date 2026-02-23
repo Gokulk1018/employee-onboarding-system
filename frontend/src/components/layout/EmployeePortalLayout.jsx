@@ -12,6 +12,17 @@ const EmployeePortalLayout = () => {
     const location = useLocation();
     const { token } = theme.useToken();
     const { isDarkMode } = useTheme();
+    const [empName, setEmpName] = React.useState(localStorage.getItem('name') || 'Employee');
+    const [empAvatar, setEmpAvatar] = React.useState(localStorage.getItem('avatar') || '');
+
+    React.useEffect(() => {
+        const handleStorageChange = () => {
+            setEmpName(localStorage.getItem('name') || 'Employee');
+            setEmpAvatar(localStorage.getItem('avatar') || '');
+        };
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, []);
 
     const menuItems = [
         { path: '/employee/dashboard', name: 'Dashboard', icon: <DashboardOutlined /> },
@@ -83,8 +94,8 @@ const EmployeePortalLayout = () => {
                     </motion.div>
                 )}
                 avatarProps={{
-                    src: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
-                    title: localStorage.getItem('name') || 'Employee',
+                    src: empAvatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
+                    title: empName,
                     render: (props, dom) => (
                         <Dropdown menu={{
                             items: [

@@ -33,6 +33,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import OnboardingForm from './pages/OnboardingForm';
 import ApplyJob from './pages/ApplyJob';
 import EmployeePortalLayout from './components/layout/EmployeePortalLayout';
+import AdminProfile from './pages/AdminProfile';
 
 const RootRedirect = () => {
     const hasSeenSplash = sessionStorage.getItem('hasSeenSplash') === 'true';
@@ -100,6 +101,7 @@ const AppContent = () => {
                             <Route path="tasks" element={<Tasks />} />
                             <Route path="payroll" element={<Payroll />} />
                             <Route path="settings" element={<Settings />} />
+                            <Route path="profile" element={<AdminProfile />} />
                         </Route>
 
                         {/* Onboarding Flow */}

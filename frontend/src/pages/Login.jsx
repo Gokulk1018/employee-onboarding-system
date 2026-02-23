@@ -61,6 +61,7 @@ const LoginPage = () => {
                 localStorage.setItem('userId', data.userId);
                 localStorage.setItem('username', data.username);
                 localStorage.setItem('name', data.name);
+                localStorage.setItem('avatar', data.avatar || '');
                 localStorage.setItem('token', authToken);
 
                 // Save user object for api.js consistency

@@ -11,12 +11,15 @@ import {
     CalendarOutlined
 } from '@ant-design/icons';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import api from '../services/api';
 import dayjs from 'dayjs';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeftOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
 const EmployeeProfile = () => {
+    const navigate = useNavigate();
     const { token } = theme.useToken();
     const { message: msg } = App.useApp();
     const [employee, setEmployee] = useState(null);
@@ -27,11 +30,15 @@ const EmployeeProfile = () => {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const userId = localStorage.getItem('userId');
-                const response = await axios.get(`http://localhost:5000/api/employees/${userId}`);
+                const response = await api.get('/employees/me'); // Using /me ensures we get own profile
                 if (response.data.success) {
                     setEmployee(response.data.data);
                     form.setFieldsValue(response.data.data);
+
+                    // Sync with localStorage for header consistency
+                    localStorage.setItem('name', response.data.data.name);
+                    localStorage.setItem('avatar', response.data.data.avatar || '');
+                    window.dispatchEvent(new Event('storage'));
                 }
             } catch (error) {
                 msg.error('Failed to fetch profile');
@@ -44,15 +51,47 @@ const EmployeeProfile = () => {
 
     const handleUpdate = async (values) => {
         try {
-            const userId = localStorage.getItem('userId');
-            const response = await axios.put(`http://localhost:5000/api/employees/${userId}`, values);
+            const response = await api.put('/employees/profile', values);
             if (response.data.success) {
                 setEmployee(response.data.data);
                 setIsEditing(false);
                 msg.success('Profile updated successfully');
+
+                // Sync with local storage and header
+                localStorage.setItem('name', response.data.data.name);
+                localStorage.setItem('avatar', response.data.data.avatar || '');
+                window.dispatchEvent(new Event('storage'));
             }
         } catch (error) {
             msg.error('Failed to update profile');
+        }
+    };
+
+    const handleFileUpload = async (info) => {
+        const { status, originFileObj } = info.file;
+        if (status === 'uploading') return;
+        if (status === 'done' || originFileObj) {
+            const formData = new FormData();
+            formData.append('avatar', originFileObj);
+            try {
+                setLoading(true);
+                const response = await api.post('/employees/upload-avatar', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                if (response.data.success) {
+                    const newUrl = response.data.url;
+                    setEmployee(prev => ({ ...prev, avatar: newUrl }));
+                    form.setFieldsValue({ avatar: newUrl });
+                    msg.success('Avatar uploaded successfully');
+
+                    localStorage.setItem('avatar', newUrl);
+                    window.dispatchEvent(new Event('storage'));
+                }
+            } catch (error) {
+                msg.error('Avatar upload failed');
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
@@ -64,6 +103,15 @@ const EmployeeProfile = () => {
             animate={{ opacity: 1, y: 0 }}
             style={{ padding: '0px' }}
         >
+            <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 16 }}>
+                <Button
+                    icon={<ArrowLeftOutlined />}
+                    onClick={() => navigate(-1)}
+                    className="glass-button"
+                    style={{ border: 'none' }}
+                />
+                <Title level={2} style={{ margin: 0 }}>My Profile</Title>
+            </div>
             <Row gutter={[24, 24]}>
                 <Col xs={24} lg={8}>
                     <Card
@@ -78,7 +126,11 @@ const EmployeeProfile = () => {
                                 style={{ border: `4px solid ${token.colorBgContainer}`, boxShadow: '0 8px 16px rgba(0,0,0,0.1)' }}
                             />
                             <div style={{ position: 'absolute', bottom: 10, right: 10 }}>
-                                <Upload showUploadList={false}>
+                                <Upload
+                                    showUploadList={false}
+                                    customRequest={({ file, onSuccess }) => setTimeout(() => onSuccess("ok"), 0)}
+                                    onChange={handleFileUpload}
+                                >
                                     <Button shape="circle" icon={<CameraOutlined />} size="medium" />
                                 </Upload>
                             </div>

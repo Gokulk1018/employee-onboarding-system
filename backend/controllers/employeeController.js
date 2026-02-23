@@ -268,3 +268,66 @@ exports.getDashboardStats = async (req, res, next) => {
         next(err);
     }
 };
+// @desc    Get current employee profile
+// @route   GET /api/employees/me
+exports.getEmployeeProfile = async (req, res) => {
+    try {
+        const employee = await Employee.findById(req.user._id);
+        if (!employee) {
+            return res.status(404).json({ success: false, message: 'Employee not found' });
+        }
+        res.status(200).json({ success: true, data: employee });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server Error' });
+    }
+};
+
+// @desc    Update employee profile
+// @route   PUT /api/employees/profile
+exports.updateEmployeeProfile = async (req, res) => {
+    try {
+        const { name } = req.body;
+        const employee = await Employee.findByIdAndUpdate(
+            req.user._id,
+            { name },
+            { new: true, runValidators: true }
+        );
+
+        if (!employee) {
+            return res.status(404).json({ success: false, message: 'Employee not found' });
+        }
+
+        res.status(200).json({ success: true, data: employee });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Upload employee avatar
+// @route   POST /api/employees/upload-avatar
+exports.uploadEmployeeAvatar = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: 'Please upload a file' });
+        }
+
+        const avatarUrl = `/uploads/${req.file.filename}`;
+        const employee = await Employee.findByIdAndUpdate(
+            req.user._id,
+            { avatar: avatarUrl },
+            { new: true }
+        );
+
+        if (!employee) {
+            return res.status(404).json({ success: false, message: 'Employee not found' });
+        }
+
+        res.status(200).json({
+            success: true,
+            url: avatarUrl,
+            data: employee
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server Error' });
+    }
+};

@@ -35,7 +35,8 @@ const MainLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { token } = theme.useToken();
-    const [pathname, setPathname] = useState(location.pathname);
+    const [adminName, setAdminName] = useState(localStorage.getItem('name') || localStorage.getItem('username') || 'Admin User');
+    const [adminAvatar, setAdminAvatar] = useState(localStorage.getItem('avatar') || '');
     const [notifications, setNotifications] = useState([]);
     const [loadingNotifications, setLoadingNotifications] = useState(false);
 
@@ -56,7 +57,17 @@ const MainLayout = () => {
     useEffect(() => {
         fetchNotifications();
         const interval = setInterval(fetchNotifications, 30000); // Poll every 30s
-        return () => clearInterval(interval);
+
+        const handleStorageChange = () => {
+            setAdminName(localStorage.getItem('name') || localStorage.getItem('username') || 'Admin User');
+            setAdminAvatar(localStorage.getItem('avatar') || '');
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener('storage', handleStorageChange);
+        };
     }, []);
 
     const markAllAsRead = async () => {
@@ -146,14 +157,15 @@ const MainLayout = () => {
 
     const profileMenu = {
         items: [
-            { key: 'profile', label: 'Profile' },
-            { key: 'settings', label: 'Settings' },
+            { key: 'profile', label: 'Profile', icon: <UserOutlined /> },
             { type: 'divider' },
             { key: 'logout', label: 'Logout', icon: <LogoutOutlined />, danger: true },
         ],
         onClick: ({ key }) => {
             if (key === 'logout') {
                 handleLogout();
+            } else if (key === 'profile') {
+                navigate('/profile');
             }
         }
     };
@@ -183,7 +195,6 @@ const MainLayout = () => {
                 menuItemRender={(item, dom) => (
                     <div
                         onClick={() => {
-                            setPathname(item.path || '/');
                             navigate(item.path || '/');
                         }}
                         style={{
@@ -200,9 +211,9 @@ const MainLayout = () => {
                     </div>
                 )}
                 avatarProps={{
-                    src: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
+                    src: adminAvatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
                     size: 'default',
-                    title: <span style={{ color: token.colorText, fontWeight: 600 }}>Admin User</span>,
+                    title: <span style={{ color: token.colorText, fontWeight: 600 }}>{adminName}</span>,
                     render: (props, dom) => (
                         <Dropdown menu={profileMenu}>
                             <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, padding: '4px 8px', borderRadius: 8, background: token.colorBgLayout }}>

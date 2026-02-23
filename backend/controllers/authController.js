@@ -255,8 +255,55 @@ exports.changePassword = async (req, res, next) => {
     }
 };
 
+// @desc    Get HR Profile
+// @route   GET /api/auth/me
+exports.getHRProfile = async (req, res, next) => {
+    try {
+        const user = await HRUser.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        res.status(200).json({ success: true, data: user });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @desc    Update HR Profile
+// @route   PUT /api/auth/profile
+exports.updateHRProfile = async (req, res, next) => {
+    try {
+        const { name, email, avatar } = req.body;
+        const user = await HRUser.findByIdAndUpdate(
+            req.user._id,
+            { name, email, avatar },
+            { new: true, runValidators: true }
+        );
+        res.status(200).json({ success: true, data: user });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @desc    Upload HR Avatar
+// @route   POST /api/auth/upload-avatar
+exports.uploadHRAvatar = async (req, res, next) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: 'Please upload a file' });
+        }
+        const fileUrl = `http://localhost:5000/uploads/${req.file.filename}`;
+        res.status(200).json({ success: true, url: fileUrl });
+    } catch (err) {
+        next(err);
+    }
+};
+
 // Exports
 module.exports = {
     login: exports.login,
-    changePassword: exports.changePassword
+    changePassword: exports.changePassword,
+    getHRProfile: exports.getHRProfile,
+    updateHRProfile: exports.updateHRProfile,
+    uploadHRAvatar: exports.uploadHRAvatar
 };
