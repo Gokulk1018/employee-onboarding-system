@@ -45,6 +45,21 @@ export const SettingsProvider = ({ children }) => {
         sessionTimeout: '30'
     };
 
+    // Update favicon dynamically when branding logo changes
+    useEffect(() => {
+        if (branding.logo) {
+            const link = document.querySelector("link[rel*='icon']");
+            if (link) {
+                link.href = branding.logo;
+            } else {
+                const newLink = document.createElement('link');
+                newLink.rel = 'icon';
+                newLink.href = branding.logo;
+                document.getElementsByTagName('head')[0].appendChild(newLink);
+            }
+        }
+    }, [branding.logo]);
+
     return (
         <SettingsContext.Provider value={{ settings, branding, security, loading, refreshSettings: fetchSettings }}>
             {children}
