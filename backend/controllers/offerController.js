@@ -134,7 +134,7 @@ exports.acceptOffer = async (req, res) => {
         offer.status = 'Accepted';
         await offer.save();
 
-        // Create notification for HR
+        // Create notification for HR (Global)
         await Notification.create({
             title: 'Offer Accepted',
             candidateName: offer.candidateName,
@@ -168,14 +168,15 @@ exports.rejectOffer = async (req, res) => {
         offer.status = 'Rejected';
         await offer.save();
 
-        // Create notification for HR
+        // Create notification for HR (Global)
         await Notification.create({
             title: 'Offer Rejected',
             candidateName: offer.candidateName,
             candidateEmail: offer.candidateEmail,
             status: 'Rejected',
             message: `${offer.candidateName} has REJECTED the offer.`,
-            isGlobal: true
+            isGlobal: true,
+            link: '/recruitment'
         });
 
 

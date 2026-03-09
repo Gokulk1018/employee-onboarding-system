@@ -114,10 +114,13 @@ const FormCreator = ({ visible, onCancel, onSuccess, initialData }) => {
                 {audienceType === 'department' && (
                     <Form.Item name="targetDepartment" label="Select Department" rules={[{ required: true }]}>
                         <Select placeholder="Select a department">
-                            <Option value="Product">Product</Option>
-                            <Option value="Engineering">Engineering</Option>
+                            <Option value="Frontend Developer">Frontend Developer</Option>
+                            <Option value="Backend Developer">Backend Developer</Option>
+                            <Option value="Fullstack Developer">Fullstack Developer</Option>
+                            <Option value="Tester">Tester</Option>
+                            <Option value="DevOps">DevOps</Option>
+                            <Option value="UI/UX">UI/UX</Option>
                             <Option value="HR">HR</Option>
-                            <Option value="Marketing">Marketing</Option>
                         </Select>
                     </Form.Item>
                 )}

@@ -245,7 +245,7 @@ const LoginPage = () => {
                                         transition: 'all 0.3s'
                                     }}
                                 >
-                                    HR ADMIN
+                                    HR
                                 </div>
                                 <div
                                     onClick={() => setActiveRole('employee')}

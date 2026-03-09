@@ -38,8 +38,8 @@ const seedDashboardData = async () => {
         const currentYear = new Date().getFullYear();
 
         const staggeredEmployees = [];
-        const departments = ['Engineering', 'HR', 'Design', 'Sales', 'Marketing'];
-        const roles = ['Software Engineer', 'HR Associate', 'Product Designer', 'Sales Executive', 'Marketing Specialist'];
+        const departments = ['Frontend Developer', 'Backend Developer', 'Fullstack Developer', 'HR', 'UI/UX', 'Tester', 'DevOps'];
+        const roles = ['Software Engineer', 'HR Associate', 'Product Designer', 'Frontend Lead', 'Backend Engineer', 'QA Engineer', 'DevOps Specialist'];
 
         for (let i = 0; i < monthsToSeed; i++) {
             const seedDate = new Date(currentYear, currentMonth - i, 10);
@@ -77,11 +77,11 @@ const seedDashboardData = async () => {
         // 3. Seed Tasks with difficulty and points
         await Task.deleteMany();
         const tasks = await Task.insertMany([
-            { title: 'Fix Header Bug', description: 'Header is overlapping', priority: 'High', status: 'done', difficulty: 'easy', points: 5, assignees: [employees[0]._id], department: 'Engineering', dueDate: new Date() },
-            { title: 'Implement Dashboard', description: 'Data-driven dashboard', priority: 'High', status: 'done', difficulty: 'hard', points: 10, assignees: [employees[0]._id], department: 'Engineering', dueDate: new Date() },
+            { title: 'Fix Header Bug', description: 'Header is overlapping', priority: 'High', status: 'done', difficulty: 'easy', points: 5, assignees: [employees[0]._id], department: 'Fullstack Developer', dueDate: new Date() },
+            { title: 'Implement Dashboard', description: 'Data-driven dashboard', priority: 'High', status: 'done', difficulty: 'hard', points: 10, assignees: [employees[0]._id], department: 'Fullstack Developer', dueDate: new Date() },
             { title: 'Update HR Policies', description: 'Policy updates', priority: 'Medium', status: 'done', difficulty: 'medium', points: 7, assignees: [employees[1]._id], department: 'HR', dueDate: new Date() },
-            { title: 'Design Layout', description: 'New landing page', priority: 'High', status: 'inProgress', difficulty: 'hard', points: 10, assignees: [employees[2]._id], department: 'Design', dueDate: new Date() },
-            { title: 'Review Code', description: 'PR #123', priority: 'Low', status: 'todo', difficulty: 'easy', points: 5, assignees: [employees[3]._id], department: 'Engineering', dueDate: new Date(today.getTime() - 86400000) } // Overdue
+            { title: 'Design Layout', description: 'New landing page', priority: 'High', status: 'inProgress', difficulty: 'hard', points: 10, assignees: [employees[2]._id], department: 'UI/UX', dueDate: new Date() },
+            { title: 'Review Code', description: 'PR #123', priority: 'Low', status: 'todo', difficulty: 'easy', points: 5, assignees: [employees[3]._id], department: 'Fullstack Developer', dueDate: new Date(today.getTime() - 86400000) } // Overdue
         ]);
         console.log('Tasks seeded');
 
@@ -96,8 +96,8 @@ const seedDashboardData = async () => {
         // 5. Seed Offers (Onboardings)
         await Offer.deleteMany();
         await Offer.insertMany([
-            { candidateName: 'David Miller', candidateEmail: 'david@example.com', department: 'Engineering', role: 'Backend Dev', salary: 80000, joiningDate: today, status: 'Accepted', token: 'token1' },
-            { candidateName: 'Sarah Connor', candidateEmail: 'sarah@example.com', department: 'Sales', role: 'Sales Lead', salary: 90000, joiningDate: new Date(today.getTime() + 86400000), status: 'Sent', token: 'token2' }
+            { candidateName: 'David Miller', candidateEmail: 'david@example.com', department: 'Fullstack Developer', role: 'Backend Dev', salary: 80000, joiningDate: today, status: 'Accepted', token: 'token1' },
+            { candidateName: 'Sarah Connor', candidateEmail: 'sarah@example.com', department: 'Backend Developer', role: 'Sales Lead', salary: 90000, joiningDate: new Date(today.getTime() + 86400000), status: 'Sent', token: 'token2' }
         ]);
         console.log('Offers seeded');
 
@@ -119,7 +119,7 @@ const seedDashboardData = async () => {
         // Need a Job first
         let job = await Job.findOne();
         if (!job) {
-            job = await Job.create({ title: 'Fullstack Developer', department: 'Engineering', type: 'Full-time', level: 'Senior', location: 'Remote', salary: '120k', deadline: new Date(), description: 'Expert dev needed' });
+            job = await Job.create({ title: 'Fullstack Developer', department: 'Fullstack Developer', type: 'Full-time', level: 'Senior', location: 'Remote', salary: '120k', deadline: new Date(), description: 'Expert dev needed' });
         }
         await Candidate.deleteMany();
         await Candidate.insertMany([

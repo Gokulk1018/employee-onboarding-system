@@ -76,7 +76,7 @@ const EditJobModal = ({ open, onClose, job, onSuccess }) => {
                         label="Department"
                         rules={[{ required: true, message: 'Please enter department' }]}
                     >
-                        <Input placeholder="e.g. Engineering" />
+                        <Input placeholder="e.g. Developer" />
                     </Form.Item>
 
                     <Form.Item

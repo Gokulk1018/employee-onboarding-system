@@ -46,16 +46,6 @@ exports.applyLeave = async (req, res, next) => {
             status: 'Pending'
         });
 
-        // Create notification for HR
-        await Notification.create({
-            title: 'New Leave Application',
-            message: `${employee.name} has applied for ${leaveType} leave.`,
-            type: 'leave',
-            status: 'Pending',
-            isGlobal: true,
-            link: '/leaves'
-        });
-
         res.status(201).json({
 
             success: true,

@@ -33,7 +33,7 @@ exports.uploadDocument = async (req, res, next) => {
         // Fetch employee for name
         const employee = await Employee.findById(employeeId);
 
-        // Create notification for HR
+        // Create notification for HR (Global)
         await Notification.create({
             title: 'Document Uploaded',
             message: `${employee ? employee.name : 'A candidate'} has uploaded a ${documentType} document.`,

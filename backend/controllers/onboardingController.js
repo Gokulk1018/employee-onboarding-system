@@ -45,27 +45,16 @@ exports.submitOnboardingForm = async (req, res, next) => {
         user.status = 'submitted';
         await user.save();
 
-        // Create HR Notifications (Targeted to all HR)
-        const Notification = require('../models/Notification');
-        const hrUsers = await Employee.find({ role: 'hr' }).select('_id');
-
-        const notificationMsg = isReupload
-            ? `Onboarding form re-submitted by ${user.candidateName}`
-            : `New onboarding form submitted by ${user.candidateName}`;
-
-        const hrNotifications = hrUsers.map(hr =>
-            Notification.create({
-                userId: hr._id,
-                title: 'Onboarding Submission',
-                message: notificationMsg,
-                candidateName: user.candidateName,
-                candidateEmail: user.candidateEmail,
-                status: 'Pending',
-                isGlobal: false,
-                link: '/onboarding'
-            })
-        );
-        await Promise.all(hrNotifications);
+        // Create HR Notification (Global)
+        await Notification.create({
+            title: 'Onboarding Submission',
+            message: notificationMsg,
+            candidateName: user.candidateName,
+            candidateEmail: user.candidateEmail,
+            status: 'Pending',
+            isGlobal: true,
+            link: '/onboarding'
+        });
 
 
         return res.status(200).json({ success: true, message: 'Onboarding form successfully submitted' });

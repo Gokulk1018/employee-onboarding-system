@@ -93,11 +93,12 @@ const JobPostingDrawer = ({ open, onClose, onSuccess }) => {
                             rules={[{ required: true, message: 'Please select department' }]}
                         >
                             <Select placeholder="Select department" size="large">
-                                <Select.Option value="Engineering">Engineering</Select.Option>
-                                <Select.Option value="Design">Design</Select.Option>
-                                <Select.Option value="Product">Product</Select.Option>
-                                <Select.Option value="Marketing">Marketing</Select.Option>
-                                <Select.Option value="Sales">Sales</Select.Option>
+                                <Select.Option value="Frontend Developer">Frontend Developer</Select.Option>
+                                <Select.Option value="Backend Developer">Backend Developer</Select.Option>
+                                <Select.Option value="Fullstack Developer">Fullstack Developer</Select.Option>
+                                <Select.Option value="Tester">Tester</Select.Option>
+                                <Select.Option value="DevOps">DevOps</Select.Option>
+                                <Select.Option value="UI/UX">UI/UX</Select.Option>
                                 <Select.Option value="HR">HR</Select.Option>
                             </Select>
                         </Form.Item>

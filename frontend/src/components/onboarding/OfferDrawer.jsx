@@ -115,10 +115,12 @@ const OfferDrawer = ({ open, onClose, onSuccess, editData }) => {
                     <Col span={12}>
                         <Form.Item name="department" label="Department" rules={[{ required: true }]}>
                             <Select placeholder="Select department">
-                                <Select.Option value="Engineering">Engineering</Select.Option>
-                                <Select.Option value="Design">Design</Select.Option>
-                                <Select.Option value="Product">Product</Select.Option>
-                                <Select.Option value="Sales">Sales</Select.Option>
+                                <Select.Option value="Frontend Developer">Frontend Developer</Select.Option>
+                                <Select.Option value="Backend Developer">Backend Developer</Select.Option>
+                                <Select.Option value="Fullstack Developer">Fullstack Developer</Select.Option>
+                                <Select.Option value="Tester">Tester</Select.Option>
+                                <Select.Option value="DevOps">DevOps</Select.Option>
+                                <Select.Option value="UI/UX">UI/UX</Select.Option>
                                 <Select.Option value="HR">HR</Select.Option>
                             </Select>
                         </Form.Item>

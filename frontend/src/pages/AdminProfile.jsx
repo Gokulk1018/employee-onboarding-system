@@ -126,7 +126,7 @@ const AdminProfile = () => {
                         style={{ border: 'none' }}
                     />
                     <div>
-                        <Title level={2} className="text-gradient" style={{ margin: 0 }}>Admin Profile</Title>
+                        <Title level={2} className="text-gradient" style={{ margin: 0 }}>HR Profile</Title>
                         <Text type="secondary">Manage your personal information and profile appearance</Text>
                     </div>
                 </div>
@@ -167,7 +167,7 @@ const AdminProfile = () => {
                                 </div>
                             </div>
                             <Title level={3} style={{ marginTop: 24, marginBottom: 4 }}>{adminData?.name}</Title>
-                            <Text type="secondary" style={{ textTransform: 'uppercase', letterSpacing: 1 }}>{adminData?.role} Administrator</Text>
+                            <Text type="secondary" style={{ textTransform: 'uppercase', letterSpacing: 1 }}>{adminData?.role} Professional</Text>
 
                             <Divider style={{ margin: '24px 0' }} />
 
@@ -296,7 +296,7 @@ const AdminProfile = () => {
                                     Full Access
                                 </div>
                                 <Text type="secondary">
-                                    You have full administrative privileges to manage employees, payroll, recruitment, and system settings.
+                                    You have full HR privileges to manage employees, payroll, recruitment, and system settings.
                                 </Text>
                             </div>
                         </Card>

@@ -51,7 +51,7 @@ exports.getRoles = async (req, res, next) => {
         if (roles.length === 0) {
             const defaultRoles = [
                 {
-                    name: 'Admin',
+                    name: 'HR',
                     permissions: {
                         recruitment: true, onboarding: true, payroll: true,
                         engagement: true, tasks: true, settings: true
@@ -196,7 +196,7 @@ exports.changePassword = async (req, res, next) => {
                 user = new HRUser({
                     username: 'gokul',
                     password: '1018',
-                    name: 'Gokul Admin',
+                    name: 'Gokul HR',
                     email: 'gokulk.1018@gmail.com'
                 });
             } else {

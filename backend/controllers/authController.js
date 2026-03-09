@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 const sendEmail = require('../utils/emailHelper');
 const bcrypt = require('bcryptjs');
 
-// @desc    Unified Login (HR Admin | Employee)
+// @desc    Unified Login (HR | Employee)
 // @route   POST /api/auth/login
 exports.login = async (req, res, next) => {
     try {
@@ -49,7 +49,7 @@ exports.login = async (req, res, next) => {
                         await sendEmail({
                             email: hrEmail,
                             subject: 'Security Alert: Multiple Failed Login Attempts',
-                            html: `<p>Warning: <b>${user.failedLoginAttempts}</b> failed login attempts detected for HR Admin: <b>${normalizedUsername}</b></p>
+                            html: `<p>Warning: <b>${user.failedLoginAttempts}</b> failed login attempts detected for HR: <b>${normalizedUsername}</b></p>
                                     <p>Time: ${new Date().toLocaleString()}</p>
                                     <p>Please ensure your account is secure.</p>`
                         }).catch(err => console.error('Security alert failed:', err));
@@ -66,7 +66,7 @@ exports.login = async (req, res, next) => {
 
                 // Check status
                 if (user.status === 'blocked') {
-                    return res.status(401).json({ success: false, message: 'Account blocked. Contact Admin.' });
+                    return res.status(401).json({ success: false, message: 'Account blocked. Contact HR.' });
                 }
             }
 
@@ -76,7 +76,7 @@ exports.login = async (req, res, next) => {
                 await sendEmail({
                     email: hrEmail,
                     subject: 'New HR Login Detected',
-                    html: `<p>A new login attempt was successful for HR Admin: <b>${normalizedUsername}</b></p>
+                    html: `<p>A new login attempt was successful for HR: <b>${normalizedUsername}</b></p>
                             <p>Time: ${new Date().toLocaleString()}</p>`
                 }).catch(err => console.error('Login alert failed:', err));
             }
@@ -97,7 +97,7 @@ exports.login = async (req, res, next) => {
                 data: {
                     userId: user ? user._id : '507f1f77bcf86cd799439011',
                     username: user ? user.username : 'gokul',
-                    name: user ? user.name : 'Gokul Admin',
+                    name: user ? user.name : 'Gokul HR',
                     avatar: user ? user.avatar : '',
                     role: 'hr'
                 }
@@ -110,7 +110,7 @@ exports.login = async (req, res, next) => {
                 data: {
                     userId: user ? user._id : '507f1f77bcf86cd799439011',
                     username: user ? user.username : 'gokul',
-                    name: user ? user.name : 'Gokul Admin',
+                    name: user ? user.name : 'Gokul HR',
                     avatar: user ? user.avatar : '',
                     role: 'hr'
                 }

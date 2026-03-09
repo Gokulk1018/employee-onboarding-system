@@ -21,7 +21,7 @@ const protect = async (req, res, next) => {
         if (userId === '507f1f77bcf86cd799439011' || userId === 'hardcoded-admin-id') {
             user = {
                 _id: '507f1f77bcf86cd799439011',
-                name: 'Gokul Admin',
+                name: 'Gokul HR',
                 username: 'gokul',
                 role: 'hr'
             };
@@ -61,7 +61,7 @@ const admin = (req, res, next) => {
     } else {
         res.status(403).json({
             success: false,
-            message: 'Access denied: HR Admin only'
+            message: 'Access denied: HR only'
         });
     }
 };

@@ -8,9 +8,9 @@ exports.getNotifications = async (req, res, next) => {
         let query = {};
 
         if (userId) {
-            query = { userId: userId };
+            query = { $or: [{ userId: userId }, { isGlobal: true }] };
         } else if (req.user) {
-            query = { userId: req.user._id };
+            query = { $or: [{ userId: req.user._id }, { isGlobal: true }] };
         }
 
         const notifications = await Notification.find(query).sort({ createdAt: -1 });

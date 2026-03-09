@@ -11,7 +11,7 @@ const employees = [
         name: "James Wilson",
         email: "james.wilson@example.com",
         role: "Developer",
-        department: "Engineering",
+        department: "Fullstack Developer",
         status: "Active",
         joinDate: new Date("2023-09-15"),
         avatar: "https://i.pravatar.cc/150?u=james"
@@ -20,7 +20,7 @@ const employees = [
         name: "Sarah Chen",
         email: "sarah.chen@example.com",
         role: "Manager",
-        department: "Product",
+        department: "Fullstack Developer",
         status: "Active",
         joinDate: new Date("2023-11-20"),
         avatar: "https://i.pravatar.cc/150?u=sarah"
@@ -29,7 +29,7 @@ const employees = [
         name: "Marcus Thorne",
         email: "marcus.t@example.com",
         role: "Designer",
-        department: "Design",
+        department: "UI/UX",
         status: "On Leave",
         joinDate: new Date("2024-01-10"),
         avatar: "https://i.pravatar.cc/150?u=marcus"
@@ -38,7 +38,7 @@ const employees = [
         name: "Emma Rodriguez",
         email: "emma.r@example.com",
         role: "QA",
-        department: "Engineering",
+        department: "Fullstack Developer",
         status: "Active",
         joinDate: new Date("2023-08-05"),
         avatar: "https://i.pravatar.cc/150?u=emma"
@@ -47,7 +47,7 @@ const employees = [
         name: "Liam O'Connor",
         email: "liam.oc@example.com",
         role: "Intern",
-        department: "Engineering",
+        department: "Fullstack Developer",
         status: "Active",
         joinDate: new Date("2024-02-01"),
         avatar: "https://i.pravatar.cc/150?u=liam"
@@ -65,7 +65,7 @@ const employees = [
         name: "Noah Varma",
         email: "noah.v@example.com",
         role: "Developer",
-        department: "Marketing",
+        department: "Tester",
         status: "Active",
         joinDate: new Date("2023-10-30"),
         avatar: "https://i.pravatar.cc/150?u=noah"
@@ -74,7 +74,7 @@ const employees = [
         name: "Sophia Loren",
         email: "sophia.l@example.com",
         role: "Designer",
-        department: "Design",
+        department: "UI/UX",
         status: "Probation",
         joinDate: new Date("2024-01-25"),
         avatar: "https://i.pravatar.cc/150?u=sophia"
@@ -83,7 +83,7 @@ const employees = [
         name: "Ethan Hunt",
         email: "ethan.h@example.com",
         role: "QA",
-        department: "Engineering",
+        department: "Fullstack Developer",
         status: "Active",
         joinDate: new Date("2023-04-10"),
         avatar: "https://i.pravatar.cc/150?u=ethan"
@@ -92,7 +92,7 @@ const employees = [
         name: "Ava Gardner",
         email: "ava.g@example.com",
         role: "Developer",
-        department: "Product",
+        department: "Fullstack Developer",
         status: "Active",
         joinDate: new Date("2023-12-15"),
         avatar: "https://i.pravatar.cc/150?u=ava"
@@ -101,7 +101,7 @@ const employees = [
         name: "Lucas Black",
         email: "lucas.b@example.com",
         role: "Intern",
-        department: "Marketing",
+        department: "Tester",
         status: "Inactive",
         joinDate: new Date("2024-02-05"),
         avatar: "https://i.pravatar.cc/150?u=lucas"
@@ -110,7 +110,7 @@ const employees = [
         name: "Mia Hamm",
         email: "mia.h@example.com",
         role: "Manager",
-        department: "Operations",
+        department: "DevOps",
         status: "Active",
         joinDate: new Date("2023-07-22"),
         avatar: "https://i.pravatar.cc/150?u=mia"
@@ -119,7 +119,7 @@ const employees = [
         name: "Oliver Twist",
         email: "oliver.t@example.com",
         role: "Developer",
-        department: "Engineering",
+        department: "Fullstack Developer",
         status: "Active",
         joinDate: new Date("2023-03-01"),
         avatar: "https://i.pravatar.cc/150?u=oliver"
@@ -128,7 +128,7 @@ const employees = [
         name: "Isabella Swan",
         email: "isabella.s@example.com",
         role: "QA",
-        department: "Product",
+        department: "Fullstack Developer",
         status: "Active",
         joinDate: new Date("2023-10-18"),
         avatar: "https://i.pravatar.cc/150?u=isabella"
@@ -137,7 +137,7 @@ const employees = [
         name: "William Tell",
         email: "william.t@example.com",
         role: "Manager",
-        department: "Finance",
+        department: "Tester",
         status: "Active",
         joinDate: new Date("2023-05-30"),
         avatar: "https://i.pravatar.cc/150?u=william"
@@ -146,7 +146,7 @@ const employees = [
         name: "Charlotte Bronte",
         email: "charlotte.b@example.com",
         role: "Designer",
-        department: "Marketing",
+        department: "Tester",
         status: "On Leave",
         joinDate: new Date("2023-02-14"),
         avatar: "https://i.pravatar.cc/150?u=charlotte"
@@ -155,7 +155,7 @@ const employees = [
         name: "Benjamin Franklin",
         email: "ben.f@example.com",
         role: "Developer",
-        department: "Engineering",
+        department: "Fullstack Developer",
         status: "Active",
         joinDate: new Date("2024-01-05"),
         avatar: "https://i.pravatar.cc/150?u=ben"
@@ -164,7 +164,7 @@ const employees = [
         name: "Amelia Earhart",
         email: "amelia.e@example.com",
         role: "QA",
-        department: "Engineering",
+        department: "Fullstack Developer",
         status: "Inactive",
         joinDate: new Date("2023-11-20"),
         avatar: "https://i.pravatar.cc/150?u=amelia"
@@ -173,7 +173,7 @@ const employees = [
         name: "Harry Potter",
         email: "harry.p@example.com",
         role: "Intern",
-        department: "Design",
+        department: "UI/UX",
         status: "Active",
         joinDate: new Date("2023-06-01"),
         avatar: "https://i.pravatar.cc/150?u=harry"
@@ -182,7 +182,7 @@ const employees = [
         name: "Luna Lovegood",
         email: "luna.l@example.com",
         role: "Designer",
-        department: "Marketing",
+        department: "Tester",
         status: "Active",
         joinDate: new Date("2023-01-01"),
         avatar: "https://i.pravatar.cc/150?u=luna"
@@ -191,7 +191,7 @@ const employees = [
         name: "Albus Dumbledore",
         email: "albus.d@example.com",
         role: "Manager",
-        department: "Executive",
+        department: "HR",
         status: "Active",
         joinDate: new Date("2023-01-01"),
         avatar: "https://i.pravatar.cc/150?u=albus"
@@ -200,7 +200,7 @@ const employees = [
         name: "Peter Parker",
         email: "peter.p@example.com",
         role: "Intern",
-        department: "Engineering",
+        department: "Fullstack Developer",
         status: "Probation",
         joinDate: new Date("2024-02-10"),
         avatar: "https://i.pravatar.cc/150?u=peter"
@@ -209,7 +209,7 @@ const employees = [
         name: "Bruce Wayne",
         email: "bruce.w@example.com",
         role: "Manager",
-        department: "Executive",
+        department: "HR",
         status: "Active",
         joinDate: new Date("2022-12-01"),
         avatar: "https://i.pravatar.cc/150?u=bruce"
@@ -218,7 +218,7 @@ const employees = [
         name: "Clark Kent",
         email: "clark.k@example.com",
         role: "Developer",
-        department: "Product",
+        department: "Fullstack Developer",
         status: "Active",
         joinDate: new Date("2023-07-15"),
         avatar: "https://i.pravatar.cc/150?u=clark"
@@ -227,7 +227,7 @@ const employees = [
         name: "Diana Prince",
         email: "diana.prince@example.com",
         role: "QA",
-        department: "Engineering",
+        department: "Fullstack Developer",
         status: "Active",
         joinDate: new Date("2023-11-25"),
         avatar: "https://i.pravatar.cc/150?u=diana"
@@ -236,7 +236,7 @@ const employees = [
         name: "Barry Allen",
         email: "barry.a@example.com",
         role: "Developer",
-        department: "Engineering",
+        department: "Fullstack Developer",
         status: "Active",
         joinDate: new Date("2024-02-05"),
         avatar: "https://i.pravatar.cc/150?u=barry"
@@ -245,7 +245,7 @@ const employees = [
         name: "Hal Jordan",
         email: "hal.j@example.com",
         role: "Designer",
-        department: "Design",
+        department: "UI/UX",
         status: "Active",
         joinDate: new Date("2023-05-20"),
         avatar: "https://i.pravatar.cc/150?u=hal"
@@ -254,7 +254,7 @@ const employees = [
         name: "Arthur Curry",
         email: "arthur.c@example.com",
         role: "Manager",
-        department: "Operations",
+        department: "DevOps",
         status: "Active",
         joinDate: new Date("2023-08-30"),
         avatar: "https://i.pravatar.cc/150?u=arthur"
@@ -263,7 +263,7 @@ const employees = [
         name: "Victor Stone",
         email: "victor.s@example.com",
         role: "QA",
-        department: "Engineering",
+        department: "Fullstack Developer",
         status: "Probation",
         joinDate: new Date("2024-01-15"),
         avatar: "https://i.pravatar.cc/150?u=victor"
@@ -272,7 +272,7 @@ const employees = [
         name: "Stephen Strange",
         email: "stephen.s@example.com",
         role: "Manager",
-        department: "Executive",
+        department: "HR",
         status: "On Leave",
         joinDate: new Date("2023-04-01"),
         avatar: "https://i.pravatar.cc/150?u=strange"
@@ -290,7 +290,7 @@ const employees = [
         name: "Wanda Maximoff",
         email: "wanda.m@example.com",
         role: "Designer",
-        department: "Design",
+        department: "UI/UX",
         status: "Active",
         joinDate: new Date("2023-12-05"),
         avatar: "https://i.pravatar.cc/150?u=wanda"
@@ -299,7 +299,7 @@ const employees = [
         name: "Vision",
         email: "vision@example.com",
         role: "Developer",
-        department: "Engineering",
+        department: "Fullstack Developer",
         status: "Active",
         joinDate: new Date("2024-02-08"),
         avatar: "https://i.pravatar.cc/150?u=vision"
@@ -308,7 +308,7 @@ const employees = [
         name: "Sam Wilson",
         email: "sam.w@example.com",
         role: "Intern",
-        department: "Marketing",
+        department: "Tester",
         status: "Active",
         joinDate: new Date("2023-10-25"),
         avatar: "https://i.pravatar.cc/150?u=sam"
@@ -317,7 +317,7 @@ const employees = [
         name: "Bucky Barnes",
         email: "bucky.b@example.com",
         role: "QA",
-        department: "Operations",
+        department: "DevOps",
         status: "Active",
         joinDate: new Date("2023-06-15"),
         avatar: "https://i.pravatar.cc/150?u=bucky"
@@ -326,7 +326,7 @@ const employees = [
         name: "Carol Danvers",
         email: "carol.d@example.com",
         role: "Manager",
-        department: "Sales",
+        department: "Backend Developer",
         status: "Active",
         joinDate: new Date("2023-02-20"),
         avatar: "https://i.pravatar.cc/150?u=carol"

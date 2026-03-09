@@ -201,7 +201,7 @@ const OnboardingForm = () => {
                     </div>
                     <Title level={3} style={{ margin: '0 0 8px 0', fontSize: 22, fontWeight: 600, color: '#1F2937' }}>Upload Successfully</Title>
                     <Text type="secondary" style={{ fontSize: 14, color: '#6B7280', display: 'block', marginBottom: 32, padding: '0 20px' }}>
-                        Your data has been sent. Please wait for admin verification.
+                        Your data has been sent. Please wait for HR verification.
                     </Text>
                     <Button
                         type="primary"
@@ -244,7 +244,7 @@ const OnboardingForm = () => {
                     <Result
                         status="info"
                         title="Application Under Review"
-                        subTitle="Your data has been sent. Please wait for admin verification."
+                        subTitle="Your data has been sent. Please wait for HR verification."
                         extra={[
                             <Button type="primary" key="logout" onClick={() => {
                                 localStorage.clear();

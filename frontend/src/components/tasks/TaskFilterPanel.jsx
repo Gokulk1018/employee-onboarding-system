@@ -80,10 +80,12 @@ const TaskFilterPanel = ({ open, onClose, filters, onFilterChange, onClearFilter
                         value={filters.department}
                         onChange={(value) => onFilterChange('department', value)}
                         options={[
-                            { label: 'Engineering', value: 'Engineering' },
-                            { label: 'Design', value: 'Design' },
-                            { label: 'Product', value: 'Product' },
-                            { label: 'Marketing', value: 'Marketing' },
+                            { label: 'Frontend Developer', value: 'Frontend Developer' },
+                            { label: 'Backend Developer', value: 'Backend Developer' },
+                            { label: 'Fullstack Developer', value: 'Fullstack Developer' },
+                            { label: 'Tester', value: 'Tester' },
+                            { label: 'DevOps', value: 'DevOps' },
+                            { label: 'UI/UX', value: 'UI/UX' },
                             { label: 'HR', value: 'HR' }
                         ]}
                     />

@@ -37,7 +37,7 @@ const MainLayout = () => {
     const location = useLocation();
     const { token } = theme.useToken();
     const { isDarkMode } = useTheme();
-    const [adminName, setAdminName] = useState(localStorage.getItem('name') || localStorage.getItem('username') || 'Admin User');
+    const [adminName, setAdminName] = useState(localStorage.getItem('name') || localStorage.getItem('username') || 'HR User');
     const [adminAvatar, setAdminAvatar] = useState(localStorage.getItem('avatar') || '');
     const [notifications, setNotifications] = useState([]);
     const [loadingNotifications, setLoadingNotifications] = useState(false);
@@ -61,7 +61,7 @@ const MainLayout = () => {
         const interval = setInterval(fetchNotifications, 30000); // Poll every 30s
 
         const handleStorageChange = () => {
-            setAdminName(localStorage.getItem('name') || localStorage.getItem('username') || 'Admin User');
+            setAdminName(localStorage.getItem('name') || localStorage.getItem('username') || 'HR User');
             setAdminAvatar(localStorage.getItem('avatar') || '');
         };
 

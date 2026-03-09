@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Typography, theme, Row, Col, Space } from 'antd';
 import { motion } from 'framer-motion';
 import { TrophyOutlined, UserOutlined } from '@ant-design/icons';
@@ -10,6 +10,15 @@ const GreetingBanner = ({ metrics }) => {
     const { token } = theme.useToken();
     const time = dayjs().hour();
     const greeting = time < 12 ? 'Good Morning' : time < 18 ? 'Good Afternoon' : 'Good Evening';
+    const [hrName, setHrName] = useState(localStorage.getItem('name') || localStorage.getItem('username') || 'HR');
+
+    useEffect(() => {
+        const handleStorageChange = () => {
+            setHrName(localStorage.getItem('name') || localStorage.getItem('username') || 'HR');
+        };
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, []);
 
     return (
         <motion.div
@@ -35,7 +44,7 @@ const GreetingBanner = ({ metrics }) => {
                 <Row justify="space-between" align="middle" style={{ position: 'relative', zIndex: 1 }}>
                     <Col>
                         <Title level={2} style={{ margin: 0, fontWeight: 700 }} className="text-gradient">
-                            {greeting}, Admin! <span style={{ fontSize: 24 }}>👋</span>
+                            {greeting}, {hrName}! <span style={{ fontSize: 24 }}>👋</span>
                         </Title>
                         <Text style={{ fontSize: 16, color: 'var(--text-secondary)' }}>
                             Here's what's happening with your team today.
