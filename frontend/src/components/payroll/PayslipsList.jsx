@@ -21,7 +21,7 @@ const PayslipsList = ({ year, employeeId }) => {
             try {
                 setLoading(true);
                 // We use the dashboard API which now returns 'history'
-                const res = await axios.get(`http://localhost:5000/api/payroll/dashboard/${employeeId}?year=${year}`);
+                const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/payroll/dashboard/${employeeId}?year=${year}`);
                 setHistory(res.data.history || []);
             } catch (err) {
                 console.error('Failed to fetch payslip history', err);

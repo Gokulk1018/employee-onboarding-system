@@ -24,7 +24,7 @@ const JobPortal = () => {
     useEffect(() => {
         const fetchJobs = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/jobs');
+                const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/jobs`);
                 if (response.data.success) {
                     // Only show OPEN jobs to employees
                     setJobs(response.data.data.filter(j => j.status === 'OPEN'));

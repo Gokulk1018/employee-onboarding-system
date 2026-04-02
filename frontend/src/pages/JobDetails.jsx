@@ -85,8 +85,8 @@ const JobDetails = () => {
             try {
                 // Fetch job and candidates in parallel for better performance
                 const [jobResult, candidatesResult] = await Promise.allSettled([
-                    fetch(`http://localhost:5000/api/jobs/${id}`).then(res => res.json()),
-                    fetch(`http://localhost:5000/api/jobs/${id}/candidates`).then(res => res.json())
+                    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/jobs/${id}`).then(res => res.json()),
+                    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/jobs/${id}/candidates`).then(res => res.json())
                 ]);
 
                 // Handle job data
@@ -142,7 +142,7 @@ const JobDetails = () => {
             // Check if this is a real database job or a fake frontend job
             if (isValidMongoId(id)) {
                 // Real MongoDB job - call backend API
-                const response = await fetch(`http://localhost:5000/api/jobs/${id}`, {
+                const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/jobs/${id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -220,7 +220,7 @@ const JobDetails = () => {
 
         // For real candidates, call API
         try {
-            const response = await fetch(`http://localhost:5000/api/candidates/${candidateId}/stage`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/candidates/${candidateId}/stage`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -264,7 +264,7 @@ const JobDetails = () => {
                 return;
             }
 
-            const response = await fetch(`http://localhost:5000/api/jobs/${id}/apply`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/jobs/${id}/apply`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -329,7 +329,7 @@ const JobDetails = () => {
 
             // Backend Notification
             try {
-                await fetch('http://localhost:5000/api/notifications', {
+                await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/notifications`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

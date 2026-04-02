@@ -21,7 +21,7 @@ const ApplyJob = () => {
     useEffect(() => {
         const fetchJob = async () => {
             try {
-                const response = await fetch(`http://localhost:5000/api/jobs/${id}`);
+                const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/jobs/${id}`);
                 const data = await response.json();
                 if (data.success) {
                     setJob(data.data);
@@ -38,7 +38,7 @@ const ApplyJob = () => {
     const onFinish = async (values) => {
         setSubmitting(true);
         try {
-            const response = await fetch(`http://localhost:5000/api/jobs/${id}/apply`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/jobs/${id}/apply`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(values)

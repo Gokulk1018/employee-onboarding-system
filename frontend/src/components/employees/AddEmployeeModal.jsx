@@ -34,8 +34,8 @@ const AddEmployeeModal = ({ open, onClose, onSuccess, initialData }) => {
             };
 
             const url = isEditing
-                ? `http://localhost:5000/api/employees/${initialData._id}`
-                : 'http://localhost:5000/api/employees';
+                ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/employees/${initialData._id}`
+                : `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/employees`;
 
             const method = isEditing ? 'put' : 'post';
 

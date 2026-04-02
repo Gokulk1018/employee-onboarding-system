@@ -28,7 +28,7 @@ const EmployeeTasks = () => {
         const fetchTasks = async () => {
             try {
                 const userId = localStorage.getItem('userId');
-                const response = await axios.get(`http://localhost:5000/api/employees/me/dashboard/${userId}`);
+                const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/employees/me/dashboard/${userId}`);
                 if (response.data.success) {
                     const allTasks = response.data.data.tasks.list;
                     const grouped = {

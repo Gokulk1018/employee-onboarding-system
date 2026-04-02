@@ -33,7 +33,7 @@ export const SettingsProvider = ({ children }) => {
 
     const branding = {
         name: settings?.companyInfo?.companyName || 'HRFlow Inc.',
-        logo: settings?.companyInfo?.logoUrl ? `http://localhost:5000${settings.companyInfo.logoUrl}` : null,
+        logo: settings?.companyInfo?.logoUrl ? `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}${settings.companyInfo.logoUrl}` : null,
         hrEmail: settings?.companyInfo?.hrEmail,
         phone: settings?.companyInfo?.phone,
         location: settings?.companyInfo?.location,

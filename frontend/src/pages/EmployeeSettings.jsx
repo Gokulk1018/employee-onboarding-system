@@ -25,7 +25,7 @@ const EmployeeSettings = () => {
         setLoading(true);
         try {
             const userId = localStorage.getItem('userId');
-            const response = await axios.put('http://localhost:5000/api/auth/change-password', {
+            const response = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/change-password`, {
                 currentPassword: values.currentPassword,
                 newPassword: values.newPassword
             }, {

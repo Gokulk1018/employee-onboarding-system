@@ -36,7 +36,7 @@ const OnboardingForm = () => {
                     return;
                 }
 
-                const response = await axios.get(`http://localhost:5000/api/onboarding/user/${userId}`);
+                const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/onboarding/user/${userId}`);
                 if (response.data.success) {
                     const user = response.data.data;
                     setUserData(user);
@@ -90,7 +90,7 @@ const OnboardingForm = () => {
                 uploadedAt: new Date()
             }));
 
-            const response = await axios.post(`http://localhost:5000/api/onboarding/submit`, {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/onboarding/submit`, {
                 userId,
                 personalData: values,
                 documents: documents

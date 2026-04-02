@@ -22,7 +22,7 @@ const Payroll = () => {
     useEffect(() => {
         const fetchFirstEmployee = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/employees');
+                const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/employees`);
                 if (res.data.success && res.data.data.length > 0) {
                     setEmployee(res.data.data[0]);
                 }

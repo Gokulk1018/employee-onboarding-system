@@ -43,8 +43,8 @@ const EmployeePortal = () => {
 
                 // Fetch Profile and Stats in parallel
                 const [profileRes, statsRes] = await Promise.all([
-                    axios.get(`http://localhost:5000/api/employees/${userId}`),
-                    axios.get(`http://localhost:5000/api/employees/me/dashboard/${userId}`)
+                    axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/employees/${userId}`),
+                    axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/employees/me/dashboard/${userId}`)
                 ]);
 
                 if (profileRes.data.success) {

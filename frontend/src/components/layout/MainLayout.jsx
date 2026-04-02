@@ -45,7 +45,7 @@ const MainLayout = () => {
     const fetchNotifications = async () => {
         try {
             const userId = localStorage.getItem('userId');
-            const response = await axios.get('http://localhost:5000/api/notifications', {
+            const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/notifications`, {
                 headers: { 'x-user-id': userId }
             });
             if (response.data.success) {
@@ -74,7 +74,7 @@ const MainLayout = () => {
 
     const markAllAsRead = async () => {
         try {
-            await axios.put('http://localhost:5000/api/notifications/read-all');
+            await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/notifications/read-all`);
             fetchNotifications();
         } catch (error) {
             message.error('Failed to mark notifications as read');

@@ -14,7 +14,7 @@ const AddCandidateModal = ({ open, onClose, jobId, onSuccess }) => {
                 skills: typeof values.skills === 'string' ? values.skills.split(',').map(s => s.trim()) : []
             };
 
-            const response = await axios.post(`http://localhost:5000/api/jobs/${jobId}/apply`, payload);
+            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/jobs/${jobId}/apply`, payload);
 
             if (response.data.success) {
                 message.success('Candidate added successfully');

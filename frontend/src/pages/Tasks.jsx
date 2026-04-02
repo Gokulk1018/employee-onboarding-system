@@ -50,7 +50,7 @@ const Tasks = () => {
     const fetchTasks = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:5000/api/tasks');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/tasks`);
             if (response.data.success) {
                 setTasks(response.data.data);
             }
@@ -65,7 +65,7 @@ const Tasks = () => {
     const fetchEmployees = async () => {
         setLoadingEmployees(true);
         try {
-            const response = await axios.get('http://localhost:5000/api/employees');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/employees`);
             if (response.data.success) {
                 setEmployees(response.data.data);
             }
@@ -126,7 +126,7 @@ const Tasks = () => {
                 'done': 'done'
             };
 
-            await axios.put(`http://localhost:5000/api/tasks/${taskId}`, {
+            await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/tasks/${taskId}`, {
                 status: statusMap[destColumn]
             });
 
@@ -150,7 +150,7 @@ const Tasks = () => {
                 status: statusMap[taskData.status] || 'todo'
             };
 
-            await axios.post('http://localhost:5000/api/tasks/create', payload);
+            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/tasks/create`, payload);
             message.success('Task created successfully');
             setIsModalOpen(false);
             fetchTasks();
@@ -188,7 +188,7 @@ const Tasks = () => {
                 status: statusMap[updatedTask.status] || updatedTask.status
             };
 
-            await axios.put(`http://localhost:5000/api/tasks/${updatedTask._id}`, payload);
+            await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/tasks/${updatedTask._id}`, payload);
             message.success('Task updated successfully');
             setIsModalOpen(false);
             setEditingTask(null);
@@ -201,7 +201,7 @@ const Tasks = () => {
 
     const handleDeleteTask = async (taskId) => {
         try {
-            await axios.delete(`http://localhost:5000/api/tasks/${taskId}`);
+            await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/tasks/${taskId}`);
             message.success('Task deleted successfully');
             fetchTasks();
         } catch (error) {
@@ -213,7 +213,7 @@ const Tasks = () => {
     const handlePinTask = async (taskId) => {
         try {
             const task = allTasks.find(t => t._id === taskId);
-            await axios.put(`http://localhost:5000/api/tasks/${taskId}`, {
+            await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/tasks/${taskId}`, {
                 pinned: !task.pinned
             });
             fetchTasks();

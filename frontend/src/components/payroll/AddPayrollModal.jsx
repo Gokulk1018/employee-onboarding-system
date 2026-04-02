@@ -34,7 +34,7 @@ const AddPayrollModal = ({ visible, onClose, onSuccess, employeeId, preSelectedY
             const values = await form.validateFields();
             setLoading(true);
 
-            await axios.post('http://localhost:5000/api/payroll', {
+            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/payroll`, {
                 ...values,
                 employeeId
             });

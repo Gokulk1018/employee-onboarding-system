@@ -32,7 +32,7 @@ const Employees = () => {
     const fetchEmployees = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('http://localhost:5000/api/employees');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/employees`);
             if (response.data.success) {
                 setEmployees(response.data.data);
             }
@@ -75,7 +75,7 @@ const Employees = () => {
 
     const handleStatusChange = async (id, newStatus) => {
         try {
-            const response = await axios.put(`http://localhost:5000/api/employees/${id}`, { status: newStatus });
+            const response = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/employees/${id}`, { status: newStatus });
             if (response.data.success) {
                 msg.success('Status updated successfully');
                 fetchEmployees();
@@ -88,7 +88,7 @@ const Employees = () => {
 
     const handleDelete = async (id) => {
         try {
-            const response = await axios.delete(`http://localhost:5000/api/employees/${id}`);
+            const response = await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/employees/${id}`);
             if (response.data.success) {
                 msg.success('Employee deleted successfully');
                 fetchEmployees();

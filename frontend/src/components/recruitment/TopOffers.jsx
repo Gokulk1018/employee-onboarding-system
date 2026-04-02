@@ -14,7 +14,7 @@ const TopOffers = () => {
         const fetchOffers = async () => {
             try {
                 // Return only candidates in OFFER stage
-                const response = await axios.get('http://localhost:5000/api/candidates/by-stage/OFFER');
+                const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/candidates/by-stage/OFFER`);
                 if (response.data.success) {
                     setOffers(response.data.data);
                 }

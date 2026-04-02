@@ -14,7 +14,7 @@ const LeaveManagementModal = ({ open, onClose, onRefresh }) => {
     const fetchAllLeaves = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('http://localhost:5000/api/leaves/all');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/leaves/all`);
             if (response.data.success) {
                 setLeaves(response.data.data);
             }
@@ -35,7 +35,7 @@ const LeaveManagementModal = ({ open, onClose, onRefresh }) => {
     const handleLeaveAction = async (id, status) => {
         try {
             setActionLoading(id);
-            const response = await axios.put(`http://localhost:5000/api/leaves/${id}/status`, { status });
+            const response = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/leaves/${id}/status`, { status });
             if (response.data.success) {
                 message.success(`Leave request ${status.toLowerCase()} successfully`);
                 fetchAllLeaves();

@@ -44,10 +44,10 @@ const OfferDrawer = ({ open, onClose, onSuccess, editData }) => {
             };
 
             if (editData) {
-                await axios.put(`http://localhost:5000/api/offers/${editData.id || editData._id}`, payload);
+                await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/offers/${editData.id || editData._id}`, payload);
                 message.success('Offer updated successfully');
             } else {
-                await axios.post('http://localhost:5000/api/offers/create', payload);
+                await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/offers/create`, payload);
                 message.success('Offer sent successfully');
             }
 

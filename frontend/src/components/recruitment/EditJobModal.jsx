@@ -29,7 +29,7 @@ const EditJobModal = ({ open, onClose, job, onSuccess }) => {
             };
 
             const userId = localStorage.getItem('userId');
-            const response = await axios.put(`http://localhost:5000/api/jobs/${job._id}`, payload, {
+            const response = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/jobs/${job._id}`, payload, {
                 headers: {
                     'x-user-id': userId
                 }

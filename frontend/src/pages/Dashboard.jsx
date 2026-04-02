@@ -54,7 +54,7 @@ const Dashboard = () => {
     const fetchStats = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('http://localhost:5000/api/dashboard/stats');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/dashboard/stats`);
             if (response.data.success) {
                 setData(response.data.data);
             }
@@ -69,7 +69,7 @@ const Dashboard = () => {
     const fetchLeaderboard = async () => {
         try {
             setLoadingLeaderboard(true);
-            const response = await axios.get('http://localhost:5000/api/dashboard/leaderboard');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/dashboard/leaderboard`);
             if (response.data.success) {
                 setLeaderboardData(response.data.data);
             }
@@ -84,7 +84,7 @@ const Dashboard = () => {
     const fetchEmployees = async () => {
         try {
             setLoadingEmployees(true);
-            const response = await axios.get('http://localhost:5000/api/employees');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/employees`);
             if (response.data.success) {
                 setEmployees(response.data.data);
             }
@@ -97,7 +97,7 @@ const Dashboard = () => {
 
     const handleMeetingSubmit = async (meetingData) => {
         try {
-            await axios.post('http://localhost:5000/api/tasks/create', meetingData);
+            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/tasks/create`, meetingData);
             message.success('Team meeting scheduled successfully');
             setIsMeetingModalOpen(false);
             fetchStats(); // Refresh to show new task in overview

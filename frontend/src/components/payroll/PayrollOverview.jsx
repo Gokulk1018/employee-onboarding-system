@@ -23,7 +23,7 @@ const PayrollOverview = ({ year, employeeId }) => {
         try {
             setLoading(true);
             setComparison(null);
-            const res = await axios.get(`http://localhost:5000/api/payroll/dashboard/${employeeId}?year=${targetYear}`);
+            const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/payroll/dashboard/${employeeId}?year=${targetYear}`);
 
             let finalData = res.data;
             let finalYear = targetYear;
@@ -32,7 +32,7 @@ const PayrollOverview = ({ year, employeeId }) => {
             if (res.data.salaryTrend.length === 0 && targetYear > 2023) {
                 let foundYear = null;
                 for (let y = targetYear - 1; y >= 2024; y--) {
-                    const checkRes = await axios.get(`http://localhost:5000/api/payroll/dashboard/${employeeId}?year=${y}`);
+                    const checkRes = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/payroll/dashboard/${employeeId}?year=${y}`);
                     if (checkRes.data.salaryTrend.length > 0) {
                         finalData = checkRes.data;
                         finalYear = y;
@@ -58,7 +58,7 @@ const PayrollOverview = ({ year, employeeId }) => {
                 const latestEntry = finalData.salaryTrend[finalData.salaryTrend.length - 1];
                 if (latestEntry) {
                     try {
-                        const compRes = await axios.get(`http://localhost:5000/api/payroll/compare/${employeeId}/${latestEntry.year}/${latestEntry.month}`);
+                        const compRes = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/payroll/compare/${employeeId}/${latestEntry.year}/${latestEntry.month}`);
                         if (compRes.data.hasPrevious) {
                             let trendVal = parseFloat(compRes.data.percentChange);
                             if (compRes.data.direction === 'down') trendVal = -trendVal;

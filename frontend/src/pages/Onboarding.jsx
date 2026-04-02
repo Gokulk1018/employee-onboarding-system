@@ -89,7 +89,7 @@ const OnboardingReviewList = ({
 
     const handleVerifyDoc = async (docId, status) => {
         try {
-            await axios.put(`http://localhost:5000/api/onboarding/verify-document/${selectedReview._id}`, {
+            await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/onboarding/verify-document/${selectedReview._id}`, {
                 documentId: docId,
                 status
             });
@@ -109,7 +109,7 @@ const OnboardingReviewList = ({
         try {
             const endpoint = action === 'finalize' ? 'finalize' : 'reject-details';
             const payload = action === 'finalize' ? { joiningDate } : { remarks: reviewRemarks };
-            const response = await axios.post(`http://localhost:5000/api/onboarding/${endpoint}/${selectedReview._id}`, payload);
+            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/onboarding/${endpoint}/${selectedReview._id}`, payload);
             if (response.data.success) {
                 message.success(action === 'finalize' ? 'Onboarding finalized successfully' : 'Onboarding details rejected');
                 setIsReviewModalOpen(false);
@@ -343,7 +343,7 @@ const Onboarding = () => {
         // Only show full loading spinner on initial fetch, not during polling
         if (reviewData.length === 0) setReviewLoading(true);
         try {
-            const response = await axios.get('http://localhost:5000/api/onboarding/users');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/onboarding/users`);
             if (response.data.success) {
                 console.log('[DEBUG] Fetched Reviews:', response.data.data.length, response.data.data);
                 setReviewData(response.data.data.filter(u => u.status !== 'pending'));
@@ -365,7 +365,7 @@ const Onboarding = () => {
     const fetchOffers = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`http://localhost:5000/api/offers`, {
+            const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/offers`, {
                 params: {
                     status: statusFilter,
                     search: searchText
@@ -512,7 +512,7 @@ const Onboarding = () => {
                     cancelText: 'No',
                     async onOk() {
                         try {
-                            await axios.delete(`http://localhost:5000/api/offers/${record.id}`);
+                            await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/offers/${record.id}`);
                             message.success('Offer deleted successfully');
                             fetchOffers();
                         } catch (error) {
@@ -524,7 +524,7 @@ const Onboarding = () => {
             case 'resend':
                 const resendHide = message.loading(`Resending offer to ${record.name}...`, 0);
                 try {
-                    await axios.post(`http://localhost:5000/api/offers/resend/${record.id}`);
+                    await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/offers/resend/${record.id}`);
                     message.success(`Offer resent successfully to ${record.name}`);
                     fetchOffers(); // Refresh to show updated status
                 } catch (error) {
@@ -536,7 +536,7 @@ const Onboarding = () => {
             case 'generateCredentials':
                 const genHide = message.loading(`Generating credentials for ${record.name}...`, 0);
                 try {
-                    await axios.post(`http://localhost:5000/api/employees/generate-credentials/${record.id}`);
+                    await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/employees/generate-credentials/${record.id}`);
                     message.success(`Credentials sent to ${record.name}`);
                     fetchOffers();
                 } catch (error) {
@@ -566,7 +566,7 @@ const Onboarding = () => {
         if (offer.onboardingStep === 'Ready') {
             try {
                 message.loading({ content: 'Adding as new employee...', key: 'convertEmployee' });
-                const response = await axios.post(`http://localhost:5000/api/offers/${selectedOfferId}/convert`);
+                const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/offers/${selectedOfferId}/convert`);
 
                 if (response.data.success) {
                     message.success({ content: 'Employee created successfully!', key: 'convertEmployee' });
@@ -601,7 +601,7 @@ const Onboarding = () => {
 
         try {
             message.loading({ content: 'Moving to next stage...', key: 'advanceStage' });
-            const response = await axios.post(`http://localhost:5000/api/offers/${selectedOfferId}/advance`);
+            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/offers/${selectedOfferId}/advance`);
 
             if (response.data.success) {
                 message.success({ content: `Moved to ${response.data.data.onboardingStep}`, key: 'advanceStage' });
@@ -742,7 +742,7 @@ const Onboarding = () => {
     const handleManualEntrySuccess = async () => {
         try {
             // After manual employee creation, we must delete the offer to complete the "conversion"
-            await axios.delete(`http://localhost:5000/api/offers/${selectedOfferId}`);
+            await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/offers/${selectedOfferId}`);
             setSelectedOfferId(null);
             fetchOffers();
             fetchReviews();

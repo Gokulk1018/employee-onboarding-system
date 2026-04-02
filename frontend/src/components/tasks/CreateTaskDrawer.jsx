@@ -15,7 +15,7 @@ const CreateTaskDrawer = ({ open, onClose, onSuccess }) => {
 
     const fetchEmployees = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/employees');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/employees`);
             if (response.data.success) {
                 setEmployees(response.data.data);
             }
@@ -28,7 +28,7 @@ const CreateTaskDrawer = ({ open, onClose, onSuccess }) => {
         try {
             const values = await form.validateFields();
             setLoading(true);
-            const response = await axios.post('http://localhost:5000/api/tasks/create', values);
+            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/tasks/create`, values);
             if (response.data.success) {
                 message.success('Task created successfully');
                 form.resetFields();
