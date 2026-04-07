@@ -117,7 +117,14 @@ exports.updateLeaveStatus = async (req, res, next) => {
             const diffDays = Math.ceil(Math.abs(end - start) / (1000 * 60 * 60 * 24)) + 1;
 
             const typeLower = leave.leaveType.toLowerCase();
-            employee.leaveBalance[typeLower] -= diffDays;
+            
+            // Safety check for leave balance key
+            if (employee.leaveBalance && typeof employee.leaveBalance[typeLower] === 'number') {
+                employee.leaveBalance[typeLower] -= diffDays;
+            } else {
+                console.warn(`[WARNING] Leave type "${typeLower}" not found in employee balance or is not a number. Skipping deduction.`);
+            }
+            
             employee.status = 'On Leave';
             await employee.save();
         }

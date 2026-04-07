@@ -47,6 +47,12 @@ const HiringChart = ({ data = [], loading }) => {
         return months;
     };
 
+    const [mounted, setMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const chartData = getChartData();
 
     return (
@@ -56,8 +62,9 @@ const HiringChart = ({ data = [], loading }) => {
             style={{ borderRadius: 20, height: '100%', minHeight: 400 }}
         >
             <div style={{ width: '100%', height: 300, minWidth: 0 }}>
-                <ResponsiveContainer width="100%" height={300} debounce={50} minWidth={0}>
-                    <AreaChart data={chartData}>
+                {mounted && (
+                    <ResponsiveContainer width="100%" height={300} debounce={50} minWidth={0}>
+                        <AreaChart data={chartData}>
                         <defs>
                             <linearGradient id="colorHired" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor={token.colorPrimary} stopOpacity={0.3} />
@@ -73,7 +80,8 @@ const HiringChart = ({ data = [], loading }) => {
                         />
                         <Area type="monotone" dataKey="hired" stroke={token.colorPrimary} strokeWidth={3} fillOpacity={1} fill="url(#colorHired)" />
                     </AreaChart>
-                </ResponsiveContainer>
+                    </ResponsiveContainer>
+                )}
             </div>
         </Card>
     );

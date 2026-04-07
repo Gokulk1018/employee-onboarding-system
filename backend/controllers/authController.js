@@ -296,7 +296,8 @@ exports.uploadHRAvatar = async (req, res, next) => {
         if (!req.file) {
             return res.status(400).json({ success: false, message: 'Please upload a file' });
         }
-        const fileUrl = `http://localhost:5000/uploads/${req.file.filename}`;
+        const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+        const fileUrl = `${baseUrl}/uploads/${req.file.filename}`;
         res.status(200).json({ success: true, url: fileUrl });
     } catch (err) {
         next(err);
