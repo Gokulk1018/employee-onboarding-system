@@ -393,8 +393,13 @@ const Onboarding = () => {
                 setOffersData(formattedData);
 
                 // Auto-select first offer if none selected or previous selection gone
-                if (formattedData.length > 0 && (!selectedOfferId || !formattedData.find(o => o.id === selectedOfferId))) {
-                    setSelectedOfferId(formattedData[0].id);
+                if (formattedData.length > 0) {
+                    setSelectedOfferId(prev => {
+                        if (!prev || !formattedData.find(o => o.id === prev)) {
+                            return formattedData[0].id;
+                        }
+                        return prev;
+                    });
                 }
             }
         } catch (error) {
@@ -483,17 +488,21 @@ const Onboarding = () => {
             setOffersData(filteredMockOffers);
 
             // Auto-select first offer
-            if (filteredMockOffers.length > 0 && (!selectedOfferId || !filteredMockOffers.find(o => o.id === selectedOfferId))) {
-                setSelectedOfferId(filteredMockOffers[0].id);
+            if (filteredMockOffers.length > 0) {
+                setSelectedOfferId(prev => {
+                    if (!prev || !filteredMockOffers.find(o => o.id === prev)) {
+                        return filteredMockOffers[0].id;
+                    }
+                    return prev;
+                });
             }
         } finally {
             setLoading(false);
         }
-    }, [statusFilter, searchText, selectedOfferId]); // Added selectedOfferId back for mock data filtering
+    }, [statusFilter, searchText]); // Removed selectedOfferId to prevent infinite loop
 
     useEffect(() => {
         fetchOffers();
-        fetchReviews();
     }, [fetchOffers]);
 
     const handleOfferAction = async (action, record) => {
