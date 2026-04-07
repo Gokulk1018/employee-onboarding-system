@@ -42,6 +42,8 @@ exports.submitOnboardingForm = async (req, res, next) => {
 
         // Update behavior based on current status
         const isReupload = user.status === 'reupload_required';
+        const notificationMsg = `${isReupload ? 'Updated' : 'New'} onboarding form submitted by ${user.candidateName}`;
+        
         user.status = 'submitted';
         await user.save();
 

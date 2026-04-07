@@ -102,8 +102,24 @@ exports.generateCredentials = async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Offer not found' });
         }
 
-        const username = offer.candidateName.toLowerCase().replace(/\s+/g, '');
+        let username = offer.candidateName.toLowerCase().replace(/\s+/g, '');
         const password = "123";
+
+        // Handle unique username generation
+        let existingUser = await OnboardingUser.findOne({ 
+            username, 
+            offerId: { $ne: offer._id } 
+        });
+        
+        let counter = 1;
+        while (existingUser) {
+            username = `${offer.candidateName.toLowerCase().replace(/\s+/g, '')}${counter}`;
+            existingUser = await OnboardingUser.findOne({ 
+                username, 
+                offerId: { $ne: offer._id } 
+            });
+            counter++;
+        }
 
         let onboardingUser = await OnboardingUser.findOne({ offerId: offer._id });
 
@@ -136,13 +152,25 @@ exports.generateCredentials = async (req, res, next) => {
             </div>
         `;
 
-        await sendEmail({
-            email: offer.candidateEmail,
-            subject: 'Your Onboarding Portal Credentials',
-            html: htmlContent
-        });
-
-        res.status(200).json({ success: true, message: 'Onboarding credentials generated and sent' });
+        try {
+            await sendEmail({
+                email: offer.candidateEmail,
+                subject: 'Your Onboarding Portal Credentials',
+                html: htmlContent
+            });
+            res.status(200).json({ 
+                success: true, 
+                message: 'Onboarding credentials generated and sent via email' 
+            });
+        } catch (emailError) {
+            console.error('[WARNING] Credentials email failed:', emailError.message);
+            res.status(200).json({ 
+                success: true, 
+                message: 'Credentials generated (Warning: Email failed to send). Please share manually.',
+                warning: 'EMAIL_FAILURE',
+                credentials: { username, password }
+            });
+        }
     } catch (err) {
         next(err);
     }
