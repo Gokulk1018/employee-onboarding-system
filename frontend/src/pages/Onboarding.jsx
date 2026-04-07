@@ -354,10 +354,10 @@ const Onboarding = () => {
         }
     }, [reviewData.length]);
 
-    // Auto-refresh reviews every 10 seconds
+    // Auto-refresh reviews every 30 seconds
     useEffect(() => {
         fetchReviews();
-        const interval = setInterval(fetchReviews, 10000);
+        const interval = setInterval(fetchReviews, 30000);
         return () => clearInterval(interval);
     }, [fetchReviews]);
 
