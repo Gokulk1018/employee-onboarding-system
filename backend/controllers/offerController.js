@@ -351,10 +351,11 @@ exports.resendOffer = async (req, res, next) => {
                 await offer.save();
             }
         } catch (err) {
-            console.error('[WARNING] Email send failed during resend:', err.message);
+            console.error('[ERROR] Resend Offer Failed:', err);
             return res.status(500).json({
                 success: false,
-                message: 'Failed to send email, please check configuration.'
+                message: `Failed to send email: ${err.message}. Please verify your SMTP/Email configuration in Render environment variables.`,
+                error: err.code || 'EMAIL_FAILURE'
             });
         }
 
