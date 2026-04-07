@@ -339,13 +339,12 @@ const Onboarding = () => {
     const selectedOffer = offersData.find(o => o.id === selectedOfferId) || null;
     const selectedReview = reviewData.find(r => r._id === selectedReviewId) || null;
 
-    const fetchReviews = async () => {
+    const fetchReviews = useCallback(async () => {
         // Only show full loading spinner on initial fetch, not during polling
         if (reviewData.length === 0) setReviewLoading(true);
         try {
             const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/onboarding/users`);
             if (response.data.success) {
-                console.log('[DEBUG] Fetched Reviews:', response.data.data.length, response.data.data);
                 setReviewData(response.data.data.filter(u => u.status !== 'pending'));
             }
         } catch (error) {
@@ -353,14 +352,14 @@ const Onboarding = () => {
         } finally {
             setReviewLoading(false);
         }
-    };
+    }, [reviewData.length]);
 
     // Auto-refresh reviews every 10 seconds
     useEffect(() => {
         fetchReviews();
         const interval = setInterval(fetchReviews, 10000);
         return () => clearInterval(interval);
-    }, []);
+    }, [fetchReviews]);
 
     const fetchOffers = useCallback(async () => {
         setLoading(true);

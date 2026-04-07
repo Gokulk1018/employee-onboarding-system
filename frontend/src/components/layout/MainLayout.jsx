@@ -42,6 +42,12 @@ const MainLayout = () => {
     const [notifications, setNotifications] = useState([]);
     const [loadingNotifications, setLoadingNotifications] = useState(false);
 
+    // Helper to check if string is a valid URL or data URI
+    const isValidAvatar = (str) => {
+        if (!str) return false;
+        return str.startsWith('http') || str.startsWith('data:') || str.includes('/');
+    };
+
     const fetchNotifications = async () => {
         try {
             const userId = localStorage.getItem('userId');
@@ -213,7 +219,7 @@ const MainLayout = () => {
                     </div>
                 )}
                 avatarProps={{
-                    src: adminAvatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
+                    src: isValidAvatar(adminAvatar) ? adminAvatar : 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
                     size: 'default',
                     title: <span style={{ color: token.colorText, fontWeight: 600 }}>{adminName}</span>,
                     render: (props, dom) => (

@@ -47,12 +47,24 @@ const LoginPage = () => {
         setLoading(true);
         const { username, password } = values;
 
+        // Show a helpful message if Render takes too long to wake up
+        const wakeUpTimer = setTimeout(() => {
+            message.info({
+                content: "Render is waking up the backend server. This might take up to 45 seconds on the first load...",
+                key: 'cold-start',
+                duration: 10
+            });
+        }, 5000);
+
         try {
             const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/login`, {
                 username,
                 password,
                 roleToggle: activeRole
             });
+
+            clearTimeout(wakeUpTimer);
+            message.destroy('cold-start');
 
             if (response.data.success) {
                 const { role, data, token: authToken } = response.data;
@@ -61,11 +73,17 @@ const LoginPage = () => {
                 localStorage.setItem('userId', data.userId);
                 localStorage.setItem('username', data.username);
                 localStorage.setItem('name', data.name);
-                localStorage.setItem('avatar', data.avatar || '');
+                
+                // Sanitize avatar: ensure it's a valid URL or empty
+                const avatarUrl = data.avatar && (data.avatar.startsWith('http') || data.avatar.startsWith('data:')) 
+                    ? data.avatar 
+                    : '';
+                localStorage.setItem('avatar', avatarUrl);
+                
                 localStorage.setItem('token', authToken);
 
                 // Save user object for api.js consistency
-                localStorage.setItem('user', JSON.stringify({ ...data, token: authToken, role }));
+                localStorage.setItem('user', JSON.stringify({ ...data, avatar: avatarUrl, token: authToken, role }));
 
                 if (role === 'onboarding') {
                     localStorage.setItem('offerId', data.offerId);
@@ -79,6 +97,8 @@ const LoginPage = () => {
                 else if (role === 'employee') navigate('/employee/dashboard');
             }
         } catch (error) {
+            clearTimeout(wakeUpTimer);
+            message.destroy('cold-start');
             message.error(error.response?.data?.message || 'Login failed. Please check your credentials.');
         } finally {
             setLoading(false);
