@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Row, Col, theme, message } from 'antd';
 import { TeamOutlined, ScheduleOutlined, DollarOutlined, HeartOutlined, PlusOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import api from '../services/api';
 import PageContainer from '../components/layout/PageContainer';
 import GreetingBanner from '../components/dashboard/GreetingBanner';
 import StatCard from '../components/common/StatCard';
@@ -51,12 +51,18 @@ const Dashboard = () => {
 
     const [loadingEmployees, setLoadingEmployees] = useState(false);
 
-    const fetchStats = async () => {
+    const fetchData = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/dashboard/stats`);
-            if (response.data.success) {
-                setData(response.data.data);
+            const [statsRes, employeesRes] = await Promise.all([
+                api.get('/dashboard/stats'),
+                api.get('/employees')
+            ]);
+            if (statsRes.data.success) {
+                setData(statsRes.data.data);
+            }
+            if (employeesRes.data.success) {
+                setEmployees(employeesRes.data.data);
             }
         } catch (error) {
             console.error('Error fetching dashboard stats:', error);
@@ -67,9 +73,9 @@ const Dashboard = () => {
     };
 
     const fetchLeaderboard = async () => {
+        setLoadingLeaderboard(true);
         try {
-            setLoadingLeaderboard(true);
-            const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/dashboard/leaderboard`);
+            const response = await api.get('/dashboard/leaderboard');
             if (response.data.success) {
                 setLeaderboardData(response.data.data);
             }
@@ -81,26 +87,13 @@ const Dashboard = () => {
         }
     };
 
-    const fetchEmployees = async () => {
-        try {
-            setLoadingEmployees(true);
-            const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/employees`);
-            if (response.data.success) {
-                setEmployees(response.data.data);
-            }
-        } catch (error) {
-            console.error('Error fetching employees:', error);
-        } finally {
-            setLoadingEmployees(false);
-        }
-    };
 
     const handleMeetingSubmit = async (meetingData) => {
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/tasks/create`, meetingData);
+            await api.post('/tasks/create', meetingData);
             message.success('Team meeting scheduled successfully');
             setIsMeetingModalOpen(false);
-            fetchStats(); // Refresh to show new task in overview
+            fetchData(); // Refresh to show new task in overview
         } catch (error) {
             console.error('Error scheduling meeting:', error);
             message.error('Failed to schedule meeting');
@@ -108,8 +101,7 @@ const Dashboard = () => {
     };
 
     useEffect(() => {
-        fetchStats();
-        fetchEmployees();
+        fetchData();
     }, []);
 
     return (
@@ -212,7 +204,7 @@ const Dashboard = () => {
                         <Row gutter={[24, 24]}>
                             <Col span={24}>
                                 <motion.div variants={itemVariants} style={{ height: '100%' }}>
-                                    <PendingApprovals data={data?.pendingApprovals} loading={loading} onRefresh={fetchStats} />
+                                    <PendingApprovals data={data?.pendingApprovals} loading={loading} onRefresh={fetchData} />
                                 </motion.div>
                             </Col>
                             <Col span={24}>
@@ -247,7 +239,7 @@ const Dashboard = () => {
                 <LeaveManagementModal
                     open={isLeaveManagementModalOpen}
                     onClose={() => setIsLeaveManagementModalOpen(false)}
-                    onRefresh={fetchStats}
+                    onRefresh={fetchData}
                 />
 
                 <LeaderboardModal

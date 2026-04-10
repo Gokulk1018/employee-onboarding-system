@@ -23,7 +23,7 @@ const LeaderboardModal = ({ open, onClose, data = [], loading }) => {
                     <Title level={4} style={{ margin: 0 }}>Company Leaderboard</Title>
                 </Space>
             }
-            bodyStyle={{ padding: '0 24px 24px' }}
+            styles={{ body: { padding: '0 24px 24px' } }}
             closeIcon={<CloseOutlined style={{ color: token.colorTextSecondary }} />}
             centered
         >

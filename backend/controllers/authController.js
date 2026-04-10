@@ -102,19 +102,6 @@ exports.login = async (req, res, next) => {
                     role: 'hr'
                 }
             });
-
-            return res.status(200).json({
-                success: true,
-                role: 'hr',
-                token,
-                data: {
-                    userId: user ? user._id : '507f1f77bcf86cd799439011',
-                    username: user ? user.username : 'gokul',
-                    name: user ? user.name : 'Gokul HR',
-                    avatar: user ? user.avatar : '',
-                    role: 'hr'
-                }
-            });
         } else {
             // Employee Toggle - check candidates (onboarding) first
             let onboardingUser = await OnboardingUser.findOne({ username: normalizedUsername });
@@ -124,18 +111,28 @@ exports.login = async (req, res, next) => {
                     return res.status(401).json({ success: false, message: 'Invalid credentials' });
                 }
 
+                const userData = {
+                    userId: onboardingUser._id,
+                    username: onboardingUser.username,
+                    name: onboardingUser.candidateName,
+                    avatar: '',
+                    offerId: onboardingUser.offerId,
+                    status: onboardingUser.status,
+                    role: 'onboarding'
+                };
+
+                // Generate token for Onboarding User
+                const token = jwt.sign(
+                    { id: onboardingUser._id, role: 'onboarding' },
+                    process.env.JWT_SECRET,
+                    { expiresIn: '24h' }
+                );
+
                 return res.status(200).json({
                     success: true,
+                    token,
                     role: 'onboarding',
-                    data: {
-                        userId: onboardingUser._id,
-                        username: onboardingUser.username,
-                        name: onboardingUser.candidateName,
-                        avatar: '', // Candidates don't usually have avatars yet
-                        offerId: onboardingUser.offerId,
-                        status: onboardingUser.status,
-                        role: 'onboarding'
-                    }
+                    data: userData
                 });
             }
 

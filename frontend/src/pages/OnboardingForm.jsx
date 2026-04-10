@@ -8,7 +8,7 @@ import {
     HomeOutlined, UploadOutlined, CheckOutlined
 } from '@ant-design/icons';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
 
 const { Title, Text } = Typography;
@@ -36,7 +36,7 @@ const OnboardingForm = () => {
                     return;
                 }
 
-                const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/onboarding/user/${userId}`);
+                const response = await api.get(`/onboarding/user/${userId}`);
                 if (response.data.success) {
                     const user = response.data.data;
                     setUserData(user);
@@ -90,7 +90,7 @@ const OnboardingForm = () => {
                 uploadedAt: new Date()
             }));
 
-            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/onboarding/submit`, {
+            const response = await api.post('/onboarding/submit', {
                 userId,
                 personalData: values,
                 documents: documents

@@ -22,7 +22,7 @@ import {
     SendOutlined,
     UserAddOutlined
 } from '@ant-design/icons';
-import axios from 'axios';
+import api from '../services/api';
 import OnboardingStepper from '../components/onboarding/OnboardingStepper';
 import OfferDrawer from '../components/onboarding/OfferDrawer';
 import AddEmployeeModal from '../components/employees/AddEmployeeModal';
@@ -89,7 +89,7 @@ const OnboardingReviewList = ({
 
     const handleVerifyDoc = async (docId, status) => {
         try {
-            await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/onboarding/verify-document/${selectedReview._id}`, {
+            await api.put(`/onboarding/verify-document/${selectedReview._id}`, {
                 documentId: docId,
                 status
             });
@@ -109,7 +109,7 @@ const OnboardingReviewList = ({
         try {
             const endpoint = action === 'finalize' ? 'finalize' : 'reject-details';
             const payload = action === 'finalize' ? { joiningDate } : { remarks: reviewRemarks };
-            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/onboarding/${endpoint}/${selectedReview._id}`, payload);
+            const response = await api.post(`/onboarding/${endpoint}/${selectedReview._id}`, payload);
             if (response.data.success) {
                 message.success(action === 'finalize' ? 'Onboarding finalized successfully' : 'Onboarding details rejected');
                 setIsReviewModalOpen(false);
@@ -343,7 +343,7 @@ const Onboarding = () => {
         // Only show full loading spinner on initial fetch, not during polling
         if (reviewData.length === 0) setReviewLoading(true);
         try {
-            const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/onboarding/users`);
+            const response = await api.get('/onboarding/users');
             if (response.data.success) {
                 setReviewData(response.data.data.filter(u => u.status !== 'pending'));
             }
@@ -364,7 +364,7 @@ const Onboarding = () => {
     const fetchOffers = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/offers`, {
+            const response = await api.get('/offers', {
                 params: {
                     status: statusFilter,
                     search: searchText
@@ -402,99 +402,8 @@ const Onboarding = () => {
                 }
             }
         } catch (error) {
-            console.warn('Backend not available, using mock data:', error.message);
-
-            // Fallback to mock data when backend is not available
-            const mockOffers = [
-                {
-                    key: 'mock-1',
-                    id: 'mock-1',
-                    name: 'Sarah Johnson',
-                    email: 'sarah.johnson@example.com',
-                    phone: '+1 (555) 123-4567',
-                    role: 'Senior Software Engineer',
-                    status: 'Sent',
-                    rawStatus: 'Sent',
-                    date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-                    joiningDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-                    rawJoiningDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-                    department: 'Engineering',
-                    salary: '$120,000 - $150,000'
-                },
-                {
-                    key: 'mock-2',
-                    id: 'mock-2',
-                    name: 'Michael Chen',
-                    email: 'michael.chen@example.com',
-                    phone: '+1 (555) 234-5678',
-                    role: 'Product Manager',
-                    status: 'Accepted',
-                    rawStatus: 'Accepted',
-                    date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-                    joiningDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-                    rawJoiningDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-                    department: 'Product',
-                    salary: '$110,000 - $140,000'
-                },
-                {
-                    key: 'mock-3',
-                    id: 'mock-3',
-                    name: 'Emily Rodriguez',
-                    email: 'emily.rodriguez@example.com',
-                    phone: '+1 (555) 345-6789',
-                    role: 'UX Designer',
-                    status: 'Draft',
-                    rawStatus: 'Draft',
-                    date: new Date().toLocaleDateString(),
-                    joiningDate: 'N/A',
-                    rawJoiningDate: null,
-                    department: 'Design',
-                    salary: '$90,000 - $115,000'
-                },
-                {
-                    key: 'mock-4',
-                    id: 'mock-4',
-                    name: 'David Kim',
-                    email: 'david.kim@example.com',
-                    phone: '+1 (555) 456-7890',
-                    role: 'DevOps Engineer',
-                    status: 'Rejected',
-                    rawStatus: 'Rejected',
-                    date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-                    joiningDate: 'N/A',
-                    rawJoiningDate: null,
-                    department: 'Engineering',
-                    salary: '$105,000 - $130,000'
-                }
-            ];
-
-            // Apply filters to mock data
-            let filteredMockOffers = mockOffers;
-
-            if (statusFilter !== 'All') {
-                filteredMockOffers = mockOffers.filter(offer => offer.rawStatus === statusFilter);
-            }
-
-            if (searchText) {
-                const searchLower = searchText.toLowerCase();
-                filteredMockOffers = filteredMockOffers.filter(offer =>
-                    offer.name.toLowerCase().includes(searchLower) ||
-                    offer.email.toLowerCase().includes(searchLower) ||
-                    offer.role.toLowerCase().includes(searchLower)
-                );
-            }
-
-            setOffersData(filteredMockOffers);
-
-            // Auto-select first offer
-            if (filteredMockOffers.length > 0) {
-                setSelectedOfferId(prev => {
-                    if (!prev || !filteredMockOffers.find(o => o.id === prev)) {
-                        return filteredMockOffers[0].id;
-                    }
-                    return prev;
-                });
-            }
+            console.error('Failed to fetch offers:', error);
+            message.error('Failed to load onboarding data from server.');
         } finally {
             setLoading(false);
         }
@@ -532,7 +441,7 @@ const Onboarding = () => {
             case 'resend':
                 const resendHide = message.loading(`Resending offer to ${record.name}...`, 0);
                 try {
-                    await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/offers/resend/${record.id}`);
+                    await api.post(`/offers/resend/${record.id}`);
                     message.success(`Offer resent successfully to ${record.name}`);
                     fetchOffers(); // Refresh to show updated status
                 } catch (error) {
@@ -544,7 +453,7 @@ const Onboarding = () => {
             case 'generateCredentials':
                 const genHide = message.loading(`Generating credentials for ${record.name}...`, 0);
                 try {
-                    await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/employees/generate-credentials/${record.id}`);
+                    await api.post(`/employees/generate-credentials/${record.id}`);
                     message.success(`Credentials sent to ${record.name}`);
                     fetchOffers();
                 } catch (error) {
@@ -559,6 +468,25 @@ const Onboarding = () => {
             case 'view':
                 setSelectedOfferId(record.id);
                 break;
+            case 'accept_manual':
+            case 'reject_manual': {
+                const isAccept = action === 'accept_manual';
+                const endpoint = isAccept ? 'accept' : 'reject';
+                const key = `manual_${endpoint}`;
+                
+                try {
+                    message.loading({ content: `${isAccept ? 'Accepting' : 'Rejecting'} offer...`, key });
+                    const response = await api.post(`/offers/${record.id}/${endpoint}`);
+                    
+                    if (response.data.success) {
+                        message.success({ content: `Offer ${isAccept ? 'accepted' : 'rejected'} successfully`, key });
+                        fetchOffers();
+                    }
+                } catch (error) {
+                    message.error({ content: error.response?.data?.message || `Failed to ${endpoint} offer`, key });
+                }
+                break;
+            }
             default:
                 break;
         }
@@ -574,7 +502,7 @@ const Onboarding = () => {
         if (offer.onboardingStep === 'Ready') {
             try {
                 message.loading({ content: 'Adding as new employee...', key: 'convertEmployee' });
-                const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/offers/${selectedOfferId}/convert`);
+                const response = await api.post(`/offers/${selectedOfferId}/convert`);
 
                 if (response.data.success) {
                     message.success({ content: 'Employee created successfully!', key: 'convertEmployee' });
@@ -602,6 +530,7 @@ const Onboarding = () => {
             return;
         }
 
+
         if (offer.id.toString().startsWith('mock-')) {
             message.info('Cannot advance mock candidates. Please create a real offer.');
             return;
@@ -609,7 +538,7 @@ const Onboarding = () => {
 
         try {
             message.loading({ content: 'Moving to next stage...', key: 'advanceStage' });
-            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/offers/${selectedOfferId}/advance`);
+            const response = await api.post(`/offers/${selectedOfferId}/advance`);
 
             if (response.data.success) {
                 message.success({ content: `Moved to ${response.data.data.onboardingStep}`, key: 'advanceStage' });
@@ -632,8 +561,22 @@ const Onboarding = () => {
                 key: 'resend',
                 label: 'Resend Offer',
                 icon: <MailOutlined />,
-                disabled: record.rawStatus === 'Draft' || record.rawStatus === 'Accepted' || record.rawStatus === 'OFFER_ACCEPTED',
+                disabled: record.rawStatus === 'Draft' || record.rawStatus === 'Accepted',
                 onClick: () => handleOfferAction('resend', record)
+            },
+            {
+                key: 'accept_manual',
+                label: 'Mark as Accepted',
+                icon: <CheckCircleOutlined />,
+                disabled: record.rawStatus === 'Accepted' || record.rawStatus === 'Rejected',
+                onClick: () => handleOfferAction('accept_manual', record)
+            },
+            {
+                key: 'reject_manual',
+                label: 'Mark as Rejected',
+                icon: <CloseCircleOutlined />,
+                disabled: record.rawStatus === 'Accepted' || record.rawStatus === 'Rejected',
+                onClick: () => handleOfferAction('reject_manual', record)
             },
             {
                 key: 'download',
@@ -750,7 +693,7 @@ const Onboarding = () => {
     const handleManualEntrySuccess = async () => {
         try {
             // After manual employee creation, we must delete the offer to complete the "conversion"
-            await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/offers/${selectedOfferId}`);
+            await api.delete(`/offers/${selectedOfferId}`);
             setSelectedOfferId(null);
             fetchOffers();
             fetchReviews();
@@ -804,8 +747,8 @@ const Onboarding = () => {
                                         <Select.Option value="All">All Status</Select.Option>
                                         <Select.Option value="Draft">Draft</Select.Option>
                                         <Select.Option value="Sent">Sent</Select.Option>
-                                        <Select.Option value="OFFER_ACCEPTED">Accepted</Select.Option>
-                                        <Select.Option value="DECLINED">Rejected</Select.Option>
+                                        <Select.Option value="Accepted">Accepted</Select.Option>
+                                        <Select.Option value="Rejected">Rejected</Select.Option>
                                     </Select>
                                 </Space>
                             </div>

@@ -79,12 +79,14 @@ const ActiveForms = () => {
         <Card
             className="glass-card"
             title={
-                <Space>
-                    <StarOutlined style={{ color: token.colorWarning }} />
-                    <Title level={4} style={{ margin: 0 }}>Active Engagement Tasks</Title>
+                <Space direction="vertical" size={2}>
+                    <Space>
+                        <StarOutlined style={{ color: token.colorWarning }} />
+                        <Title level={4} style={{ margin: 0 }}>Active Engagement Tasks</Title>
+                    </Space>
+                    <Text type="secondary" style={{ fontSize: 12, fontWeight: 400 }}>Participate in ongoing forms and surveys</Text>
                 </Space>
             }
-            subTitle="Participate in ongoing forms and surveys"
             style={{ borderRadius: 24 }}
         >
             <div style={{ maxHeight: 400, overflowY: 'auto', paddingRight: 8, margin: '-8px -8px -8px 0' }} className="custom-scrollbar">

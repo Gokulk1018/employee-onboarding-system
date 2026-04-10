@@ -15,6 +15,12 @@ const data = [
 const HiringChart = ({ data = [], loading }) => {
     const { token } = theme.useToken();
 
+    const [mounted, setMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
+
     if (loading) {
         return (
             <Card
@@ -47,12 +53,6 @@ const HiringChart = ({ data = [], loading }) => {
         return months;
     };
 
-    const [mounted, setMounted] = React.useState(false);
-
-    React.useEffect(() => {
-        setMounted(true);
-    }, []);
-
     const chartData = getChartData();
 
     return (
@@ -63,7 +63,7 @@ const HiringChart = ({ data = [], loading }) => {
         >
             <div style={{ width: '100%', height: 300, minWidth: 0 }}>
                 {mounted && (
-                    <ResponsiveContainer width="100%" height={300} debounce={50} minWidth={0}>
+                    <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={chartData}>
                         <defs>
                             <linearGradient id="colorHired" x1="0" y1="0" x2="0" y2="1">

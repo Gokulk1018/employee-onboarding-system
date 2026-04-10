@@ -20,9 +20,9 @@ import {
     ArrowRightOutlined
 } from '@ant-design/icons';
 import { motion, AnimatePresence } from 'framer-motion';
+import api from '../services/api';
 import { useTheme } from '../context/ThemeContext';
 import { useSettings } from '../context/SettingsContext';
-import axios from 'axios';
 
 const { Title, Text, Link } = Typography;
 
@@ -57,7 +57,7 @@ const LoginPage = () => {
         }, 5000);
 
         try {
-            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/login`, {
+            const response = await api.post('/auth/login', {
                 username,
                 password,
                 roleToggle: activeRole

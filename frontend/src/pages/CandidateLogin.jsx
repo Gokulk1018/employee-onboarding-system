@@ -34,9 +34,10 @@ const CandidateLogin = () => {
         const { username, password } = values;
 
         try {
-            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/onboarding/login`, {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/login`, {
                 username,
-                password
+                password,
+                roleToggle: 'employee'
             });
 
             if (response.data.success) {

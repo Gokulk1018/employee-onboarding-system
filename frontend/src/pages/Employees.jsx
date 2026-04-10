@@ -10,8 +10,8 @@ import AddEmployeeModal from '../components/employees/AddEmployeeModal';
 import EmployeeDetailsModal from '../components/employees/EmployeeDetailsModal';
 import { motion } from 'framer-motion';
 import PageContainer from '../components/layout/PageContainer';
+import api from '../services/api';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
 
 const { Title } = Typography;
 
@@ -30,9 +30,9 @@ const Employees = () => {
     const [searchTerm, setSearchTerm] = useState('');
 
     const fetchEmployees = async () => {
+        setLoading(true);
         try {
-            setLoading(true);
-            const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/employees`);
+            const response = await api.get('/employees');
             if (response.data.success) {
                 setEmployees(response.data.data);
             }

@@ -11,6 +11,7 @@ import {
     ProjectOutlined
 } from '@ant-design/icons';
 import { motion, AnimatePresence } from 'framer-motion';
+import api from '../services/api';
 import PageContainer from '../components/layout/PageContainer';
 import JobPostingDrawer from '../components/recruitment/JobPostingDrawer';
 import JobList from '../components/recruitment/JobList';
@@ -33,19 +34,19 @@ const RecruitmentDashboard = () => {
 
     React.useEffect(() => {
         const fetchJobs = async () => {
-            try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/jobs`);
-                const data = await response.json();
-                if (data.success) {
-                    setJobs(data.data);
-                }
-            } catch (error) {
-                console.error("Failed to fetch jobs:", error);
-                // Fallback to mock if needed, or just show empty
-                setJobs(getSessionJobs());
-            } finally {
-                setLoading(false);
+        setLoading(true);
+        try {
+            const response = await api.get('/jobs');
+            if (response.data.success) {
+                setJobs(response.data.data);
             }
+        } catch (error) {
+            console.error("Failed to fetch jobs:", error);
+            // Fallback to mock if needed, or just show empty
+            setJobs(getSessionJobs());
+        } finally {
+            setLoading(false);
+        }
         };
         fetchJobs();
     }, []);

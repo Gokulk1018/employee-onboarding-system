@@ -18,7 +18,7 @@ import TaskFilterPanel from '../components/tasks/TaskFilterPanel';
 import TaskDetailDrawer from '../components/tasks/TaskDetailDrawer';
 import { motion } from 'framer-motion';
 import PageContainer from '../components/layout/PageContainer';
-import axios from 'axios';
+import api from '../services/api';
 import { useLocation } from 'react-router-dom';
 
 const { Title } = Typography;
@@ -50,7 +50,7 @@ const Tasks = () => {
     const fetchTasks = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/tasks`);
+            const response = await api.get('/tasks');
             if (response.data.success) {
                 setTasks(response.data.data);
             }
@@ -65,7 +65,7 @@ const Tasks = () => {
     const fetchEmployees = async () => {
         setLoadingEmployees(true);
         try {
-            const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/employees`);
+            const response = await api.get('/employees');
             if (response.data.success) {
                 setEmployees(response.data.data);
             }

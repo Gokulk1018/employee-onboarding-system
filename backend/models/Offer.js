@@ -34,7 +34,7 @@ const offerSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Sent', 'Accepted', 'Rejected'],
+        enum: ['Draft', 'Sent', 'Accepted', 'Rejected', 'Hired'],
         default: 'Sent'
     },
     token: {
@@ -47,7 +47,7 @@ const offerSchema = new mongoose.Schema({
     },
     onboardingStep: {
         type: String,
-        enum: ['Offer Accepted', 'Documentation', 'IT Setup', 'Orientation', 'Ready'],
+        enum: ['Offer Accepted', 'Documentation', 'IT Setup', 'Orientation', 'Ready', 'Completed'],
         default: 'Offer Accepted'
     }
 }, {

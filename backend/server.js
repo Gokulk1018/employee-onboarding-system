@@ -2,6 +2,15 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
+const fs = require('fs');
+const path = require('path');
+
+// Ensure upload directory exists
+const uploadDir = path.join(__dirname, 'public/uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+    console.log('Created upload directory:', uploadDir);
+}
 
 // Route imports
 const offerRoutes = require('./routes/offerRoutes');

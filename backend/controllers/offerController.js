@@ -194,7 +194,25 @@ exports.rejectOffer = async (req, res) => {
 // @desc    Get all offers
 exports.getOffers = async (req, res, next) => {
     try {
-        const offers = await Offer.find().sort({ createdAt: -1 });
+        const { status, search } = req.query;
+        const filter = {};
+
+        if (status && status !== 'All') {
+            filter.status = status;
+        } else if (!status) {
+            // By default, exclude 'Hired' (converted) records from the active onboarding view
+            filter.status = { $ne: 'Hired' };
+        }
+
+        if (search) {
+            filter.$or = [
+                { candidateName: { $regex: search, $options: 'i' } },
+                { candidateEmail: { $regex: search, $options: 'i' } },
+                { role: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        const offers = await Offer.find(filter).sort({ createdAt: -1 });
         res.status(200).json({ success: true, count: offers.length, data: offers });
     } catch (err) {
         next(err);
@@ -445,6 +463,10 @@ exports.convertOfferToEmployee = async (req, res, next) => {
                 });
             }
 
+            // Find associated OnboardingUser to copy credentials
+            const OnboardingUser = require('../models/OnboardingUser');
+            const onboardingUser = await OnboardingUser.findOne({ offerId: offer._id }).select('+password');
+
             const employeeData = {
                 name: offer.candidateName,
                 email: offer.candidateEmail,
@@ -452,9 +474,11 @@ exports.convertOfferToEmployee = async (req, res, next) => {
                 role: offer.role,
                 joinDate: offer.joiningDate,
                 offerId: offer._id,
-                status: 'Active'
+                status: 'Active',
+                username: onboardingUser?.username,
+                password: onboardingUser?.password
             };
-            console.log(`\x1b[33m[DEBUG-CONVERT] Employee Payload: ${JSON.stringify(employeeData, null, 2)}\x1b[0m`);
+            console.log(`\x1b[33m[DEBUG-CONVERT] Employee Payload: ${JSON.stringify({ ...employeeData, password: '***' }, null, 2)}\x1b[0m`);
 
             employee = await Employee.create(employeeData);
             console.log(`\x1b[32m[DEBUG-CONVERT] SUCCESS: Employee Created with ID: ${employee._id}\x1b[0m`);
@@ -472,24 +496,81 @@ exports.convertOfferToEmployee = async (req, res, next) => {
             });
         }
 
-        // Delete the matching onboarding user to clean up
-        console.log(`\x1b[33m[DEBUG-CONVERT] Cleaning up OnboardingUser...\x1b[0m`);
+        // Archive the OnboardingUser instead of deleting
+        console.log(`\x1b[33m[DEBUG-CONVERT] Archiving OnboardingUser...\x1b[0m`);
         const OnboardingUser = require('../models/OnboardingUser');
-        await OnboardingUser.findOneAndDelete({ offerId: offer._id });
+        await OnboardingUser.findOneAndUpdate(
+            { offerId: offer._id },
+            { status: 'completed' }
+        );
 
-        // Delete the offer after employee is created
-        console.log(`\x1b[33m[DEBUG-CONVERT] Deleting Offer Record...\x1b[0m`);
-        await Offer.findByIdAndDelete(req.params.id);
+        // Archive the offer by marking as 'Hired' instead of deleting
+        console.log(`\x1b[33m[DEBUG-CONVERT] Marking Offer as Hired...\x1b[0m`);
+        await Offer.findByIdAndUpdate(req.params.id, { status: 'Hired' });
 
         console.log(`\x1b[32m[DEBUG-CONVERT] FINISHED: ${offer.candidateName} converted successfully!\x1b[0m\n`);
 
         res.status(200).json({
             success: true,
             data: employee,
-            message: 'Employee created successfully and onboarding record cleared'
+            message: 'Employee created successfully'
         });
     } catch (err) {
         console.error(`\x1b[31m[DEBUG-CONVERT] UNEXPECTED_ERROR:\x1b[0m`, err);
+        next(err);
+    }
+};
+
+// @desc    Manually accept offer (HR override)
+// @route   POST /api/offers/:id/accept
+exports.acceptOfferById = async (req, res, next) => {
+    try {
+        const offer = await Offer.findById(req.params.id);
+        if (!offer) return res.status(404).json({ success: false, message: 'Offer not found' });
+
+        offer.status = 'Accepted';
+        await offer.save();
+
+        // Create notification
+        await Notification.create({
+            title: 'Offer Accepted (Manual)',
+            candidateName: offer.candidateName,
+            candidateEmail: offer.candidateEmail,
+            status: 'Accepted',
+            message: `${offer.candidateName}'s offer has been manually marked as ACCEPTED by HR.`,
+            isGlobal: true,
+            link: '/onboarding'
+        });
+
+        res.status(200).json({ success: true, message: 'Offer marked as Accepted', data: offer });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @desc    Manually reject offer (HR override)
+// @route   POST /api/offers/:id/reject
+exports.rejectOfferById = async (req, res, next) => {
+    try {
+        const offer = await Offer.findById(req.params.id);
+        if (!offer) return res.status(404).json({ success: false, message: 'Offer not found' });
+
+        offer.status = 'Rejected';
+        await offer.save();
+
+        // Create notification
+        await Notification.create({
+            title: 'Offer Rejected (Manual)',
+            candidateName: offer.candidateName,
+            candidateEmail: offer.candidateEmail,
+            status: 'Rejected',
+            message: `${offer.candidateName}'s offer has been manually marked as REJECTED by HR.`,
+            isGlobal: true,
+            link: '/recruitment'
+        });
+
+        res.status(200).json({ success: true, message: 'Offer marked as Rejected', data: offer });
+    } catch (err) {
         next(err);
     }
 };

@@ -11,7 +11,7 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import api from '../services/api';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 dayjs.extend(relativeTime);
@@ -43,8 +43,8 @@ const EmployeePortal = () => {
 
                 // Fetch Profile and Stats in parallel
                 const [profileRes, statsRes] = await Promise.all([
-                    axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/employees/${userId}`),
-                    axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/employees/me/dashboard/${userId}`)
+                    api.get(`/employees/${userId}`),
+                    api.get(`/employees/me/dashboard/${userId}`)
                 ]);
 
                 if (profileRes.data.success) {

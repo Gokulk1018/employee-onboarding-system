@@ -86,7 +86,7 @@ const JobPortal = () => {
                                 <Card
                                     className="glass-card"
                                     style={{ borderRadius: 24, height: '100%' }}
-                                    bodyStyle={{ padding: 24 }}
+                                    styles={{ body: { padding: 24 } }}
                                 >
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
                                         <Avatar
