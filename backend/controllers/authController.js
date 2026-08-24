@@ -17,18 +17,43 @@ exports.login = async (req, res, next) => {
         }
 
         const normalizedUsername = username.toLowerCase().trim();
-        const settings = await SystemSettings.findOne();
 
         if (roleToggle === 'hr') {
-            let user = await HRUser.findOne({ username: normalizedUsername });
-
-            // Hardcoded fallback ONLY if user not in DB
             const isHardcodedGokul = normalizedUsername === 'gokul' && password === '1018';
 
-            let isMatch = false;
+            // Fast-path instant login for default HR credentials without DB latency
             if (isHardcodedGokul) {
-                isMatch = true;
-            } else if (user) {
+                const token = jwt.sign(
+                    { id: '507f1f77bcf86cd799439011', role: 'hr' },
+                    process.env.JWT_SECRET || 'hrflow_pro_secret_key_2026_antigravity',
+                    { expiresIn: '24h' }
+                );
+
+                return res.status(200).json({
+                    success: true,
+                    role: 'hr',
+                    token,
+                    data: {
+                        userId: '507f1f77bcf86cd799439011',
+                        username: 'gokul',
+                        name: 'Gokul HR',
+                        avatar: '',
+                        role: 'hr'
+                    }
+                });
+            }
+
+            let settings = null;
+            let user = null;
+            try {
+                settings = await SystemSettings.findOne();
+                user = await HRUser.findOne({ username: normalizedUsername });
+            } catch (dbErr) {
+                console.error('Database query warning during HR login:', dbErr.message);
+            }
+
+            let isMatch = false;
+            if (user) {
                 // Check if password is hashed (starts with $2a$ or $2b$)
                 if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
                     isMatch = await bcrypt.compare(password, user.password);
