@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Tag, Button, Typography, Space, Divider, List, Avatar, Spin, Modal, Form, Input, InputNumber, DatePicker, Select, App, Breadcrumb, Descriptions, Row, Col, Tooltip, message as antMessage } from 'antd';
+import { Card, Tag, Button, Typography, Space, Divider, List, Avatar, Spin, Modal, Form, Input, DatePicker, Select, App, Breadcrumb, Descriptions, Row, Col, Tooltip, message as antMessage } from 'antd';
 import {
     ArrowLeftOutlined, EditOutlined, ShareAltOutlined, PlusOutlined,
     InstagramOutlined, LinkedinOutlined, WhatsAppOutlined, MailOutlined, CopyOutlined, GlobalOutlined, CheckCircleOutlined,
@@ -10,7 +10,7 @@ import { motion } from 'framer-motion';
 import PageContainer from '../components/layout/PageContainer';
 import RecruitmentKanban from '../components/recruitment/RecruitmentKanban';
 import CandidateTable from '../components/recruitment/CandidateTable';
-import { getSessionJobs, updateSessionCandidates, getSessionCandidates } from '../data/mockRecruitmentData';
+
 import dayjs from 'dayjs';
 import { theme } from 'antd';
 import api from '../services/api';
@@ -48,11 +48,6 @@ const JobDetails = () => {
 
     useEffect(() => {
         const fetchJobAndCandidates = async () => {
-            // Load custom mocks for this job ID if they exist in session
-            const sessionMocks = JSON.parse(sessionStorage.getItem('sessionMocks') || '{}');
-            if (sessionMocks[id]) {
-                setMocks(sessionMocks[id]);
-            }
 
             // Validate ID before fetching
             if (!isValidMongoId(id)) {
@@ -60,6 +55,7 @@ const JobDetails = () => {
                 navigate('/recruitment');
                 return;
             }
+
 
             try {
                 // Fetch job and candidates in parallel
