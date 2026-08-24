@@ -38,31 +38,9 @@ const app = express();
 // Middleware
 app.use(express.json());
 
-// Enhanced CORS configuration
+// Dynamic CORS configuration (allows Netlify, local dev, and all production origins)
 app.use(cors({
-    origin: (origin, callback) => {
-        const allowedOrigins = [
-            process.env.FRONTEND_URL,
-            'https://employees-onboarding-system.netlify.app',
-            'http://localhost:5173',
-            'http://localhost:3000'
-        ].filter(Boolean);
-
-        // Allow requests with no origin (like mobile apps or curl)
-        if (!origin) return callback(null, true);
-
-        const isAllowed = allowedOrigins.some(ao => {
-            const normalizedAo = ao.replace(/\/$/, '');
-            const normalizedOrigin = origin.replace(/\/$/, '');
-            return normalizedAo === normalizedOrigin;
-        });
-
-        if (isAllowed) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
+    origin: true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-user-id']

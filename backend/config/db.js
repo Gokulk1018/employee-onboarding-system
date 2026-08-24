@@ -27,7 +27,8 @@ const connectDB = async () => {
             console.error(' 3. If using standard connection string, update MONGO_URI in backend/.env.');
             console.error('=============================================================\n');
         }
-        process.exit(1);
+        // Do not crash the entire process with process.exit(1) so Express stays alive
+        // and returns proper API responses instead of Render 502 Bad Gateway
     }
 };
 
