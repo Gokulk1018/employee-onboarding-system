@@ -18,14 +18,6 @@ import api from '../services/api';
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-const INITIAL_MOCK_CANDIDATES = [
-    { _id: "m1", name: "Alice Johnson", email: "alice@mail.com", experience: "2 yrs", skills: ["React", "JS"], stage: "Applied", status: "In Progress", resumeUrl: "#" },
-    { _id: "m2", name: "Bob Smith", email: "bob@mail.com", experience: "4 yrs", skills: ["Node", "MongoDB"], stage: "Screening", status: "In Progress", resumeUrl: "#" },
-    { _id: "m3", name: "Charlie Lee", email: "charlie@mail.com", experience: "5 yrs", skills: ["AWS", "Docker"], stage: "Technical Round", status: "In Progress", resumeUrl: "#" },
-    { _id: "m4", name: "David Kumar", email: "david@mail.com", experience: "3 yrs", skills: ["CI/CD", "Terraform"], stage: "HR Interview", status: "In Progress", resumeUrl: "#" },
-    { _id: "m5", name: "Eva Brown", email: "eva@mail.com", experience: "1 yr", skills: ["HTML", "CSS"], stage: "Applied", status: "In Progress", resumeUrl: "#" },
-    { _id: "m6", name: "Frank Chen", email: "frank@mail.com", experience: "6 yrs", skills: ["Kubernetes", "Linux"], stage: "Screening", status: "In Progress", resumeUrl: "#" }
-];
 
 const JobDetails = () => {
     const { message } = App.useApp();
@@ -35,11 +27,7 @@ const JobDetails = () => {
     const [form] = Form.useForm();
 
     const [job, setJob] = useState(null);
-    const [realCandidates, setRealCandidates] = useState([]);
-    const [mocks, setMocks] = useState(() => {
-        const sessionMocks = JSON.parse(sessionStorage.getItem('sessionMocks') || '{}');
-        return sessionMocks[id] || INITIAL_MOCK_CANDIDATES;
-    });
+    const [candidates, setCandidates] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [submitting, setSubmitting] = useState(false);
@@ -68,66 +56,34 @@ const JobDetails = () => {
 
             // Validate ID before fetching
             if (!isValidMongoId(id)) {
-                console.warn("Invalid MongoDB ID, skipping backend fetch:", id);
-                // Fallback to mock immediately
-                const allJobs = getSessionJobs();
-                const foundJob = allJobs.find(j => j._id === id);
-
-                if (foundJob) {
-                    setJob(foundJob);
-                    setRealCandidates(getSessionCandidates(id) || []); // Load mock candidates for this job
-                } else {
-                    message.error('Job not found');
-                    navigate('/recruitment');
-                }
-                setLoading(false);
+                message.error('Job not found');
+                navigate('/recruitment');
                 return;
             }
 
             try {
-                // Fetch job and candidates in parallel for better performance
+                // Fetch job and candidates in parallel
                 const [jobResult, candidatesResult] = await Promise.allSettled([
                     api.get(`/jobs/${id}`),
                     api.get(`/jobs/${id}/candidates`)
                 ]);
 
-                // Handle job data
                 if (jobResult.status === 'fulfilled' && jobResult.value.data.success) {
                     setJob(jobResult.value.data.data);
-                    setLoading(false); // Show UI immediately once job is loaded
-                } else {
-                    // Fallback to mock if API returns error
-                    const allJobs = getSessionJobs();
-                    const foundJob = allJobs.find(j => j._id === id);
-
-                    if (foundJob) {
-                        setJob(foundJob);
-                        setLoading(false); // Show UI immediately
-                    } else {
-                        message.error('Job not found');
-                        navigate('/recruitment');
-                        return;
-                    }
-                }
-
-                // Handle candidates data (can load after UI is shown)
-                if (candidatesResult.status === 'fulfilled' && candidatesResult.value.data.success) {
-                    setRealCandidates(candidatesResult.value.data.data);
-                } else {
-                    console.error("Failed to fetch real candidates", candidatesResult.reason);
-                }
-            } catch (error) {
-                console.error("Unexpected error:", error);
-                // Try fallback to mock data
-                const allJobs = getSessionJobs();
-                const foundJob = allJobs.find(j => j._id === id);
-
-                if (foundJob) {
-                    setJob(foundJob);
                 } else {
                     message.error('Job not found');
                     navigate('/recruitment');
+                    return;
                 }
+
+                if (candidatesResult.status === 'fulfilled' && candidatesResult.value.data.success) {
+                    setCandidates(candidatesResult.value.data.data);
+                }
+            } catch (error) {
+                console.error('Unexpected error:', error);
+                message.error('Failed to load job details');
+                navigate('/recruitment');
+            } finally {
                 setLoading(false);
             }
         };
@@ -135,14 +91,10 @@ const JobDetails = () => {
         fetchJobAndCandidates();
     }, [id, navigate, message]);
 
-    // 3. MERGED VIEW
-    // Always show real DB candidates first, then mock demo candidates as placeholders
-    // Mock candidates are tagged isDemoCandidate=true so they never hit the API
-    const taggedMocks = mocks.map(c => ({ ...c, isDemoCandidate: true }));
-    const allCandidates = isValidMongoId(id)
-        ? [...realCandidates, ...taggedMocks]   // real job: real candidates + demo placeholders
-        : [...taggedMocks, ...realCandidates];  // demo job: mocks first
 
+
+    // Only real DB candidates
+    const allCandidates = candidates;
 
 
     const handleEditJob = async (values) => {
@@ -197,29 +149,11 @@ const JobDetails = () => {
     };
 
     const handleStageUpdate = async (candidateId, newStage) => {
-        // Hard guard: never call API for non-MongoDB IDs
-        if (!isValidMongoId(candidateId)) {
-            // Update locally only for mock/demo candidates
-            if (candidateId.startsWith('m')) {
-                const updatedMocks = mocks.map(c => c._id === candidateId ? { ...c, stage: newStage } : c);
-                setMocks(updatedMocks);
-                const sessionMocks = JSON.parse(sessionStorage.getItem('sessionMocks') || '{}');
-                sessionMocks[id] = updatedMocks;
-                sessionStorage.setItem('sessionMocks', JSON.stringify(sessionMocks));
-            } else {
-                const updatedList = realCandidates.map(c => c._id === candidateId ? { ...c, stage: newStage } : c);
-                setRealCandidates(updatedList);
-                updateSessionCandidates(id, updatedList);
-            }
-            message.success(`Candidate moved to ${newStage}`);
-            return;
-        }
-
-        // Real MongoDB candidate — call API
+        if (!isValidMongoId(candidateId)) return; // safety guard
         try {
             const response = await api.patch(`/candidates/${candidateId}/stage`, { stage: newStage });
             if (response.data.success) {
-                setRealCandidates(prev => prev.map(c => c._id === candidateId ? { ...c, stage: newStage } : c));
+                setCandidates(prev => prev.map(c => c._id === candidateId ? { ...c, stage: newStage } : c));
                 message.success(`Candidate moved to ${newStage}`);
             } else {
                 message.error(response.data.message || 'Failed to update stage');
@@ -231,17 +165,11 @@ const JobDetails = () => {
     };
 
     const handleDeleteJobCandidate = async (candidateId) => {
-        // Guard: non-MongoDB IDs are local-only
-        if (!isValidMongoId(candidateId)) {
-            setMocks(prev => prev.filter(c => c._id !== candidateId));
-            setRealCandidates(prev => prev.filter(c => c._id !== candidateId));
-            message.success('Candidate removed');
-            return;
-        }
+        if (!isValidMongoId(candidateId)) return; // safety guard
         try {
             const res = await api.delete(`/candidates/${candidateId}`);
             if (res.data.success) {
-                setRealCandidates(prev => prev.filter(c => c._id !== candidateId));
+                setCandidates(prev => prev.filter(c => c._id !== candidateId));
                 message.success('Candidate deleted successfully');
             } else {
                 message.error(res.data.message || 'Failed to delete candidate');
@@ -254,7 +182,7 @@ const JobDetails = () => {
     const handleEditRefresh = async () => {
         try {
             const res = await api.get(`/jobs/${id}/candidates`);
-            if (res.data.success) setRealCandidates(res.data.data);
+            if (res.data.success) setCandidates(res.data.data);
         } catch (err) {
             console.error('Refresh failed', err);
         }
@@ -292,6 +220,15 @@ const JobDetails = () => {
                 phone: values.phone || '0000000000'
             });
             const data = response.data;
+
+            if (data.success) {
+                message.success('Candidate added successfully');
+                setCandidates(prev => [...prev, data.data]);
+                setIsModalVisible(false);
+                form.resetFields();
+            } else {
+                message.error(data.message || 'Failed to add candidate');
+            }
 
             if (data.success) {
                 message.success('Candidate added successfully');

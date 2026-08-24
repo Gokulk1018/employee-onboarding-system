@@ -74,11 +74,8 @@ const CandidateTable = ({ candidates, onStageUpdate, onDelete, onEdit }) => {
             width: 160,
             render: (text, record) => (
                 <Space>
-                    <Text strong style={{ whiteSpace: 'nowrap', opacity: record.isDemoCandidate ? 0.55 : 1 }}>{text}</Text>
-                    {record.stage === 'Selected' && !record.isDemoCandidate && <CheckCircleFilled style={{ color: token.colorSuccess }} />}
-                    {record.isDemoCandidate && (
-                        <Tag style={{ fontSize: 9, padding: '0 4px', borderRadius: 4, lineHeight: '16px', background: '#f0f0f0', color: '#999', border: '1px solid #d9d9d9' }}>DEMO</Tag>
-                    )}
+                    <Text strong style={{ whiteSpace: 'nowrap' }}>{text}</Text>
+                    {record.stage === 'Selected' && <CheckCircleFilled style={{ color: token.colorSuccess }} />}
                 </Space>
             )
         },
@@ -175,41 +172,30 @@ const CandidateTable = ({ candidates, onStageUpdate, onDelete, onEdit }) => {
             width: 80,
             align: 'center',
             render: (_, record) => (
-                record.isDemoCandidate ? (
-                    <Tag style={{ fontSize: 9, padding: '1px 6px', borderRadius: 4, color: '#bbb', border: '1px dashed #ddd', background: 'transparent' }}>demo</Tag>
-                ) : (
-                    <Space size={4}>
+                <Space size={4}>
+                    <Button
+                        type="text"
+                        icon={<EditOutlined />}
+                        size="small"
+                        onClick={() => handleEditOpen(record)}
+                        style={{ color: token.colorPrimary }}
+                    />
+                    <Popconfirm
+                        title="Delete Candidate?"
+                        description="This will permanently remove this candidate."
+                        onConfirm={() => onDelete && onDelete(record._id)}
+                        okText="Yes, Delete"
+                        cancelText="Cancel"
+                        okButtonProps={{ danger: true }}
+                    >
                         <Button
                             type="text"
-                            icon={<EditOutlined />}
+                            icon={<DeleteOutlined />}
                             size="small"
-                            onClick={() => handleEditOpen(record)}
-                            style={{ color: token.colorPrimary }}
+                            style={{ color: '#ef4444' }}
                         />
-                        <Popconfirm
-                            title="Delete Candidate?"
-                            description="This will permanently remove this candidate."
-                            onConfirm={() => {
-                                const rid = record._id || '';
-                                if (!rid || /^[mc]/.test(rid) || rid.length !== 24) {
-                                    message.warning('Demo candidates cannot be deleted via API. Use the pipeline controls.');
-                                    return;
-                                }
-                                if (onDelete) onDelete(rid);
-                            }}
-                            okText="Yes, Delete"
-                            cancelText="Cancel"
-                            okButtonProps={{ danger: true }}
-                        >
-                            <Button
-                                type="text"
-                                icon={<DeleteOutlined />}
-                                size="small"
-                                style={{ color: '#ef4444' }}
-                            />
-                        </Popconfirm>
-                    </Space>
-                )
+                    </Popconfirm>
+                </Space>
             )
         }
     ];
