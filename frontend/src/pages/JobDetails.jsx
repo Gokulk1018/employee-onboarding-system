@@ -103,7 +103,13 @@ const JobDetails = () => {
             // Check if this is a real database job or a fake frontend job
             if (isValidMongoId(id)) {
                 // Real MongoDB job - call backend API
-                const response = await api.put(`/jobs/${id}`, values);
+                const payload = {
+                    ...values,
+                    skills: values.skills
+                        ? values.skills.split(',').map(s => s.trim()).filter(Boolean)
+                        : [],
+                };
+                const response = await api.put(`/jobs/${id}`, payload);
                 const data = response.data;
 
                 if (data.success) {
@@ -142,7 +148,9 @@ const JobDetails = () => {
         if (job) {
             editForm.setFieldsValue({
                 ...job,
-                applicationDeadline: dayjs(job.applicationDeadline)
+                skills: Array.isArray(job.skills) ? job.skills.join(', ') : (job.skills || ''),
+                applicationDeadline: dayjs(job.applicationDeadline),
+                googleFormUrl: job.googleFormUrl || ''
             });
             setIsEditModalVisible(true);
         }
@@ -636,32 +644,39 @@ const JobDetails = () => {
                     open={isEditModalVisible}
                     onCancel={() => setIsEditModalVisible(false)}
                     footer={null}
-                    width={700}
+                    width={720}
                 >
                     <Form form={editForm} layout="vertical" onFinish={handleEditJob}>
                         <Row gutter={16}>
-                            <Col span={12}>
+                            <Col span={16}>
                                 <Form.Item name="jobTitle" label="Job Title" rules={[{ required: true }]}>
-                                    <Input />
+                                    <Input size="large" />
                                 </Form.Item>
                             </Col>
-                            <Col span={12}>
-                                <Form.Item name="department" label="Department" rules={[{ required: true }]}>
-                                    <Select>
-                                        <Option value="Engineering">Engineering</Option>
-                                        <Option value="Design">Design</Option>
-                                        <Option value="Product">Product</Option>
-                                        <Option value="Marketing">Marketing</Option>
-                                        <Option value="HR">HR</Option>
-                                        <Option value="Sales">Sales</Option>
-                                    </Select>
+                            <Col span={8}>
+                                <Form.Item name="openings" label="Openings" rules={[{ required: true }]}>
+                                    <Input type="number" min={1} size="large" />
                                 </Form.Item>
                             </Col>
                         </Row>
                         <Row gutter={16}>
-                            <Col span={8}>
-                                <Form.Item name="jobType" label="Type" rules={[{ required: true }]}>
-                                    <Select>
+                            <Col span={12}>
+                                <Form.Item name="department" label="Department" rules={[{ required: true }]}>
+                                    <Select size="large">
+                                        <Option value="Frontend Developer">Frontend Developer</Option>
+                                        <Option value="Backend Developer">Backend Developer</Option>
+                                        <Option value="Fullstack Developer">Fullstack Developer</Option>
+                                        <Option value="Tester">Tester</Option>
+                                        <Option value="DevOps">DevOps</Option>
+                                        <Option value="UI/UX">UI/UX</Option>
+                                        <Option value="HR">HR</Option>
+                                        <Option value="Engineering">Engineering</Option>
+                                    </Select>
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item name="jobType" label="Job Type" rules={[{ required: true }]}>
+                                    <Select size="large">
                                         <Option value="Full-time">Full-time</Option>
                                         <Option value="Part-time">Part-time</Option>
                                         <Option value="Contract">Contract</Option>
@@ -669,40 +684,52 @@ const JobDetails = () => {
                                     </Select>
                                 </Form.Item>
                             </Col>
+                        </Row>
+                        <Row gutter={16}>
                             <Col span={8}>
                                 <Form.Item name="experienceLevel" label="Level" rules={[{ required: true }]}>
-                                    <Select>
+                                    <Select size="large">
+                                        <Option value="Fresher">Fresher</Option>
                                         <Option value="Junior">Junior</Option>
                                         <Option value="Mid">Mid</Option>
                                         <Option value="Senior">Senior</Option>
-                                        <Option value="Lead">Lead</Option>
                                     </Select>
                                 </Form.Item>
                             </Col>
                             <Col span={8}>
                                 <Form.Item name="location" label="Location" rules={[{ required: true }]}>
-                                    <Select>
+                                    <Select size="large">
                                         <Option value="Onsite">Onsite</Option>
                                         <Option value="Remote">Remote</Option>
                                         <Option value="Hybrid">Hybrid</Option>
                                     </Select>
                                 </Form.Item>
                             </Col>
+                            <Col span={8}>
+                                <Form.Item name="salaryRange" label="Salary Range" rules={[{ required: true }]}>
+                                    <Input size="large" placeholder="e.g. 600000" />
+                                </Form.Item>
+                            </Col>
                         </Row>
                         <Row gutter={16}>
-                            <Col span={12}>
-                                <Form.Item name="salaryRange" label="Salary Range" rules={[{ required: true }]}>
-                                    <Input />
-                                </Form.Item>
-                            </Col>
-                            <Col span={12}>
-                                <Form.Item name="applicationDeadline" label="Deadline" rules={[{ required: true }]}>
-                                    <DatePicker style={{ width: '100%' }} />
+                            <Col span={24}>
+                                <Form.Item name="applicationDeadline" label="Application Deadline" rules={[{ required: true }]}>
+                                    <DatePicker style={{ width: '100%' }} size="large" />
                                 </Form.Item>
                             </Col>
                         </Row>
-                        <Form.Item name="jobDescription" label="Description" rules={[{ required: true }]}>
+                        <Form.Item name="skills" label="Skills Required (comma separated)">
+                            <Input size="large" placeholder="e.g. React, Node.js, MongoDB" />
+                        </Form.Item>
+                        <Form.Item name="jobDescription" label="Job Description" rules={[{ required: true }]}>
                             <Input.TextArea rows={4} />
+                        </Form.Item>
+                        <Form.Item
+                            name="googleFormUrl"
+                            label="Google Form Application Link (optional)"
+                            rules={[{ type: 'url', message: 'Enter a valid URL (https://forms.gle/...)' }]}
+                        >
+                            <Input size="large" placeholder="https://forms.gle/your-form-link" />
                         </Form.Item>
                         <div style={{ textAlign: 'right' }}>
                             <Space>
@@ -714,6 +741,7 @@ const JobDetails = () => {
                         </div>
                     </Form>
                 </Modal>
+
             </div>
         </PageContainer>
     );
