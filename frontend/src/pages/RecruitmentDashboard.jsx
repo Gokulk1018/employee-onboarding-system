@@ -281,15 +281,19 @@ const RecruitmentDashboard = () => {
                                                     </td>
                                                     <td style={{ padding: '14px 16px', fontSize: 12, color: token.colorTextSecondary }}>{c.hiringRecommendation || '—'}</td>
                                                     <td style={{ padding: '14px 16px', fontSize: 12, color: token.colorTextSecondary }}>{c.experience || '—'}</td>
-                                                    <td style={{ padding: '14px 16px' }}>
-                                                        {c.resumeUrl && c.resumeUrl !== 'N/A' && c.resumeUrl !== 'https://drive.google.com' ? (
-                                                            <a href={c.resumeUrl} target="_blank" rel="noopener noreferrer"
-                                                                style={{ color: token.colorPrimary, fontSize: 12, fontWeight: 600 }}>
-                                                                📄 View PDF
-                                                            </a>
-                                                        ) : (
-                                                            <span style={{ color: token.colorTextTertiary, fontSize: 12 }}>—</span>
-                                                        )}
+                                                     <td style={{ padding: '14px 16px' }}>
+                                                        {(() => {
+                                                            const url = c.resumeUrl;
+                                                            const isRealUrl = url && url.startsWith('https://') && url !== 'https://drive.google.com' && url !== 'N/A' && url !== '#';
+                                                            return isRealUrl ? (
+                                                                <a href={url} target="_blank" rel="noopener noreferrer"
+                                                                    style={{ color: token.colorPrimary, fontSize: 12, fontWeight: 600 }}>
+                                                                    📄 View PDF
+                                                                </a>
+                                                            ) : (
+                                                                <span style={{ color: token.colorTextTertiary, fontSize: 12 }}>—</span>
+                                                            );
+                                                        })()}
                                                     </td>
                                                     <td style={{ padding: '14px 16px' }}>
                                                         <Popconfirm

@@ -107,15 +107,17 @@ const CandidateTable = ({ candidates, onStageUpdate }) => {
         {
             title: 'Resume',
             key: 'resume',
-            render: (_, record) => (
-                record.resumeUrl && record.resumeUrl !== 'N/A' ? (
-                    <Button type="link" icon={<FileTextOutlined />} size="small" href={record.resumeUrl} target="_blank" rel="noopener noreferrer">
+            render: (_, record) => {
+                const url = record.resumeUrl;
+                const isRealUrl = url && url.startsWith('https://') && url !== 'https://drive.google.com' && url !== 'N/A' && url !== '#';
+                return isRealUrl ? (
+                    <Button type="link" icon={<FileTextOutlined />} size="small" href={url} target="_blank" rel="noopener noreferrer">
                         PDF Resume
                     </Button>
                 ) : (
                     <Text type="secondary" style={{ fontSize: 12 }}>No PDF</Text>
-                )
-            )
+                );
+            }
         }
     ];
 
