@@ -57,7 +57,8 @@ Strict JSON Response Schema:
             const result = await model.generateContent(prompt);
             const textResponse = result.response.text().trim().replace(/^```json/i, '').replace(/```$/i, '').trim();
             const parsed = JSON.parse(textResponse);
-            if (parsed && typeof parsed.atsScore === 'number') {
+            // Accept Gemini result only if it returned a meaningful score (>=10)
+            if (parsed && typeof parsed.atsScore === 'number' && parsed.atsScore >= 10) {
                 return parsed;
             }
         } catch (err) {
