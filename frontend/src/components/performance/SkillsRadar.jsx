@@ -54,7 +54,7 @@ const SkillsRadar = () => {
                 </div>
             ) : radarData.length > 0 ? (
                 <div style={{ width: '100%', height: 300 }}>
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                         <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
                             <PolarGrid stroke={token.colorBorder} />
                             <PolarAngleAxis dataKey="subject" tick={{ fill: token.colorTextSecondary, fontSize: 11 }} />

@@ -88,7 +88,7 @@ const FormAnalytics = ({ data, formType, formTitle }) => {
                         <div>
                             <Text strong style={{ display: 'block', marginBottom: 16, fontSize: 13, textTransform: 'uppercase', letterSpacing: 1, color: token.colorTextSecondary }}>Sentiment Analysis</Text>
                             <div style={{ width: '100%', height: 260, position: 'relative' }}>
-                                <ResponsiveContainer width="100%" height="100%">
+                                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                                     <PieChart>
                                         <Pie
                                             data={chartData}

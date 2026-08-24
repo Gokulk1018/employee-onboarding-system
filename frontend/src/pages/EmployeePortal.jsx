@@ -190,7 +190,7 @@ const EmployeePortal = () => {
                                     styles={{ body: { flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' } }}
                                 >
                                     <div style={{ height: 200, display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 0 }}>
-                                        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                                        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                                             <PieChart>
                                                 <Pie
                                                     data={taskChartData}
