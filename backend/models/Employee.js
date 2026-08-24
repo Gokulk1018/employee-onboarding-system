@@ -29,6 +29,12 @@ const employeeSchema = new mongoose.Schema({
     avatar: {
         type: String
     },
+    phone: {
+        type: String
+    },
+    location: {
+        type: String
+    },
     username: {
         type: String,
         unique: true,

@@ -314,10 +314,10 @@ exports.getEmployeeProfile = async (req, res) => {
 // @route   PUT /api/employees/profile
 exports.updateEmployeeProfile = async (req, res) => {
     try {
-        const { name } = req.body;
+        const { name, phone, location } = req.body;
         const employee = await Employee.findByIdAndUpdate(
             req.user._id,
-            { name },
+            { name, phone, location },
             { new: true, runValidators: true }
         );
 
