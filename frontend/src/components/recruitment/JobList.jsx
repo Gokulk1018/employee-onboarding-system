@@ -10,7 +10,41 @@ const JobList = ({ jobs, onJobClick, onDeleteJob, viewType = 'grid' }) => {
     const { token } = theme.useToken();
 
     const columns = [
-        {
+        // ... (columns unchanged) ...
+    ];
+
+    if (viewType === 'list') {
+        return (
+            <div className="glass-card" style={{ borderRadius: 16, overflow: 'auto' }}>
+                <Table
+                    dataSource={jobs}
+                    columns={columns}
+                    rowKey="_id"
+                    pagination={false}
+                    className="custom-table"
+                    scroll={{ x: 1200 }}
+                />
+            </div>
+        );
+    }
+
+    // Grid view – use responsive Ant Design grid breakpoints
+    return (
+        <Row gutter={[24, 24]}>
+            {jobs.map(job => (
+                <Col xs={24} sm={12} md={8} lg={6} xl={4} key={job._id}>
+                    <JobCard
+                        job={job}
+                        onClick={() => onJobClick(job._id)}
+                        onDeleteJob={onDeleteJob}
+                    />
+                </Col>
+            ))}
+        </Row>
+    );
+};
+
+export default JobList;
             title: 'Job Title',
             dataIndex: 'jobTitle',
             key: 'jobTitle',

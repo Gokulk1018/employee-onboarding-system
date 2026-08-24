@@ -30,7 +30,9 @@ const JobCard = ({ job, onClick, onDeleteJob }) => {
                     flexDirection: 'column',
                     border: `1px solid ${token.colorBorderSecondary}`,
                     background: token.colorBgContainer,
-                    overflow: 'hidden'
+                    overflow: 'hidden',
+                    minWidth: 280, // ensures card doesn't shrink too much on mobile
+                    flex: '1 1 auto',
                 }}
                 styles={{ body: { padding: 24, flex: 1, display: 'flex', flexDirection: 'column' } }}
             >
