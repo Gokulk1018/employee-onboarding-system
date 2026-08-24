@@ -157,7 +157,7 @@ const { analyzeCandidateATS } = require('../utils/atsService');
 // @access  Public
 exports.handleGoogleFormWebhook = async (req, res) => {
     try {
-        const { name, email, phone, targetRole, resumeText, resumeUrl, skills, experience } = req.body;
+        const { name, email, phone, targetRole, resumeText, resumeUrl, skills, experience, jobId } = req.body;
 
         if (!name || !email) {
             return res.status(400).json({ success: false, message: 'Name and Email are required' });
@@ -165,6 +165,20 @@ exports.handleGoogleFormWebhook = async (req, res) => {
 
         const role = targetRole || 'Software Engineer';
         const parsedSkills = Array.isArray(skills) ? skills : (skills ? skills.split(',').map(s => s.trim()) : []);
+
+        // Validate jobId if provided
+        let resolvedJobId = null;
+        if (jobId) {
+            const mongoose = require('mongoose');
+            if (mongoose.Types.ObjectId.isValid(jobId)) {
+                const job = await Job.findById(jobId);
+                if (job) {
+                    resolvedJobId = jobId;
+                    // Optionally increment the job's applied count
+                    await Job.findByIdAndUpdate(jobId, { $inc: { appliedCount: 1 } });
+                }
+            }
+        }
 
         // Execute AI ATS Resume Evaluation Engine
         const atsResult = await analyzeCandidateATS(role, resumeText || '', parsedSkills, experience || '');
@@ -179,6 +193,7 @@ exports.handleGoogleFormWebhook = async (req, res) => {
             skills: parsedSkills,
             experience: experience || '3 Years',
             stage: 'Applied',
+            jobId: resolvedJobId,
             atsScore: atsResult.atsScore,
             hiringRecommendation: atsResult.hiringRecommendation,
             hrBrief: atsResult.hrBrief,
@@ -197,6 +212,7 @@ exports.handleGoogleFormWebhook = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
 
 // @desc    Trigger AI ATS Analysis for an existing Candidate
 // @route   POST /api/candidates/:id/analyze

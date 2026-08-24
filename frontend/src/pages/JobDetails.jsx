@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Tag, Button, Typography, Space, Divider, List, Avatar, Spin, Modal, Form, Input, InputNumber, DatePicker, Select, App, Breadcrumb, Descriptions, Row, Col } from 'antd';
+import { Card, Tag, Button, Typography, Space, Divider, List, Avatar, Spin, Modal, Form, Input, InputNumber, DatePicker, Select, App, Breadcrumb, Descriptions, Row, Col, Tooltip, message as antMessage } from 'antd';
 import {
     ArrowLeftOutlined, EditOutlined, ShareAltOutlined, PlusOutlined,
-    InstagramOutlined, LinkedinOutlined, WhatsAppOutlined, MailOutlined, CopyOutlined, GlobalOutlined, CheckCircleOutlined
+    InstagramOutlined, LinkedinOutlined, WhatsAppOutlined, MailOutlined, CopyOutlined, GlobalOutlined, CheckCircleOutlined,
+    LinkOutlined, CodeOutlined
 } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import PageContainer from '../components/layout/PageContainer';
@@ -507,7 +508,7 @@ const JobDetails = () => {
                     <Col xs={24} lg={6}>
                         <Card
                             title="Job Overview"
-                            style={{ borderRadius: 16 }}
+                            style={{ borderRadius: 16, marginBottom: 16 }}
                             styles={{ body: { padding: 20 } }}
                         >
                             <Descriptions column={1} size="small">
@@ -521,6 +522,135 @@ const JobDetails = () => {
                             <Title level={5} style={{ fontSize: 13 }}>Description</Title>
                             <Text type="secondary" style={{ fontSize: 12 }}>{job.jobDescription}</Text>
                         </Card>
+
+                        {/* ── Google Form Integration Panel ── */}
+                        {isValidMongoId(id) && (
+                            <Card
+                                title={
+                                    <Space>
+                                        <LinkOutlined style={{ color: '#10b981' }} />
+                                        <span>Google Form Integration</span>
+                                    </Space>
+                                }
+                                style={{ borderRadius: 16, border: '1px solid #10b98130' }}
+                                styles={{ body: { padding: 16 } }}
+                            >
+                                {job.googleFormUrl ? (
+                                    <>
+                                        <Button
+                                            type="primary"
+                                            icon={<LinkOutlined />}
+                                            href={job.googleFormUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            block
+                                            style={{ marginBottom: 12, background: '#10b981', borderColor: '#10b981', borderRadius: 8 }}
+                                        >
+                                            Open Application Form
+                                        </Button>
+                                        <Divider style={{ margin: '12px 0' }} />
+                                    </>
+                                ) : (
+                                    <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 12 }}>
+                                        No Google Form linked yet. Edit this job to add a form URL.
+                                    </Text>
+                                )}
+
+                                <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 6 }}>
+                                    <CodeOutlined /> Webhook URL
+                                </Text>
+                                <div style={{ display: 'flex', gap: 4, marginBottom: 12 }}>
+                                    <Input
+                                        readOnly
+                                        size="small"
+                                        value={`${import.meta.env.VITE_API_URL || 'https://employee-onboarding-system-8qj3.onrender.com/api'}/candidates/webhook`}
+                                        style={{ fontSize: 10, fontFamily: 'monospace', borderRadius: 6 }}
+                                    />
+                                    <Tooltip title="Copied!" trigger="click">
+                                        <Button
+                                            size="small"
+                                            icon={<CopyOutlined />}
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(
+                                                    `${import.meta.env.VITE_API_URL || 'https://employee-onboarding-system-8qj3.onrender.com/api'}/candidates/webhook`
+                                                );
+                                            }}
+                                            style={{ borderRadius: 6, flexShrink: 0 }}
+                                        />
+                                    </Tooltip>
+                                </div>
+
+                                <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 6 }}>
+                                    <CodeOutlined /> Google Apps Script
+                                </Text>
+                                <Text type="secondary" style={{ fontSize: 11, display: 'block', marginBottom: 6 }}>
+                                    Paste this in your Google Form → Extensions → Apps Script:
+                                </Text>
+                                <div style={{ position: 'relative' }}>
+                                    <pre style={{
+                                        background: '#0f172a',
+                                        color: '#7dd3fc',
+                                        borderRadius: 8,
+                                        padding: '10px 12px',
+                                        fontSize: 10,
+                                        overflow: 'auto',
+                                        maxHeight: 180,
+                                        margin: 0,
+                                        fontFamily: 'monospace',
+                                        whiteSpace: 'pre'
+                                    }}>{`function onFormSubmit(e) {
+  var r = e.namedValues;
+  var payload = {
+    jobId: "${id}",
+    name: (r["Full Name"] || r["Name"] || [''])[0],
+    email: (r["Email"] || r["Email Address"] || [''])[0],
+    phone: (r["Phone"] || r["Mobile"] || ['N/A'])[0],
+    targetRole: (r["Target Role"] || r["Role"] || ['Software Engineer'])[0],
+    experience: (r["Experience"] || r["Years of Experience"] || ['0'])[0],
+    skills: (r["Skills"] || [''])[0],
+    resumeUrl: (r["Resume URL"] || r["Resume Link"] || [''])[0],
+    resumeText: (r["Resume Text"] || r["Cover Letter"] || [''])[0]
+  };
+  UrlFetchApp.fetch(
+    "${import.meta.env.VITE_API_URL || 'https://employee-onboarding-system-8qj3.onrender.com/api'}/candidates/webhook",
+    { method:"post", contentType:"application/json",
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true }
+  );
+}`}
+                                    </pre>
+                                    <Button
+                                        size="small"
+                                        icon={<CopyOutlined />}
+                                        onClick={() => {
+                                            const script = `function onFormSubmit(e) {
+  var r = e.namedValues;
+  var payload = {
+    jobId: "${id}",
+    name: (r["Full Name"] || r["Name"] || [''])[0],
+    email: (r["Email"] || r["Email Address"] || [''])[0],
+    phone: (r["Phone"] || r["Mobile"] || ['N/A'])[0],
+    targetRole: (r["Target Role"] || r["Role"] || ['Software Engineer'])[0],
+    experience: (r["Experience"] || r["Years of Experience"] || ['0'])[0],
+    skills: (r["Skills"] || [''])[0],
+    resumeUrl: (r["Resume URL"] || r["Resume Link"] || [''])[0],
+    resumeText: (r["Resume Text"] || r["Cover Letter"] || [''])[0]
+  };
+  UrlFetchApp.fetch(
+    "${import.meta.env.VITE_API_URL || 'https://employee-onboarding-system-8qj3.onrender.com/api'}/candidates/webhook",
+    { method:"post", contentType:"application/json", payload: JSON.stringify(payload), muteHttpExceptions: true }
+  );
+}`;
+                                            navigator.clipboard.writeText(script);
+                                            antMessage.success('Apps Script copied!');
+                                        }}
+                                        style={{ position: 'absolute', top: 6, right: 6, fontSize: 10, opacity: 0.8 }}
+                                    >
+                                        Copy
+                                    </Button>
+                                </div>
+                            </Card>
+                        )}
                     </Col>
                 </Row>
 
