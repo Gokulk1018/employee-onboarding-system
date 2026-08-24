@@ -67,11 +67,13 @@ const CandidateTable = ({ candidates, onStageUpdate }) => {
             dataIndex: 'atsScore',
             key: 'atsScore',
             render: (score) => {
-                const val = score || 75;
-                const color = val >= 80 ? '#10b981' : val >= 65 ? '#f59e0b' : '#ef4444';
+                if (!score) {
+                    return <Tag style={{ borderRadius: 8, fontSize: 11, color: '#8c8c8c', borderColor: '#d9d9d9' }}>Pending</Tag>;
+                }
+                const color = score >= 80 ? '#10b981' : score >= 65 ? '#f59e0b' : '#ef4444';
                 return (
                     <Tag style={{ background: `${color}15`, color: color, borderColor: color, borderRadius: 8, fontWeight: 700, padding: '2px 8px' }}>
-                        ⚡ {val}% ATS
+                        ⚡ {score}% ATS
                     </Tag>
                 );
             }
