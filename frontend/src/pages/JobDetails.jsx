@@ -13,6 +13,7 @@ import CandidateTable from '../components/recruitment/CandidateTable';
 import { getSessionJobs, updateSessionCandidates, getSessionCandidates } from '../data/mockRecruitmentData';
 import dayjs from 'dayjs';
 import { theme } from 'antd';
+import api from '../services/api';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -86,13 +87,13 @@ const JobDetails = () => {
             try {
                 // Fetch job and candidates in parallel for better performance
                 const [jobResult, candidatesResult] = await Promise.allSettled([
-                    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/jobs/${id}`).then(res => res.json()),
-                    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/jobs/${id}/candidates`).then(res => res.json())
+                    api.get(`/jobs/${id}`),
+                    api.get(`/jobs/${id}/candidates`)
                 ]);
 
                 // Handle job data
-                if (jobResult.status === 'fulfilled' && jobResult.value.success) {
-                    setJob(jobResult.value.data);
+                if (jobResult.status === 'fulfilled' && jobResult.value.data.success) {
+                    setJob(jobResult.value.data.data);
                     setLoading(false); // Show UI immediately once job is loaded
                 } else {
                     // Fallback to mock if API returns error
@@ -110,8 +111,8 @@ const JobDetails = () => {
                 }
 
                 // Handle candidates data (can load after UI is shown)
-                if (candidatesResult.status === 'fulfilled' && candidatesResult.value.success) {
-                    setRealCandidates(candidatesResult.value.data);
+                if (candidatesResult.status === 'fulfilled' && candidatesResult.value.data.success) {
+                    setRealCandidates(candidatesResult.value.data.data);
                 } else {
                     console.error("Failed to fetch real candidates", candidatesResult.reason);
                 }
@@ -148,14 +149,8 @@ const JobDetails = () => {
             // Check if this is a real database job or a fake frontend job
             if (isValidMongoId(id)) {
                 // Real MongoDB job - call backend API
-                const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/jobs/${id}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(values),
-                });
-                const data = await response.json();
+                const response = await api.put(`/jobs/${id}`, values);
+                const data = response.data;
 
                 if (data.success) {
                     message.success('Job updated successfully');
@@ -200,46 +195,32 @@ const JobDetails = () => {
     };
 
     const handleStageUpdate = async (candidateId, newStage) => {
-        const isMock = candidateId.startsWith('m');
-
-        if (isMock) {
-            const updatedMocks = mocks.map(c => c._id === candidateId ? { ...c, stage: newStage } : c);
-            setMocks(updatedMocks);
-
-            // Persist base mocks for this session
-            const sessionMocks = JSON.parse(sessionStorage.getItem('sessionMocks') || '{}');
-            sessionMocks[id] = updatedMocks;
-            sessionStorage.setItem('sessionMocks', JSON.stringify(sessionMocks));
-
+        // Hard guard: never call API for non-MongoDB IDs
+        if (!isValidMongoId(candidateId)) {
+            // Update locally only for mock/demo candidates
+            if (candidateId.startsWith('m')) {
+                const updatedMocks = mocks.map(c => c._id === candidateId ? { ...c, stage: newStage } : c);
+                setMocks(updatedMocks);
+                const sessionMocks = JSON.parse(sessionStorage.getItem('sessionMocks') || '{}');
+                sessionMocks[id] = updatedMocks;
+                sessionStorage.setItem('sessionMocks', JSON.stringify(sessionMocks));
+            } else {
+                const updatedList = realCandidates.map(c => c._id === candidateId ? { ...c, stage: newStage } : c);
+                setRealCandidates(updatedList);
+                updateSessionCandidates(id, updatedList);
+            }
             message.success(`Candidate moved to ${newStage}`);
             return;
         }
 
-        // For real mock candidates from mockRecruitmentData.js (starting with 'c')
-        if (candidateId.startsWith('c')) {
-            const updatedList = realCandidates.map(c => c._id === candidateId ? { ...c, stage: newStage } : c);
-            setRealCandidates(updatedList);
-            updateSessionCandidates(id, updatedList);
-            message.success(`Candidate moved to ${newStage}`);
-            return;
-        }
-
-        // For real candidates, call API
+        // Real MongoDB candidate — call API
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/candidates/${candidateId}/stage`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ stage: newStage }),
-            });
-            const data = await response.json();
-
-            if (data.success) {
+            const response = await api.patch(`/candidates/${candidateId}/stage`, { stage: newStage });
+            if (response.data.success) {
                 setRealCandidates(prev => prev.map(c => c._id === candidateId ? { ...c, stage: newStage } : c));
                 message.success(`Candidate moved to ${newStage}`);
             } else {
-                message.error(data.message || 'Failed to update stage');
+                message.error(response.data.message || 'Failed to update stage');
             }
         } catch (error) {
             console.error('Error updating stage:', error);
@@ -248,21 +229,20 @@ const JobDetails = () => {
     };
 
     const handleDeleteJobCandidate = async (candidateId) => {
-        const isMock = candidateId.startsWith('m') || candidateId.startsWith('c');
-        if (isMock) {
+        // Guard: non-MongoDB IDs are local-only
+        if (!isValidMongoId(candidateId)) {
             setMocks(prev => prev.filter(c => c._id !== candidateId));
             setRealCandidates(prev => prev.filter(c => c._id !== candidateId));
             message.success('Candidate removed');
             return;
         }
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/candidates/${candidateId}`, { method: 'DELETE' });
-            const data = await res.json();
-            if (data.success) {
+            const res = await api.delete(`/candidates/${candidateId}`);
+            if (res.data.success) {
                 setRealCandidates(prev => prev.filter(c => c._id !== candidateId));
                 message.success('Candidate deleted successfully');
             } else {
-                message.error(data.message || 'Failed to delete candidate');
+                message.error(res.data.message || 'Failed to delete candidate');
             }
         } catch (err) {
             message.error('Failed to delete candidate');
@@ -271,9 +251,8 @@ const JobDetails = () => {
 
     const handleEditRefresh = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/jobs/${id}/candidates`);
-            const data = await res.json();
-            if (data.success) setRealCandidates(data.data);
+            const res = await api.get(`/jobs/${id}/candidates`);
+            if (res.data.success) setRealCandidates(res.data.data);
         } catch (err) {
             console.error('Refresh failed', err);
         }
@@ -302,21 +281,15 @@ const JobDetails = () => {
                 return;
             }
 
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/jobs/${id}/apply`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    name: values.name,
-                    email: values.email,
-                    experience: values.experience,
-                    skills: values.skills.split(',').map(s => s.trim()), // Simple CSV parse
-                    resumeUrl: values.resumeUrl || '#',
-                    phone: values.phone || '0000000000' // Default if not requested in simple form
-                }),
+            const response = await api.post(`/jobs/${id}/apply`, {
+                name: values.name,
+                email: values.email,
+                experience: values.experience,
+                skills: values.skills.split(',').map(s => s.trim()),
+                resumeUrl: values.resumeUrl || '#',
+                phone: values.phone || '0000000000'
             });
-            const data = await response.json();
+            const data = response.data;
 
             if (data.success) {
                 message.success('Candidate added successfully');
