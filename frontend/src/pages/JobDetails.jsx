@@ -134,7 +134,12 @@ const JobDetails = () => {
     }, [id, navigate, message]);
 
     // 3. MERGED VIEW
-    const allCandidates = [...mocks, ...realCandidates];
+    // For real DB jobs (valid MongoDB ID): show only real DB candidates
+    // For demo/mock jobs: show mocks + any locally-added candidates
+    const allCandidates = isValidMongoId(id)
+        ? realCandidates
+        : [...mocks, ...realCandidates];
+
 
     const handleEditJob = async (values) => {
         setEditing(true);

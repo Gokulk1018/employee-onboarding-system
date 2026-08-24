@@ -41,12 +41,21 @@ const CandidateTable = ({ candidates, onStageUpdate, onDelete, onEdit }) => {
     const handleEditSave = async () => {
         try {
             const values = await form.validateFields();
+
+            // Guard: mock candidates (m1, m2, c-prefix) cannot be updated via API
+            const id = editingCandidate?._id || '';
+            if (!id || /^[mc]/.test(id) || id.length !== 24) {
+                message.warning('This is a sample/demo candidate and cannot be edited. Only real candidates from the database can be updated.');
+                setEditModalOpen(false);
+                return;
+            }
+
             setSaving(true);
             const payload = {
                 ...values,
                 skills: values.skills ? values.skills.split(',').map(s => s.trim()).filter(Boolean) : []
             };
-            await api.put(`/candidates/${editingCandidate._id}`, payload);
+            await api.put(`/candidates/${id}`, payload);
             message.success('Candidate updated successfully');
             setEditModalOpen(false);
             if (onEdit) onEdit();
@@ -174,7 +183,14 @@ const CandidateTable = ({ candidates, onStageUpdate, onDelete, onEdit }) => {
                     <Popconfirm
                         title="Delete Candidate?"
                         description="This will permanently remove this candidate."
-                        onConfirm={() => onDelete && onDelete(record._id)}
+                        onConfirm={() => {
+                            const rid = record._id || '';
+                            if (!rid || /^[mc]/.test(rid) || rid.length !== 24) {
+                                message.warning('Demo candidates cannot be deleted via API. Use the pipeline controls.');
+                                return;
+                            }
+                            if (onDelete) onDelete(rid);
+                        }}
                         okText="Yes, Delete"
                         cancelText="Cancel"
                         okButtonProps={{ danger: true }}
