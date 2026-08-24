@@ -245,3 +245,22 @@ exports.deleteCandidate = async (req, res) => {
         res.status(400).json({ success: false, message: error.message });
     }
 };
+
+// @desc    Update candidate details
+// @route   PUT /api/candidates/:id
+// @access  Private/Admin
+exports.updateCandidate = async (req, res) => {
+    try {
+        const candidate = await Candidate.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        );
+        if (!candidate) {
+            return res.status(404).json({ success: false, message: 'Candidate not found' });
+        }
+        res.status(200).json({ success: true, data: candidate });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};

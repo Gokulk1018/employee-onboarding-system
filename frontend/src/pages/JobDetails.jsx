@@ -241,6 +241,38 @@ const JobDetails = () => {
         }
     };
 
+    const handleDeleteJobCandidate = async (candidateId) => {
+        const isMock = candidateId.startsWith('m') || candidateId.startsWith('c');
+        if (isMock) {
+            setMocks(prev => prev.filter(c => c._id !== candidateId));
+            setRealCandidates(prev => prev.filter(c => c._id !== candidateId));
+            message.success('Candidate removed');
+            return;
+        }
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/candidates/${candidateId}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                setRealCandidates(prev => prev.filter(c => c._id !== candidateId));
+                message.success('Candidate deleted successfully');
+            } else {
+                message.error(data.message || 'Failed to delete candidate');
+            }
+        } catch (err) {
+            message.error('Failed to delete candidate');
+        }
+    };
+
+    const handleEditRefresh = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/jobs/${id}/candidates`);
+            const data = await res.json();
+            if (data.success) setRealCandidates(data.data);
+        } catch (err) {
+            console.error('Refresh failed', err);
+        }
+    };
+
     const handleAddCandidate = async (values) => {
         setSubmitting(true);
         try {
@@ -461,6 +493,8 @@ const JobDetails = () => {
                             <CandidateTable
                                 candidates={allCandidates}
                                 onStageUpdate={handleStageUpdate}
+                                onDelete={handleDeleteJobCandidate}
+                                onEdit={handleEditRefresh}
                             />
                         </Card>
                     </Col>

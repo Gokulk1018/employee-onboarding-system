@@ -6,7 +6,8 @@ const {
     hireCandidate,
     handleGoogleFormWebhook,
     analyzeCandidateResume,
-    deleteCandidate
+    deleteCandidate,
+    updateCandidate
 } = require('../controllers/candidateController');
 
 
@@ -15,6 +16,7 @@ router.post('/webhook', handleGoogleFormWebhook); // POST /api/candidates/webhoo
 router.post('/:id/analyze', analyzeCandidateResume); // POST /api/candidates/:id/analyze
 router.patch('/:id/stage', updateCandidateStage); // PATCH /api/candidates/:id/stage
 router.patch('/:id/hire', hireCandidate);          // PATCH /api/candidates/:id/hire
+router.put('/:id', updateCandidate);                // PUT /api/candidates/:id
 router.delete('/:id', deleteCandidate);             // DELETE /api/candidates/:id
 
 

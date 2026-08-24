@@ -1,11 +1,16 @@
-import React from 'react';
-import { Table, Tag, Select, Button, theme, Space, Typography } from 'antd';
-import { FileTextOutlined, CheckCircleFilled } from '@ant-design/icons';
+import React, { useState } from 'react';
+import { Table, Tag, Select, Button, theme, Space, Typography, Popconfirm, Modal, Form, Input, message } from 'antd';
+import { FileTextOutlined, CheckCircleFilled, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import api from '../../services/api';
 
 const { Text } = Typography;
 
-const CandidateTable = ({ candidates, onStageUpdate }) => {
+const CandidateTable = ({ candidates, onStageUpdate, onDelete, onEdit }) => {
     const { token } = theme.useToken();
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [editingCandidate, setEditingCandidate] = useState(null);
+    const [saving, setSaving] = useState(false);
+    const [form] = Form.useForm();
 
     const STAGES = ['Applied', 'Screening', 'Technical Round', 'HR Interview', 'Selected', 'Rejected'];
 
@@ -18,6 +23,37 @@ const CandidateTable = ({ candidates, onStageUpdate }) => {
             case 'Selected': return 'success';
             case 'Rejected': return 'error';
             default: return 'default';
+        }
+    };
+
+    const handleEditOpen = (record) => {
+        setEditingCandidate(record);
+        form.setFieldsValue({
+            name: record.name,
+            email: record.email,
+            experience: record.experience,
+            skills: (record.skills || []).join(', '),
+            resumeUrl: record.resumeUrl || ''
+        });
+        setEditModalOpen(true);
+    };
+
+    const handleEditSave = async () => {
+        try {
+            const values = await form.validateFields();
+            setSaving(true);
+            const payload = {
+                ...values,
+                skills: values.skills ? values.skills.split(',').map(s => s.trim()).filter(Boolean) : []
+            };
+            await api.put(`/candidates/${editingCandidate._id}`, payload);
+            message.success('Candidate updated successfully');
+            setEditModalOpen(false);
+            if (onEdit) onEdit();
+        } catch (err) {
+            if (err?.response) message.error(err.response.data?.message || 'Failed to update candidate');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -120,6 +156,37 @@ const CandidateTable = ({ candidates, onStageUpdate }) => {
                     <Text type="secondary" style={{ fontSize: 12 }}>No PDF</Text>
                 );
             }
+        },
+        {
+            title: 'Actions',
+            key: 'actions',
+            align: 'right',
+            render: (_, record) => (
+                <Space size="small">
+                    <Button
+                        type="text"
+                        icon={<EditOutlined />}
+                        size="small"
+                        onClick={() => handleEditOpen(record)}
+                        style={{ color: token.colorPrimary }}
+                    />
+                    <Popconfirm
+                        title="Delete Candidate?"
+                        description="This will permanently remove this candidate."
+                        onConfirm={() => onDelete && onDelete(record._id)}
+                        okText="Yes, Delete"
+                        cancelText="Cancel"
+                        okButtonProps={{ danger: true }}
+                    >
+                        <Button
+                            type="text"
+                            icon={<DeleteOutlined />}
+                            size="small"
+                            style={{ color: '#ef4444' }}
+                        />
+                    </Popconfirm>
+                </Space>
+            )
         }
     ];
 
@@ -148,6 +215,35 @@ const CandidateTable = ({ candidates, onStageUpdate }) => {
                     background: ${token.colorFillQuaternary} !important;
                 }
             `}</style>
+
+            {/* Edit Candidate Modal */}
+            <Modal
+                title="✏️ Edit Candidate"
+                open={editModalOpen}
+                onOk={handleEditSave}
+                onCancel={() => setEditModalOpen(false)}
+                okText="Save Changes"
+                confirmLoading={saving}
+                width={520}
+            >
+                <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
+                    <Form.Item name="name" label="Full Name" rules={[{ required: true }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="email" label="Email" rules={[{ required: true, type: 'email' }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="experience" label="Experience">
+                        <Input placeholder="e.g. 3 Years" />
+                    </Form.Item>
+                    <Form.Item name="skills" label="Skills (comma separated)">
+                        <Input placeholder="e.g. Python, SQL, React" />
+                    </Form.Item>
+                    <Form.Item name="resumeUrl" label="Resume PDF Link">
+                        <Input placeholder="https://drive.google.com/..." />
+                    </Form.Item>
+                </Form>
+            </Modal>
         </div>
     );
 };
