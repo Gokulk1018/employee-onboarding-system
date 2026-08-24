@@ -136,11 +136,13 @@ const JobDetails = () => {
     }, [id, navigate, message]);
 
     // 3. MERGED VIEW
-    // For real DB jobs (valid MongoDB ID): show only real DB candidates
-    // For demo/mock jobs: show mocks + any locally-added candidates
+    // Always show real DB candidates first, then mock demo candidates as placeholders
+    // Mock candidates are tagged isDemoCandidate=true so they never hit the API
+    const taggedMocks = mocks.map(c => ({ ...c, isDemoCandidate: true }));
     const allCandidates = isValidMongoId(id)
-        ? realCandidates
-        : [...mocks, ...realCandidates];
+        ? [...realCandidates, ...taggedMocks]   // real job: real candidates + demo placeholders
+        : [...taggedMocks, ...realCandidates];  // demo job: mocks first
+
 
 
     const handleEditJob = async (values) => {
