@@ -62,9 +62,10 @@ const CandidateTable = ({ candidates, onStageUpdate, onDelete, onEdit }) => {
             title: 'Name',
             dataIndex: 'name',
             key: 'name',
+            width: 140,
             render: (text, record) => (
                 <Space>
-                    <Text strong>{text}</Text>
+                    <Text strong style={{ whiteSpace: 'nowrap' }}>{text}</Text>
                     {record.stage === 'Selected' && <CheckCircleFilled style={{ color: token.colorSuccess }} />}
                 </Space>
             )
@@ -73,22 +74,27 @@ const CandidateTable = ({ candidates, onStageUpdate, onDelete, onEdit }) => {
             title: 'Email',
             dataIndex: 'email',
             key: 'email',
-            render: text => <Text type="secondary">{text}</Text>
+            width: 180,
+            render: text => <Text type="secondary" style={{ whiteSpace: 'nowrap', fontSize: 12 }}>{text}</Text>
         },
         {
-            title: 'Experience',
+            title: 'Exp',
             dataIndex: 'experience',
             key: 'experience',
+            width: 70,
+            render: text => <Text style={{ whiteSpace: 'nowrap' }}>{text}</Text>
         },
         {
             title: 'Skills',
             dataIndex: 'skills',
             key: 'skills',
+            width: 160,
             render: skills => (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                    {(skills || []).map(skill => (
-                        <Tag key={skill} bordered={false} style={{ fontSize: 10, borderRadius: 4 }}>{skill}</Tag>
+                    {(skills || []).slice(0, 3).map(skill => (
+                        <Tag key={skill} bordered={false} style={{ fontSize: 10, borderRadius: 4, margin: 0 }}>{skill}</Tag>
                     ))}
+                    {(skills || []).length > 3 && <Tag bordered={false} style={{ fontSize: 10, borderRadius: 4, margin: 0 }}>+{skills.length - 3}</Tag>}
                 </div>
             )
         },
@@ -96,12 +102,15 @@ const CandidateTable = ({ candidates, onStageUpdate, onDelete, onEdit }) => {
             title: 'Target Role',
             dataIndex: 'targetRole',
             key: 'targetRole',
-            render: (role) => <Tag color="geekblue" style={{ borderRadius: 6, fontWeight: 600 }}>{role || 'Software Engineer'}</Tag>
+            width: 160,
+            render: (role) => <Tag color="geekblue" style={{ borderRadius: 6, fontWeight: 600, whiteSpace: 'nowrap' }}>{role || 'Software Engineer'}</Tag>
         },
         {
             title: 'ATS Score',
             dataIndex: 'atsScore',
             key: 'atsScore',
+            width: 100,
+            align: 'center',
             render: (score) => {
                 if (!score) {
                     return <Tag style={{ borderRadius: 8, fontSize: 11, color: '#8c8c8c', borderColor: '#d9d9d9' }}>Pending</Tag>;
@@ -109,7 +118,7 @@ const CandidateTable = ({ candidates, onStageUpdate, onDelete, onEdit }) => {
                 const color = score >= 80 ? '#10b981' : score >= 65 ? '#f59e0b' : '#ef4444';
                 return (
                     <Tag style={{ background: `${color}15`, color: color, borderColor: color, borderRadius: 8, fontWeight: 700, padding: '2px 8px' }}>
-                        ⚡ {score}% ATS
+                        ⚡ {score}%
                     </Tag>
                 );
             }
@@ -118,11 +127,12 @@ const CandidateTable = ({ candidates, onStageUpdate, onDelete, onEdit }) => {
             title: 'Stage',
             dataIndex: 'stage',
             key: 'stage',
+            width: 160,
             render: (stage, record) => (
                 <Select
                     value={stage}
                     onChange={(value) => onStageUpdate(record._id, value)}
-                    style={{ width: 150 }}
+                    style={{ width: 145 }}
                     size="small"
                 >
                     {STAGES.map(s => (
@@ -132,37 +142,28 @@ const CandidateTable = ({ candidates, onStageUpdate, onDelete, onEdit }) => {
             )
         },
         {
-            title: 'Status',
-            key: 'status',
-            render: (_, record) => (
-                record.stage === 'Selected' ? (
-                    <Tag color="success" style={{ borderRadius: 6, fontWeight: 700 }}>HIRED</Tag>
-                ) : (
-                    <Tag color={getStageColor(record.stage)} bordered={false}>{record.stage.toUpperCase()}</Tag>
-                )
-            )
-        },
-        {
             title: 'Resume',
             key: 'resume',
+            width: 90,
             render: (_, record) => {
                 const url = record.resumeUrl;
                 const isRealUrl = url && url.startsWith('https://') && url !== 'https://drive.google.com' && url !== 'N/A' && url !== '#';
                 return isRealUrl ? (
-                    <Button type="link" icon={<FileTextOutlined />} size="small" href={url} target="_blank" rel="noopener noreferrer">
-                        PDF Resume
+                    <Button type="link" icon={<FileTextOutlined />} size="small" href={url} target="_blank" rel="noopener noreferrer" style={{ padding: 0 }}>
+                        PDF
                     </Button>
                 ) : (
-                    <Text type="secondary" style={{ fontSize: 12 }}>No PDF</Text>
+                    <Text type="secondary" style={{ fontSize: 11 }}>—</Text>
                 );
             }
         },
         {
             title: 'Actions',
             key: 'actions',
-            align: 'right',
+            width: 80,
+            align: 'center',
             render: (_, record) => (
-                <Space size="small">
+                <Space size={4}>
                     <Button
                         type="text"
                         icon={<EditOutlined />}
@@ -198,6 +199,8 @@ const CandidateTable = ({ candidates, onStageUpdate, onDelete, onEdit }) => {
                 rowKey="_id"
                 pagination={false}
                 className="custom-recruitment-table"
+                scroll={{ x: 1000 }}
+                size="small"
                 rowClassName={(record) => record.stage === 'Selected' ? 'hired-row' : ''}
                 style={{ marginTop: 20 }}
                 onRow={(record) => ({
