@@ -10,9 +10,7 @@ const RecruitmentKanban = ({ candidates, onStageUpdate, jobStatus }) => {
     const ALL_STAGES = ['Applied', 'Screening', 'Technical Round', 'HR Interview', 'Selected', 'Rejected'];
 
     // Visibility Rules
-    const visibleStages = jobStatus === 'CLOSED'
-        ? ['Selected', 'Rejected']
-        : ALL_STAGES;
+    const visibleStages = ALL_STAGES;
 
     const getColumnColor = (stage) => {
         switch (stage) {

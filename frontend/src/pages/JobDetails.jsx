@@ -375,12 +375,7 @@ const JobDetails = () => {
         { label: 'HR Interview', stage: 'HR Interview', color: '#fadb14' },
         { label: 'Selected', stage: 'Selected', color: '#52c41a' },
         { label: 'Rejected', stage: 'Rejected', color: '#f5222d' }
-    ].filter(stat => {
-        if (jobStatus === 'CLOSED') {
-            return ['Selected', 'Rejected', 'ALL'].includes(stat.stage);
-        }
-        return true;
-    });
+    ];
 
     const activeStats = statsConfig.map(stat => {
         const count = stat.stage === 'ALL'
