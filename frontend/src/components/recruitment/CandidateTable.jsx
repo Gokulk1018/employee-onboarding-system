@@ -57,6 +57,26 @@ const CandidateTable = ({ candidates, onStageUpdate }) => {
             )
         },
         {
+            title: 'Target Role',
+            dataIndex: 'targetRole',
+            key: 'targetRole',
+            render: (role) => <Tag color="geekblue" style={{ borderRadius: 6, fontWeight: 600 }}>{role || 'Software Engineer'}</Tag>
+        },
+        {
+            title: 'ATS Score',
+            dataIndex: 'atsScore',
+            key: 'atsScore',
+            render: (score) => {
+                const val = score || 75;
+                const color = val >= 80 ? '#10b981' : val >= 65 ? '#f59e0b' : '#ef4444';
+                return (
+                    <Tag style={{ background: `${color}15`, color: color, borderColor: color, borderRadius: 8, fontWeight: 700, padding: '2px 8px' }}>
+                        ⚡ {val}% ATS
+                    </Tag>
+                );
+            }
+        },
+        {
             title: 'Stage',
             dataIndex: 'stage',
             key: 'stage',
@@ -87,8 +107,14 @@ const CandidateTable = ({ candidates, onStageUpdate }) => {
         {
             title: 'Resume',
             key: 'resume',
-            render: () => (
-                <Button type="link" icon={<FileTextOutlined />} size="small">Link</Button>
+            render: (_, record) => (
+                record.resumeUrl && record.resumeUrl !== 'N/A' ? (
+                    <Button type="link" icon={<FileTextOutlined />} size="small" href={record.resumeUrl} target="_blank" rel="noopener noreferrer">
+                        PDF Resume
+                    </Button>
+                ) : (
+                    <Text type="secondary" style={{ fontSize: 12 }}>No PDF</Text>
+                )
             )
         }
     ];
