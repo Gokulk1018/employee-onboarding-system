@@ -13,7 +13,7 @@ const analyzeCandidateATS = async (targetRole, resumeText = '', candidateSkills 
     if (apiKey && apiKey !== 'your_gemini_api_key') {
         try {
             const genAI = new GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+            const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
 
             const prompt = `You are an enterprise-grade Applicant Tracking System (ATS), Senior Talent Acquisition Specialist, and Executive Technical Auditor. Analyze the candidate resume against the targeted job role and return strict JSON.
 
