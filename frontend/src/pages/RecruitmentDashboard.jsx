@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Row, Col, Input, Button, Space, Badge, theme, App, Statistic, Card, Select } from 'antd';
+import { Typography, Row, Col, Input, Button, Space, Badge, theme, App, Statistic, Card, Select, Popconfirm } from 'antd';
 import {
     PlusOutlined,
     SearchOutlined,
@@ -7,7 +7,8 @@ import {
     UnorderedListOutlined,
     UserOutlined,
     CheckCircleOutlined,
-    ProjectOutlined
+    ProjectOutlined,
+    DeleteOutlined
 } from '@ant-design/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
@@ -79,6 +80,16 @@ const RecruitmentDashboard = () => {
         };
         fetchFormCandidates();
     }, []);
+
+    const handleDeleteCandidate = async (id) => {
+        try {
+            await api.delete(`/candidates/${id}`);
+            setFormCandidates(prev => prev.filter(c => c._id !== id));
+            message.success('Candidate deleted successfully');
+        } catch (err) {
+            message.error('Failed to delete candidate');
+        }
+    };
 
     const filteredJobs = jobs.filter(job => {
         const matchesSearch = job.jobTitle.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -222,7 +233,7 @@ const RecruitmentDashboard = () => {
                                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                     <thead>
                                         <tr style={{ borderBottom: `1px solid ${token.colorBorderSecondary}` }}>
-                                            {['Candidate', 'Email', 'Target Role', '⚡ ATS Score', 'Recommendation', 'Experience', 'Resume'].map(h => (
+                                            {['Candidate', 'Email', 'Target Role', '⚡ ATS Score', 'Recommendation', 'Experience', 'Resume', 'Action'].map(h => (
                                                 <th key={h} style={{
                                                     padding: '12px 16px',
                                                     fontSize: 12,
@@ -279,6 +290,24 @@ const RecruitmentDashboard = () => {
                                                         ) : (
                                                             <span style={{ color: token.colorTextTertiary, fontSize: 12 }}>—</span>
                                                         )}
+                                                    </td>
+                                                    <td style={{ padding: '14px 16px' }}>
+                                                        <Popconfirm
+                                                            title="Delete Candidate?"
+                                                            description="This action cannot be undone."
+                                                            onConfirm={() => handleDeleteCandidate(c._id)}
+                                                            okText="Yes, Delete"
+                                                            cancelText="Cancel"
+                                                            okButtonProps={{ danger: true }}
+                                                        >
+                                                            <Button
+                                                                danger
+                                                                type="text"
+                                                                icon={<DeleteOutlined />}
+                                                                size="small"
+                                                                style={{ color: '#ef4444' }}
+                                                            />
+                                                        </Popconfirm>
                                                     </td>
                                                 </tr>
                                             );

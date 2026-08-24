@@ -230,3 +230,18 @@ exports.analyzeCandidateResume = async (req, res) => {
     }
 };
 
+
+// @desc    Delete a candidate
+// @route   DELETE /api/candidates/:id
+// @access  Private/Admin
+exports.deleteCandidate = async (req, res) => {
+    try {
+        const candidate = await Candidate.findByIdAndDelete(req.params.id);
+        if (!candidate) {
+            return res.status(404).json({ success: false, message: 'Candidate not found' });
+        }
+        res.status(200).json({ success: true, message: 'Candidate deleted successfully' });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
