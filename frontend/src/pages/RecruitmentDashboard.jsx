@@ -91,6 +91,16 @@ const RecruitmentDashboard = () => {
         }
     };
 
+    const handleDeleteJob = async (id) => {
+        try {
+            await api.delete(`/jobs/${id}`);
+            setJobs(prev => prev.filter(j => j._id !== id));
+            message.success('Job deleted successfully');
+        } catch (err) {
+            message.error(err.response?.data?.message || 'Failed to delete job');
+        }
+    };
+
     const filteredJobs = jobs.filter(job => {
         const matchesSearch = job.jobTitle.toLowerCase().includes(searchText.toLowerCase()) ||
             job.department.toLowerCase().includes(searchText.toLowerCase());
@@ -192,7 +202,7 @@ const RecruitmentDashboard = () => {
 
                 <AnimatePresence mode="wait">
                     <motion.div key={filterStatus + searchText} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-                        <JobList jobs={filteredJobs} viewType={viewType} onJobClick={(id) => navigate(`/recruitment/jobs/${id}`)} />
+                        <JobList jobs={filteredJobs} viewType={viewType} onJobClick={(id) => navigate(`/recruitment/jobs/${id}`)} onDeleteJob={handleDeleteJob} />
                     </motion.div>
                 </AnimatePresence>
 

@@ -1,12 +1,12 @@
 import React from 'react';
-import { Card, Typography, Tag, Space, Button, theme, Badge } from 'antd';
-import { EnvironmentOutlined, ClockCircleOutlined, UserOutlined, DollarOutlined, ArrowRightOutlined } from '@ant-design/icons';
+import { Card, Typography, Tag, Space, Button, theme, Badge, Popconfirm } from 'antd';
+import { EnvironmentOutlined, ClockCircleOutlined, UserOutlined, DollarOutlined, ArrowRightOutlined, DeleteOutlined } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
 
-const JobCard = ({ job, onClick }) => {
+const JobCard = ({ job, onClick, onDeleteJob }) => {
     const { token } = theme.useToken();
 
     // Logic for dynamic status
@@ -48,14 +48,39 @@ const JobCard = ({ job, onClick }) => {
                     >
                         {job.department}
                     </Tag>
-                    <Badge
-                        status={status === 'OPEN' ? 'processing' : 'default'}
-                        text={
-                            <Text strong style={{ color: statusColor, fontSize: 11, textTransform: 'uppercase' }}>
-                                {status}
-                            </Text>
-                        }
-                    />
+                    <Space size="middle" align="center">
+                        <Badge
+                            status={status === 'OPEN' ? 'processing' : 'default'}
+                            text={
+                                <Text strong style={{ color: statusColor, fontSize: 11, textTransform: 'uppercase' }}>
+                                    {status}
+                                </Text>
+                            }
+                        />
+                        {onDeleteJob && (
+                            <Popconfirm
+                                title="Delete Job?"
+                                description="This will also delete applied candidates."
+                                onConfirm={(e) => {
+                                    e.stopPropagation();
+                                    onDeleteJob(job._id);
+                                }}
+                                onCancel={(e) => e.stopPropagation()}
+                                okText="Yes"
+                                cancelText="No"
+                                okButtonProps={{ danger: true }}
+                            >
+                                <Button
+                                    danger
+                                    type="text"
+                                    icon={<DeleteOutlined />}
+                                    size="small"
+                                    onClick={(e) => e.stopPropagation()}
+                                    style={{ color: '#ef4444', padding: 0 }}
+                                />
+                            </Popconfirm>
+                        )}
+                    </Space>
                 </div>
 
                 <Title level={4} style={{ margin: '0 0 12px 0', fontSize: 20 }}>{job.jobTitle}</Title>

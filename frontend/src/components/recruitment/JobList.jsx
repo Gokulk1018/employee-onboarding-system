@@ -1,12 +1,12 @@
 import React from 'react';
-import { Row, Col, Table, Tag, Button, theme, Typography } from 'antd';
-import { EyeOutlined } from '@ant-design/icons';
+import { Row, Col, Table, Tag, Button, theme, Typography, Popconfirm, Space } from 'antd';
+import { EyeOutlined, DeleteOutlined } from '@ant-design/icons';
 import JobCard from './JobCard';
 import dayjs from 'dayjs';
 
 const { Text } = Typography;
 
-const JobList = ({ jobs, onJobClick, viewType = 'grid' }) => {
+const JobList = ({ jobs, onJobClick, onDeleteJob, viewType = 'grid' }) => {
     const { token } = theme.useToken();
 
     const columns = [
@@ -68,15 +68,33 @@ const JobList = ({ jobs, onJobClick, viewType = 'grid' }) => {
             key: 'action',
             align: 'right',
             render: (_, record) => (
-                <Button
-                    type="primary"
-                    icon={<EyeOutlined />}
-                    size="small"
-                    onClick={() => onJobClick(record._id)}
-                    style={{ borderRadius: 6 }}
-                >
-                    View
-                </Button>
+                <Space size="small">
+                    <Button
+                        type="primary"
+                        icon={<EyeOutlined />}
+                        size="small"
+                        onClick={() => onJobClick(record._id)}
+                        style={{ borderRadius: 6 }}
+                    >
+                        View
+                    </Button>
+                    <Popconfirm
+                        title="Delete Job?"
+                        description="This will also delete all applied candidates."
+                        onConfirm={() => onDeleteJob(record._id)}
+                        okText="Yes, Delete"
+                        cancelText="Cancel"
+                        okButtonProps={{ danger: true }}
+                    >
+                        <Button
+                            danger
+                            type="text"
+                            icon={<DeleteOutlined />}
+                            size="small"
+                            style={{ color: '#ef4444' }}
+                        />
+                    </Popconfirm>
+                </Space>
             )
         }
     ];
@@ -102,6 +120,7 @@ const JobList = ({ jobs, onJobClick, viewType = 'grid' }) => {
                     <JobCard
                         job={job}
                         onClick={() => onJobClick(job._id)}
+                        onDeleteJob={onDeleteJob}
                     />
                 </Col>
             ))}

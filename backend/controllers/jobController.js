@@ -146,3 +146,30 @@ exports.updateJob = async (req, res) => {
         });
     }
 };
+
+// @desc    Delete job
+// @route   DELETE /api/jobs/:id
+// @access  Private/Admin
+exports.deleteJob = async (req, res) => {
+    try {
+        const job = await Job.findByIdAndDelete(req.params.id);
+        if (!job) {
+            return res.status(404).json({
+                success: false,
+                message: 'Job not found'
+            });
+        }
+        // Delete all candidates associated with this job
+        await Candidate.deleteMany({ jobId: req.params.id });
+
+        res.status(200).json({
+            success: true,
+            message: 'Job and candidate applications deleted successfully'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server Error'
+        });
+    }
+};

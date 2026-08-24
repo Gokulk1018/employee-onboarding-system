@@ -429,7 +429,7 @@ const Onboarding = () => {
                     cancelText: 'No',
                     async onOk() {
                         try {
-                            await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/offers/${record.id}`);
+                            await api.delete(`/offers/${record.id}`);
                             message.success('Offer deleted successfully');
                             fetchOffers();
                         } catch (error) {
