@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Typography, Tag, Space, Button, theme, Badge, Popconfirm } from 'antd';
-import { EnvironmentOutlined, ClockCircleOutlined, UserOutlined, DollarOutlined, ArrowRightOutlined, DeleteOutlined } from '@ant-design/icons';
+import { EnvironmentOutlined, ClockCircleOutlined, UserOutlined, DollarOutlined, ArrowRightOutlined, DeleteOutlined, LinkOutlined } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import dayjs from 'dayjs';
 
@@ -128,22 +128,42 @@ const JobCard = ({ job, onClick, onDeleteJob }) => {
                     </div>
                 </Space>
 
-                <Button
-                    type="primary"
-                    block
-                    icon={<ArrowRightOutlined />}
-                    onClick={onClick}
-                    style={{
-                        borderRadius: 12,
-                        height: 44,
-                        fontWeight: 600,
-                        background: token.colorPrimary,
-                        border: 'none',
-                        marginTop: 'auto'
-                    }}
-                >
-                    View Details
-                </Button>
+                <Space direction="vertical" style={{ width: '100%', marginTop: 'auto' }} size={8}>
+                    {job.googleFormUrl && (
+                        <Button
+                            block
+                            icon={<LinkOutlined />}
+                            href={job.googleFormUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                                borderRadius: 12,
+                                height: 40,
+                                fontWeight: 600,
+                                background: 'linear-gradient(135deg, #10b981, #059669)',
+                                border: 'none',
+                                color: '#fff'
+                            }}
+                        >
+                            Apply Now (Google Form)
+                        </Button>
+                    )}
+                    <Button
+                        type="primary"
+                        block
+                        icon={<ArrowRightOutlined />}
+                        onClick={onClick}
+                        style={{
+                            borderRadius: 12,
+                            height: 44,
+                            fontWeight: 600,
+                            background: token.colorPrimary,
+                            border: 'none'
+                        }}
+                    >
+                        View Details
+                    </Button>
+                </Space>
             </Card>
         </motion.div>
     );

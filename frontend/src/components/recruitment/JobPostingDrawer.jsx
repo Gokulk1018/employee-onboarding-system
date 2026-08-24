@@ -1,6 +1,9 @@
 import React from 'react';
-import { Drawer, Form, Input, DatePicker, Select, Button, Space, theme, Row, Col, App } from 'antd';
-import dayjs from 'dayjs';
+import { Drawer, Form, Input, DatePicker, Select, Button, Space, theme, Row, Col, App, Typography } from 'antd';
+import { LinkOutlined } from '@ant-design/icons';
+import api from '../../services/api';
+
+const { Text } = Typography;
 
 const JobPostingDrawer = ({ open, onClose, onSuccess }) => {
     const { token } = theme.useToken();
@@ -13,19 +16,14 @@ const JobPostingDrawer = ({ open, onClose, onSuccess }) => {
             .then(async values => {
                 setLoading(true);
                 try {
-                    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/jobs`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            ...values,
-                            applicationDeadline: values.applicationDeadline.toISOString(),
-                            skills: values.skills || []
-                        }),
+                    const response = await api.post('/jobs', {
+                        ...values,
+                        applicationDeadline: values.applicationDeadline.toISOString(),
+                        skills: values.skills || [],
+                        googleFormUrl: values.googleFormUrl || ''
                     });
 
-                    const data = await response.json();
+                    const data = response.data;
 
                     if (data.success) {
                         message.success('Job posted successfully');
@@ -193,6 +191,36 @@ const JobPostingDrawer = ({ open, onClose, onSuccess }) => {
                         </Form.Item>
                     </Col>
                 </Row>
+
+                {/* ── Google Form Application Link ── */}
+                <Form.Item
+                    name="googleFormUrl"
+                    label={
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <LinkOutlined style={{ color: token.colorPrimary }} />
+                            Google Form Application Link
+                            <Text type="secondary" style={{ fontSize: 12, fontWeight: 400 }}>(optional)</Text>
+                        </span>
+                    }
+                    rules={[
+                        {
+                            type: 'url',
+                            message: 'Please enter a valid URL (e.g. https://forms.gle/...)'
+                        }
+                    ]}
+                    extra={
+                        <Text type="secondary" style={{ fontSize: 12 }}>
+                            Paste your Google Form link here — candidates will see an "Apply Now" button on the job card.
+                        </Text>
+                    }
+                >
+                    <Input
+                        size="large"
+                        prefix={<LinkOutlined style={{ color: token.colorTextTertiary }} />}
+                        placeholder="https://forms.gle/your-form-link"
+                        style={{ borderRadius: 10 }}
+                    />
+                </Form.Item>
             </Form>
         </Drawer>
     );

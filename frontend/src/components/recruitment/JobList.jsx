@@ -10,45 +10,11 @@ const JobList = ({ jobs, onJobClick, onDeleteJob, viewType = 'grid' }) => {
     const { token } = theme.useToken();
 
     const columns = [
-        // ... (columns unchanged) ...
-    ];
-
-    if (viewType === 'list') {
-        return (
-            <div className="glass-card" style={{ borderRadius: 16, overflow: 'auto' }}>
-                <Table
-                    dataSource={jobs}
-                    columns={columns}
-                    rowKey="_id"
-                    pagination={false}
-                    className="custom-table"
-                    scroll={{ x: 1200 }}
-                />
-            </div>
-        );
-    }
-
-    // Grid view – use responsive Ant Design grid breakpoints
-    return (
-        <Row gutter={[24, 24]}>
-            {jobs.map(job => (
-                <Col xs={24} sm={12} md={8} lg={6} xl={4} key={job._id}>
-                    <JobCard
-                        job={job}
-                        onClick={() => onJobClick(job._id)}
-                        onDeleteJob={onDeleteJob}
-                    />
-                </Col>
-            ))}
-        </Row>
-    );
-};
-
-export default JobList;
+        {
             title: 'Job Title',
             dataIndex: 'jobTitle',
             key: 'jobTitle',
-            render: (text, record) => <Text strong style={{ fontSize: 14 }}>{text}</Text>
+            render: (text) => <Text strong style={{ fontSize: 14 }}>{text}</Text>
         },
         {
             title: 'Department',
@@ -98,6 +64,25 @@ export default JobList;
             }
         },
         {
+            title: 'Apply',
+            key: 'apply',
+            render: (_, record) =>
+                record.googleFormUrl ? (
+                    <Button
+                        type="link"
+                        size="small"
+                        href={record.googleFormUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: '#10b981', fontWeight: 600, padding: 0 }}
+                    >
+                        Form ↗
+                    </Button>
+                ) : (
+                    <Text type="secondary" style={{ fontSize: 12 }}>—</Text>
+                )
+        },
+        {
             title: 'Action',
             key: 'action',
             align: 'right',
@@ -135,22 +120,24 @@ export default JobList;
 
     if (viewType === 'list') {
         return (
-            <div className="glass-card" style={{ borderRadius: 16, overflow: 'hidden' }}>
+            <div className="glass-card" style={{ borderRadius: 16, overflow: 'auto' }}>
                 <Table
                     dataSource={jobs}
                     columns={columns}
                     rowKey="_id"
                     pagination={false}
                     className="custom-table"
+                    scroll={{ x: 1200 }}
                 />
             </div>
         );
     }
 
+    // Grid view – responsive Ant Design grid breakpoints
     return (
         <Row gutter={[24, 24]}>
             {jobs.map(job => (
-                <Col xs={24} md={12} lg={8} xl={6} key={job._id}>
+                <Col xs={24} sm={12} md={8} lg={6} key={job._id}>
                     <JobCard
                         job={job}
                         onClick={() => onJobClick(job._id)}

@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
-import { Modal, Form, Input, Select, DatePicker, InputNumber, Space, Button, App } from 'antd';
+import { Modal, Form, Input, Select, DatePicker, InputNumber, Space, Button, App, Typography } from 'antd';
+import { LinkOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import axios from 'axios';
+import api from '../../services/api';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -25,15 +26,11 @@ const EditJobModal = ({ open, onClose, job, onSuccess }) => {
             const payload = {
                 ...values,
                 applicationDeadline: values.applicationDeadline.toISOString(),
-                skills: typeof values.skills === 'string' ? values.skills.split(',').map(s => s.trim()) : values.skills
+                skills: typeof values.skills === 'string' ? values.skills.split(',').map(s => s.trim()) : values.skills,
+                googleFormUrl: values.googleFormUrl || ''
             };
 
-            const userId = localStorage.getItem('userId');
-            const response = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/jobs/${job._id}`, payload, {
-                headers: {
-                    'x-user-id': userId
-                }
-            });
+            const response = await api.put(`/jobs/${job._id}`, payload);
 
             if (response.data.success) {
                 message.success('Job updated successfully');
@@ -166,6 +163,24 @@ const EditJobModal = ({ open, onClose, job, onSuccess }) => {
                         <Option value="OPEN">OPEN</Option>
                         <Option value="CLOSED">CLOSED</Option>
                     </Select>
+                </Form.Item>
+
+                {/* Google Form URL */}
+                <Form.Item
+                    name="googleFormUrl"
+                    label={
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <LinkOutlined />
+                            Google Form Application Link
+                            <Typography.Text type="secondary" style={{ fontSize: 12, fontWeight: 400 }}>(optional)</Typography.Text>
+                        </span>
+                    }
+                    rules={[{ type: 'url', message: 'Please enter a valid URL (e.g. https://forms.gle/...)' }]}
+                >
+                    <Input
+                        prefix={<LinkOutlined />}
+                        placeholder="https://forms.gle/your-form-link"
+                    />
                 </Form.Item>
             </Form>
         </Modal>

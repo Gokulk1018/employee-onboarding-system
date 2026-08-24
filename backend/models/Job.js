@@ -51,6 +51,11 @@ const jobSchema = new mongoose.Schema({
         type: Date,
         required: [true, 'Application deadline is required']
     },
+    googleFormUrl: {
+        type: String,
+        trim: true,
+        default: ''
+    },
     status: {
         type: String,
         required: true,
