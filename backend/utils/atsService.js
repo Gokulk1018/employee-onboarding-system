@@ -1,13 +1,73 @@
 /**
- * Enterprise ATS Candidate Evaluation Engine
+ * Enterprise ATS Candidate Evaluation Engine using Google Gemini AI API
  */
+
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const analyzeCandidateATS = async (targetRole, resumeText = '', candidateSkills = [], candidateExp = '') => {
     const role = (targetRole || 'Software Engineer').trim();
     const skillsArray = Array.isArray(candidateSkills) ? candidateSkills : (candidateSkills ? [candidateSkills] : []);
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    // 1. Try Google Gemini AI API if GEMINI_API_KEY is configured
+    if (apiKey && apiKey !== 'your_gemini_api_key') {
+        try {
+            const genAI = new GoogleGenerativeAI(apiKey);
+            const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+            const prompt = `You are an enterprise-grade Applicant Tracking System (ATS), Senior Talent Acquisition Specialist, and Executive Technical Auditor. Analyze the candidate resume against the targeted job role and return strict JSON.
+
+Input Data:
+• Target Role: ${role}
+• Candidate Skills: ${skillsArray.join(', ')}
+• Experience: ${candidateExp}
+• Candidate Resume:
+"""
+${resumeText || 'No resume text provided. Candidate skills: ' + skillsArray.join(', ')}
+"""
+
+Constraint Directives:
+• Return ONLY valid JSON format.
+• Do NOT wrap the JSON inside markdown code blocks (e.g. no \`\`\`json wrappers).
+• Do NOT output any introductory text or closing commentary.
+
+Strict JSON Response Schema:
+{
+  "targetRole": "${role}",
+  "atsScore": 85,
+  "hiringRecommendation": "Strong Shortlist",
+  "hrBrief": "2-3 sentence executive summary for HR directors...",
+  "skillsAnalysis": {
+    "matchingSkills": ["Skill1", "Skill2"],
+    "missingCriticalSkills": ["Skill1", "Skill2"],
+    "bonusSkills": ["Skill1"]
+  },
+  "evaluationBreakdown": {
+    "technicalFitScore": 85,
+    "experienceDepthScore": 80,
+    "impactMetricsScore": 90,
+    "formattingClarityScore": 85
+  },
+  "auditInsights": {
+    "topStrengths": ["Strength 1", "Strength 2"],
+    "redFlagsOrGaps": ["Gap 1"]
+  }
+}`;
+
+            const result = await model.generateContent(prompt);
+            const textResponse = result.response.text().trim().replace(/^```json/i, '').replace(/```$/i, '').trim();
+            const parsed = JSON.parse(textResponse);
+            if (parsed && typeof parsed.atsScore === 'number') {
+                return parsed;
+            }
+        } catch (err) {
+            console.error('Gemini AI API Error, using fallback engine:', err.message);
+        }
+    }
+
+    // 2. Heuristic ATS Scoring Engine (Fallback when Gemini API Key is not set)
     const fullText = `${resumeText} ${skillsArray.join(' ')} ${candidateExp}`.toLowerCase();
 
-    // Standard skill matrices by target role domain
     const roleSkillDatabase = {
         'frontend': ['react', 'javascript', 'typescript', 'css', 'html', 'tailwind', 'redux', 'next.js', 'vue', 'webpack', 'vite'],
         'backend': ['node.js', 'express', 'mongodb', 'sql', 'postgresql', 'rest api', 'graphql', 'python', 'docker', 'aws'],
@@ -16,7 +76,6 @@ const analyzeCandidateATS = async (targetRole, resumeText = '', candidateSkills 
         'hr': ['recruitment', 'onboarding', 'payroll', 'employee engagement', 'sourcing', 'ats', 'interviews', 'compliance']
     };
 
-    // Find closest matching domain keywords
     let targetKeywords = roleSkillDatabase['full stack'];
     const roleLower = role.toLowerCase();
     for (const [key, keywords] of Object.entries(roleSkillDatabase)) {
@@ -26,7 +85,6 @@ const analyzeCandidateATS = async (targetRole, resumeText = '', candidateSkills 
         }
     }
 
-    // Match skills against resume text
     const matchingSkills = [];
     const missingCriticalSkills = [];
 
@@ -38,7 +96,6 @@ const analyzeCandidateATS = async (targetRole, resumeText = '', candidateSkills 
         }
     });
 
-    // Experience calculation
     const expNumbers = fullText.match(/\b\d+\+?\s*(years?|yrs?)\b/gi) || [];
     let estYears = 3;
     if (expNumbers.length > 0) {
@@ -46,13 +103,11 @@ const analyzeCandidateATS = async (targetRole, resumeText = '', candidateSkills 
         if (!isNaN(parsed)) estYears = parsed;
     }
 
-    // Calculate sub-scores
     const techScore = Math.min(98, Math.max(50, Math.round((matchingSkills.length / Math.max(1, targetKeywords.length)) * 100)));
     const expScore = Math.min(95, Math.max(55, estYears * 18));
     const impactScore = (fullText.includes('%') || fullText.includes('increased') || fullText.includes('reduced') || fullText.includes('led')) ? 88 : 65;
     const formattingScore = resumeText.length > 50 ? 92 : 75;
 
-    // Weighted total ATS Score (Technical 40%, Experience 30%, Impact 20%, Formatting 10%)
     const atsScore = Math.round((techScore * 0.40) + (expScore * 0.30) + (impactScore * 0.20) + (formattingScore * 0.10));
 
     let hiringRecommendation = 'Hold / Reserve';
