@@ -36,7 +36,42 @@ const candidateSchema = new mongoose.Schema({
     jobId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Job',
-        required: true
+        required: false
+    },
+    targetRole: {
+        type: String,
+        default: 'Software Engineer'
+    },
+    resumeText: {
+        type: String,
+        default: ''
+    },
+    atsScore: {
+        type: Number,
+        default: 0
+    },
+    hiringRecommendation: {
+        type: String,
+        default: 'Pending Evaluation'
+    },
+    hrBrief: {
+        type: String,
+        default: ''
+    },
+    skillsAnalysis: {
+        matchingSkills: [String],
+        missingCriticalSkills: [String],
+        bonusSkills: [String]
+    },
+    evaluationBreakdown: {
+        technicalFitScore: Number,
+        experienceDepthScore: Number,
+        impactMetricsScore: Number,
+        formattingClarityScore: Number
+    },
+    auditInsights: {
+        topStrengths: [String],
+        redFlagsOrGaps: [String]
     },
     status: {
         type: String,

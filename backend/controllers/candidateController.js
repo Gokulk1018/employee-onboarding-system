@@ -120,7 +120,7 @@ exports.hireCandidate = async (req, res) => {
         await candidate.save();
 
         // Create Employee record
-        const job = await Job.findById(candidate.jobId);
+        const job = candidate.jobId ? await Job.findById(candidate.jobId) : null;
 
         // Generate a simple employee ID (e.g., EMP + random string or sequence)
         const employeeId = 'EMP' + Math.random().toString(36).substr(2, 6).toUpperCase();
@@ -130,8 +130,8 @@ exports.hireCandidate = async (req, res) => {
             fullName: candidate.name,
             email: candidate.email,
             phone: candidate.phone,
-            department: job ? job.department : 'Unassigned',
-            role: job ? job.jobTitle : 'Employee',
+            department: job ? job.department : 'Engineering',
+            role: candidate.targetRole || (job ? job.jobTitle : 'Employee'),
             status: 'Onboarding',
             joinDate: new Date()
         });
@@ -149,3 +149,84 @@ exports.hireCandidate = async (req, res) => {
         });
     }
 };
+
+const { analyzeCandidateATS } = require('../utils/atsService');
+
+// @desc    Google Form Webhook for Candidate Applications & Auto ATS Scoring
+// @route   POST /api/candidates/webhook
+// @access  Public
+exports.handleGoogleFormWebhook = async (req, res) => {
+    try {
+        const { name, email, phone, targetRole, resumeText, resumeUrl, skills, experience } = req.body;
+
+        if (!name || !email) {
+            return res.status(400).json({ success: false, message: 'Name and Email are required' });
+        }
+
+        const role = targetRole || 'Software Engineer';
+        const parsedSkills = Array.isArray(skills) ? skills : (skills ? skills.split(',').map(s => s.trim()) : []);
+
+        // Execute AI ATS Resume Evaluation Engine
+        const atsResult = await analyzeCandidateATS(role, resumeText || '', parsedSkills, experience || '');
+
+        const candidate = await Candidate.create({
+            name,
+            email,
+            phone: phone || 'N/A',
+            resumeUrl: resumeUrl || 'https://drive.google.com',
+            resumeText: resumeText || '',
+            targetRole: role,
+            skills: parsedSkills,
+            experience: experience || '3 Years',
+            stage: 'Applied',
+            atsScore: atsResult.atsScore,
+            hiringRecommendation: atsResult.hiringRecommendation,
+            hrBrief: atsResult.hrBrief,
+            skillsAnalysis: atsResult.skillsAnalysis,
+            evaluationBreakdown: atsResult.evaluationBreakdown,
+            auditInsights: atsResult.auditInsights
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'Application processed and ATS evaluated successfully',
+            data: candidate
+        });
+    } catch (error) {
+        console.error('Webhook Error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Trigger AI ATS Analysis for an existing Candidate
+// @route   POST /api/candidates/:id/analyze
+// @access  Private/Admin
+exports.analyzeCandidateResume = async (req, res) => {
+    try {
+        const candidate = await Candidate.findById(req.params.id);
+        if (!candidate) {
+            return res.status(404).json({ success: false, message: 'Candidate not found' });
+        }
+
+        const role = req.body.targetRole || candidate.targetRole || 'Software Engineer';
+        const atsResult = await analyzeCandidateATS(role, candidate.resumeText || '', candidate.skills, candidate.experience);
+
+        candidate.targetRole = role;
+        candidate.atsScore = atsResult.atsScore;
+        candidate.hiringRecommendation = atsResult.hiringRecommendation;
+        candidate.hrBrief = atsResult.hrBrief;
+        candidate.skillsAnalysis = atsResult.skillsAnalysis;
+        candidate.evaluationBreakdown = atsResult.evaluationBreakdown;
+        candidate.auditInsights = atsResult.auditInsights;
+
+        await candidate.save();
+
+        res.status(200).json({
+            success: true,
+            data: candidate
+        });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+
