@@ -219,7 +219,7 @@ const CandidateTable = ({ candidates, onStageUpdate, onDelete, onEdit }) => {
                     }
                 })}
             />
-            <style sx>{`
+            <style>{`
                 .hired-row td:first-child {
                     border-left: 4px solid ${token.colorSuccess} !important;
                 }

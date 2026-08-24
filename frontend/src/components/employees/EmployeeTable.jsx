@@ -74,7 +74,7 @@ const EmployeeTable = ({ data, loading, onDelete, onEdit, onView, onStatusChange
                         suffixIcon={null}
                         onChange={(value) => onStatusChange(record._id, value)}
                         style={{ width: 100 }}
-                        dropdownStyle={{ borderRadius: 12, padding: 4 }}
+                        styles={{ popup: { root: { borderRadius: 12, padding: 4 } } }}
                         popupMatchSelectWidth={false}
                     >
                         {['Active', 'On Leave', 'Inactive', 'Probation'].map(s => {
